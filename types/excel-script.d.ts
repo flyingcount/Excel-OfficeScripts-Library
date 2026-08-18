@@ -54,6 +54,7 @@ declare namespace ExcelScript {
 
   interface ConditionalFormat {
     getCustom(): CustomConditionalFormat;
+    setStopIfTrue(value: boolean): void;
   }
 
   interface CustomConditionalFormat {

@@ -1,14 +1,12 @@
 /**
  * Highlight Differences
  *
- * Applies conditional formatting to the selection. Values that match to 2
- * decimal places fill green (#97FFC6); otherwise red (#FFBDBD).
+ * Applies conditional formatting to the selection.
+ * Green (#97FFC6): ROUND(cell, 2) = 0
+ * Red (#FFBDBD): ROUND(top-row cell of that column, 2) <> 0
  *
- * Comparison:
- * - 2 columns: each row, left vs right
- * - 2 rows (and not 2 columns): each column, top vs bottom
- * - 1 column: each cell vs the first cell
- * - otherwise: each cell vs the first column of the same row
+ * For a selection whose top-left is Q11, the rules are
+ * =ROUND(Q11,2)=0 and =ROUND(Q$11,2)<>0.
  *
  * Automate → New Script → paste this file → Save → Run.
  */
@@ -16,44 +14,18 @@ function main(workbook: ExcelScript.Workbook): void {
   const range = workbook.getSelectedRange();
   range.clearAllConditionalFormats();
 
-  const equalFormula = equalToTwoDecimalsFormula(range);
-  const unequalFormula = "=NOT(" + equalFormula.substring(1) + ")";
+  const topLeft = a1(range.getCell(0, 0));
+  const greenFormula = "=ROUND(" + topLeft + ",2)=0";
+  const redFormula = "=ROUND(" + lockRow(topLeft) + ",2)<>0";
 
   const green = range.addConditionalFormat(ExcelScript.ConditionalFormatType.custom);
-  green.getCustom().getRule().setFormula(equalFormula);
+  green.getCustom().getRule().setFormula(greenFormula);
   green.getCustom().getFormat().getFill().setColor("#97FFC6");
+  green.setStopIfTrue(true);
 
   const red = range.addConditionalFormat(ExcelScript.ConditionalFormatType.custom);
-  red.getCustom().getRule().setFormula(unequalFormula);
+  red.getCustom().getRule().setFormula(redFormula);
   red.getCustom().getFormat().getFill().setColor("#FFBDBD");
-}
-
-function equalToTwoDecimalsFormula(range: ExcelScript.Range): string {
-  const rows = range.getRowCount();
-  const cols = range.getColumnCount();
-  const topLeft = a1(range.getCell(0, 0));
-
-  if (cols === 2) {
-    const left = lockColumn(topLeft);
-    const right = lockColumn(a1(range.getCell(0, 1)));
-    return roundEqualFormula(left, right);
-  }
-
-  if (rows === 2) {
-    const top = lockRow(topLeft);
-    const bottom = lockRow(a1(range.getCell(1, 0)));
-    return roundEqualFormula(top, bottom);
-  }
-
-  if (cols === 1) {
-    return roundEqualFormula(topLeft, lockRow(topLeft));
-  }
-
-  return roundEqualFormula(topLeft, lockColumn(topLeft));
-}
-
-function roundEqualFormula(a: string, b: string): string {
-  return "=AND(ISNUMBER(" + a + "),ISNUMBER(" + b + "),ROUND(" + a + ",2)=ROUND(" + b + ",2))";
 }
 
 function a1(range: ExcelScript.Range): string {
@@ -63,10 +35,6 @@ function a1(range: ExcelScript.Range): string {
     address = address.substring(bang + 1);
   }
   return address.split("$").join("");
-}
-
-function lockColumn(address: string): string {
-  return "$" + address;
 }
 
 function lockRow(address: string): string {

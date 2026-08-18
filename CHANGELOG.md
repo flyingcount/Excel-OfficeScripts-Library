@@ -12,4 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `PaulsFormat` (**Paul's format**) — apply a named custom number format to the selected range.
 - `FormatTable` (**Format Table**) — green sheet tab, gridlines, and TableStyleLight14 on the table at the active cell.
 - `TableOfContents` (**Table of contents**) — first-tab sheet with numbered hyperlinks to A1 of every other worksheet.
-- `HighlightDifferences` (**Highlight Differences**) — conditional formatting on the selection: green `#97FFC6` if values match to 2 decimal places, else red `#FFBDBD`.
+- `HighlightDifferences` (**Highlight Differences**) — conditional formatting on the selection: green `#97FFC6` if `ROUND(cell,2)=0`, else red `#FFBDBD` when `ROUND` of the top-row cell in that column is not 0.
+
+### Changed
+- Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.

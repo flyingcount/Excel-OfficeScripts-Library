@@ -4,32 +4,38 @@
 
 1. Excel on the web (or desktop Automate) → **Automate** → **New Script**.
 2. Paste `source/scripts/HighlightDifferences.ts`. Save as **Highlight Differences**.
-3. Enter a two-column block, e.g. `A1:B4`:
+3. Enter values in `Q11:Q14`:
 
-| A | B |
-|---|---|
-| 1.234 | 1.231 |
-| 1.234 | 1.239 |
-| 10 | 10.004 |
-| 10 | 10.006 |
+| Cell | Value |
+|------|-------|
+| Q11 | `0.004` |
+| Q12 | `0.001` |
+| Q13 | `0.006` |
+| Q14 | `-0.002` |
 
 ## Run
 
-Select `A1:B4`. Run.
+Select `Q11:Q14`. Run.
 
-Run a second time on the same range (conditional formats should not stack extra rules).
+Open conditional formatting for the range and confirm the formulas.
 
-Optional: select two rows, or one column, and run.
+Run a second time (rules should not stack).
 
 ## Expected
 
-Two-column selection, match if `ROUND(value, 2)` is equal:
+Rules on the selection (top-left Q11):
 
-- Row 1 (`1.23` vs `1.23`): both cells **#97FFC6**
-- Row 2 (`1.23` vs `1.24`): both cells **#FFBDBD**
-- Row 3 (`10.00` vs `10.00`): green
-- Row 4 (`10.00` vs `10.01`): red
+- Green: `=ROUND(Q11,2)=0` fill `#97FFC6`
+- Red: `=ROUND(Q$11,2)<>0` fill `#FFBDBD`
+- Green has **Stop if true**
 
-A blank or text in either cell of the pair is red.
+With the sample:
 
-A second run still has two conditional format rules (green equal, red not), not four.
+- Q11 `0.004` → ROUND 0.00 → **green**
+- Q12 `0.001` → ROUND 0.00 → **green**
+- Q13 `0.006` → ROUND 0.01 → **red**
+- Q14 `-0.002` → ROUND 0.00 → **green**
+
+If Q11 is `0.006` (ROUND 0.01), Q11 is red, and Q12:Q14 are also red because the red formula locks row 11.
+
+A second run still has two rules, not four.
