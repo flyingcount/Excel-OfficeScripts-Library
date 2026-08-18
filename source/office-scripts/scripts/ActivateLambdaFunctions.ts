@@ -6,13 +6,15 @@
  * (replaced if it already exists) using the Lambda code column.
  *
  * Automate → New Script → paste this file → Save as **Activate Lambda functions**.
+ * Office Scripts only reliably runs code inside main, so helpers are inlined.
  */
 function main(workbook: ExcelScript.Workbook): void {
   const sheetName: string = "Lambda functions";
   const worksheets: ExcelScript.Worksheet[] = workbook.getWorksheets();
   let sheet: ExcelScript.Worksheet = worksheets[0];
   let foundSheet: boolean = false;
-  for (let w: number = 0; w < worksheets.length; w++) {
+  let w: number = 0;
+  for (w = 0; w < worksheets.length; w++) {
     if (worksheets[w].getName() === sheetName) {
       sheet = worksheets[w];
       foundSheet = true;
@@ -28,7 +30,16 @@ function main(workbook: ExcelScript.Workbook): void {
     throw new Error('Select one or more rows on "Lambda functions", then run this script.');
   }
 
-  const headerRow: number = findHeaderRow(sheet);
+  let headerRow: number = -1;
+  let r: number = 0;
+  for (r = 0; r < 20; r++) {
+    const headerName: string = String(sheet.getCell(r, 0).getValue()).trim().toLowerCase();
+    const headerCode: string = String(sheet.getCell(r, 1).getValue()).trim().toLowerCase();
+    if (headerName === "name" && headerCode.indexOf("lambda") >= 0) {
+      headerRow = r;
+      break;
+    }
+  }
   if (headerRow < 0) {
     throw new Error('Could not find a header row with Name, Lambda code, Note.');
   }
@@ -37,16 +48,26 @@ function main(workbook: ExcelScript.Workbook): void {
   const rowCount: number = selected.getRowCount();
   let activated: number = 0;
   const skipped: string[] = [];
-
-  for (let i: number = 0; i < rowCount; i++) {
+  let i: number = 0;
+  for (i = 0; i < rowCount; i++) {
     const row: number = first + i;
     if (row <= headerRow) {
       continue;
     }
 
-    const name: string = cellText(sheet, row, 0);
-    const formula: string = lambdaFormula(sheet, row, 1);
-    const note: string = cellText(sheet, row, 2);
+    const name: string = String(sheet.getCell(row, 0).getValue()).trim();
+    const codeCell: ExcelScript.Range = sheet.getCell(row, 1);
+    let formula: string = String(codeCell.getFormula()).trim();
+    if (formula === "" || formula.charAt(0) !== "=") {
+      formula = String(codeCell.getValue()).trim();
+    }
+    if (formula.charAt(0) === "'") {
+      formula = formula.substring(1);
+    }
+    if (formula !== "" && formula.charAt(0) !== "=") {
+      formula = "=" + formula;
+    }
+    const note: string = String(sheet.getCell(row, 2).getValue()).trim();
 
     if (name === "" || name === "Name") {
       continue;
@@ -56,7 +77,19 @@ function main(workbook: ExcelScript.Workbook): void {
       continue;
     }
 
-    replaceNamedItem(workbook, name, formula, note);
+    const items: ExcelScript.NamedItem[] = workbook.getNamedItems();
+    let n: number = 0;
+    for (n = 0; n < items.length; n++) {
+      const named: ExcelScript.NamedItem = items[n];
+      if (named.getName() === name) {
+        named.delete();
+        break;
+      }
+    }
+    const item: ExcelScript.NamedItem = workbook.addNamedItem(name, formula);
+    if (note !== "") {
+      item.setComment(note);
+    }
     activated++;
   }
 
@@ -67,60 +100,5 @@ function main(workbook: ExcelScript.Workbook): void {
   console.log("Activated " + activated + " named function(s) in Name Manager.");
   if (skipped.length > 0) {
     console.log("Skipped: " + skipped.join("; "));
-  }
-}
-
-function findHeaderRow(sheet: ExcelScript.Worksheet): number {
-  for (let r: number = 0; r < 20; r++) {
-    const a: string = cellText(sheet, r, 0).toLowerCase();
-    const b: string = cellText(sheet, r, 1).toLowerCase();
-    if (a === "name" && b.indexOf("lambda") >= 0) {
-      return r;
-    }
-  }
-  return -1;
-}
-
-function cellText(sheet: ExcelScript.Worksheet, row: number, column: number): string {
-  const cell: ExcelScript.Range = sheet.getCell(row, column);
-  const value: string | number | boolean = cell.getValue();
-  return String(value).trim();
-}
-
-function lambdaFormula(sheet: ExcelScript.Worksheet, row: number, column: number): string {
-  const cell: ExcelScript.Range = sheet.getCell(row, column);
-  let formula: string = "";
-  const asFormula: string = cell.getFormula();
-  if (asFormula && asFormula.charAt(0) === "=") {
-    formula = asFormula.trim();
-  } else {
-    formula = cellText(sheet, row, column);
-  }
-  if (formula.charAt(0) === "'") {
-    formula = formula.substring(1);
-  }
-  if (formula !== "" && formula.charAt(0) !== "=") {
-    formula = "=" + formula;
-  }
-  return formula;
-}
-
-function replaceNamedItem(
-  workbook: ExcelScript.Workbook,
-  name: string,
-  formula: string,
-  note: string
-): void {
-  const items: ExcelScript.NamedItem[] = workbook.getNamedItems();
-  for (let i: number = 0; i < items.length; i++) {
-    const named: ExcelScript.NamedItem = items[i];
-    if (named.getName() === name) {
-      named.delete();
-      break;
-    }
-  }
-  const item: ExcelScript.NamedItem = workbook.addNamedItem(name, formula);
-  if (note !== "") {
-    item.setComment(note);
   }
 }
