@@ -1,0 +1,5 @@
+Name: SuperXLookup
+Description: XLOOKUP that returns a whole row or whole column. One-column lookup_value matches a row; otherwise it matches a column.
+Parameters: lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode]
+Docs: docs/lambda/SuperXLookup.md
+=LAMBDA(lookup_value,lookup_array,return_array,[if_not_found],[match_mode],[search_mode], IF(COLUMNS(lookup_value)=1, IFERROR(INDEX(return_array,XMATCH(lookup_value,lookup_array,match_mode,search_mode),SEQUENCE(1,COLUMNS(return_array))),IF(ISOMITTED(if_not_found),NA(),if_not_found)), IFERROR(INDEX(return_array,SEQUENCE(ROWS(return_array)),XMATCH(lookup_value,lookup_array,match_mode,search_mode)),IF(ISOMITTED(if_not_found),NA(),if_not_found))))

@@ -19,15 +19,17 @@ One named formula = one file under `source/lambda/functions/`.
 5. Add a short note under **Added** in `CHANGELOG.md`.
 6. Add `tests/lambda/test_NAME.md` with a grid of inputs and expected results.
 7. If the function needs more than a one-line description, add `docs/lambda/NAME.md` and link it from [LambdaMap.md](LambdaMap.md).
+8. Rebuild the git-synced workbook so the new row appears on **Lambda functions**:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts/Build-LambdaWorkbook.ps1
+   ```
 
 ## Install in Excel
 
-1. Formulas → **Name Manager** (desktop) or **Defined names** (Excel on the web) → New.
-2. Name: exactly the `Name:` line (for example `ROUND2`).
-3. Refers to: paste the `=LAMBDA(...)` line.
-4. OK. On a sheet: `=ROUND2(A1)`.
+Open `workbook/Paul Lambda function library.xlsx`. Select one or more table rows, then run Automate script **Activate Lambda functions** (paste `source/office-scripts/scripts/ActivateLambdaFunctions.ts` once if needed). That writes the names into Name Manager.
 
-Excel Labs **Advanced Formula Environment** can hold the same named formula if you prefer that editor.
+You can still add a name by hand: Formulas → **Name Manager** → New → paste the `=LAMBDA(...)` line.
 
 ## Naming
 
@@ -40,4 +42,4 @@ Excel Labs **Advanced Formula Environment** can hold the same named formula if y
 - Office Scripts (use `source/office-scripts/`)
 - VBA modules (use [Excel-VBA-Library](https://github.com/flyingcount/Excel-VBA-Library))
 - Power Query M (use [PowerQuery-Library](https://github.com/flyingcount/PowerQuery-Library))
-- Workbook binaries, secrets, or personal data
+- Secrets or personal data. The catalog workbook `workbook/Paul Lambda function library.xlsx` is rebuilt, not edited by hand.

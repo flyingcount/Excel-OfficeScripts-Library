@@ -31,6 +31,9 @@ Related:
 ├── tests/
 │   ├── office-scripts/
 │   └── lambda/
+├── workbook/                ← Paul Lambda function library.xlsx
+├── scripts/
+│   └── Build-LambdaWorkbook.ps1
 └── types/                 ← ExcelScript typings for the editor
 ```
 
@@ -46,14 +49,20 @@ Example: `source/office-scripts/scripts/ListWorksheets.ts` writes a **Worksheets
 
 ## Quick start: Lambda functions
 
-Excel named formulas are **one `LAMBDA` each**. Excel cannot import the folder; you paste into Name Manager.
+Open `workbook/Paul Lambda function library.xlsx`. Sheet **Lambda functions** lists every named formula.
 
-1. Formulas → **Name Manager** (desktop) or **Defined names** (Excel on the web) → New.
-2. Name: the `Name:` line in the file (for example `ROUND2`).
-3. Refers to: paste the `=LAMBDA(...)` line from `source/lambda/functions/`.
+1. First time: **Automate → New Script** → paste `source/office-scripts/scripts/ActivateLambdaFunctions.ts` (or the **Activate script** sheet) → Save as **Activate Lambda functions**.
+2. Select one or more rows in the table (Name / Lambda code / Note).
+3. Run **Activate Lambda functions**. Those names appear in Name Manager.
 4. On a sheet: `=ROUND2(A1)`.
 
-Excel Labs **Advanced Formula Environment** can store the same named formulas.
+After you add a `.lambda` file, rebuild the workbook:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/Build-LambdaWorkbook.ps1
+```
+
+You can still paste a single `=LAMBDA(...)` into Name Manager by hand. Excel Labs **Advanced Formula Environment** can also store named formulas.
 
 ## Scripts
 
@@ -64,6 +73,7 @@ Excel Labs **Advanced Formula Environment** can store the same named formulas.
 | Format Table | `source/office-scripts/scripts/FormatTable.ts` | Green tab, gridlines, TableStyleLight14 on the table at the active cell |
 | Table of contents | `source/office-scripts/scripts/TableOfContents.ts` | First-tab sheet with hyperlinks to every other worksheet |
 | Highlight Differences | `source/office-scripts/scripts/HighlightDifferences.ts` | Green/red fill on the selection: ROUND to 2 d.p. equal to zero vs not |
+| Activate Lambda functions | `source/office-scripts/scripts/ActivateLambdaFunctions.ts` | Write selected rows from **Lambda functions** into Name Manager |
 
 See [docs/ScriptMap.md](docs/ScriptMap.md). Add scripts with [docs/AddingScripts.md](docs/AddingScripts.md).
 
@@ -79,6 +89,9 @@ See [docs/ScriptMap.md](docs/ScriptMap.md). Add scripts with [docs/AddingScripts
 | `EXPSMOOTHSERIES` | `source/lambda/functions/EXPSMOOTHSERIES.lambda` | Full simple exponential smoothing series |
 | `EXPSMOOTH` | `source/lambda/functions/EXPSMOOTH.lambda` | Last SES smoothed value |
 | `DDL` | `source/lambda/functions/DDL.lambda` | Dependent drop-down list from a hierarchy table |
+| `DDLSorter` | `source/lambda/functions/DDLSorter.lambda` | Sort a hierarchy table by every column (DDL Sorter) |
+| `DoubleXLookup` | `source/lambda/functions/DoubleXLookup.lambda` | Two-way XMATCH/INDEX lookup |
+| `SuperXLookup` | `source/lambda/functions/SuperXLookup.lambda` | XLOOKUP that returns a whole row or column |
 
 See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambdas.md](docs/AddingLambdas.md).
 

@@ -1,0 +1,5 @@
+Name: DDLSorter
+Description: Sort a hierarchy table by every column left to right so identical parent paths are contiguous for DDL.
+Parameters: Range, [SortOrder]
+Docs: docs/lambda/DDLSorter.md
+=LAMBDA(Range,[SortOrder],SORT(Range, SEQUENCE(, COLUMNS(Range)), SortOrder))

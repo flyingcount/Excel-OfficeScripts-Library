@@ -25,7 +25,7 @@ Do not put the delimiter `%^&&@` inside category text; that token joins keys int
 1. Parent lookups are concatenated with `%^&&@`. Empty omitted lookups are ignored when counting levels.
 2. `levelIndex` is one past the last supplied parent, so that is the column to return.
 3. If `lookup1` is omitted, `DDL` returns the whole of column 1 (top-level list). Duplicate top-level names are **not** uniqued; wrap with `UNIQUE` if the drop-down should show each value once.
-4. Otherwise each row’s parent columns are joined the same way, and `XLOOKUP` takes the **first** matching row through the **last** matching row in the return column. Sort the table so identical parent paths are contiguous.
+4. Otherwise each row’s parent columns are joined the same way, and `XLOOKUP` takes the **first** matching row through the **last** matching row in the return column. Sort the table so identical parent paths are contiguous (`=DDLSorter(range)`).
 5. The result spills. Point data validation at the spill (`#`) or wrap `UNIQUE(DDL(...))`.
 
 ## Example

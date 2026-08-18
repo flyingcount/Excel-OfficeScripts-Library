@@ -16,6 +16,16 @@ declare namespace ExcelScript {
     getActiveWorksheet(): Worksheet;
     getSelectedRange(): Range;
     getActiveCell(): Range;
+    getNamedItems(): NamedItem[];
+    addNamedItem(name: string, formula: string, comment?: string): NamedItem;
+    getTable(name: string): Table;
+  }
+
+  interface NamedItem {
+    getName(): string;
+    getFormula(): string;
+    delete(): void;
+    setComment(comment: string): void;
   }
 
   interface Worksheet {
@@ -30,6 +40,7 @@ declare namespace ExcelScript {
     setPosition(position: number): void;
     setName(name: string): void;
     activate(): void;
+    getCell(row: number, column: number): Range;
   }
 
   interface Range {
@@ -39,6 +50,10 @@ declare namespace ExcelScript {
     getCell(row: number, column: number): Range;
     getResizedRange(deltaRows: number, deltaColumns: number): Range;
     setValue(value: string | number | boolean): void;
+    getValue(): string | number | boolean | undefined;
+    getFormula(): string;
+    getRowIndex(): number;
+    getWorksheet(): Worksheet;
     setValues(values: (string | number | boolean)[][]): void;
     setNumberFormat(format: string): void;
     setHyperlink(hyperlink: RangeHyperlink): void;

@@ -9,3 +9,4 @@ Inventory of Automate scripts in this library. Add a row when you add a file und
 | Format Table | `source/office-scripts/scripts/FormatTable.ts` | Active sheet tab/gridlines; table at active cell | TableStyleLight14, font 10, column width 56 on the table only. |
 | Table of contents | `source/office-scripts/scripts/TableOfContents.ts` | Sheet **Table of Contents** at position 0 | Hyperlinks to A1 of each other sheet. Replaces an existing TOC sheet. |
 | Highlight Differences | `source/office-scripts/scripts/HighlightDifferences.ts` | Conditional fill on the selection | Green `=ROUND(Q11,2)=0` `#97FFC6`; red `=ROUND(Q$11,2)<>0` `#FFBDBD` (Q11 = top-left of the selection). |
+| Activate Lambda functions | `source/office-scripts/scripts/ActivateLambdaFunctions.ts` | Name Manager in the open workbook | Select rows on **Lambda functions** in `workbook/Paul Lambda function library.xlsx`. |

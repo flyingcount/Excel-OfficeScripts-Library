@@ -1,0 +1,5 @@
+Name: DoubleXLookup
+Description: Two-way lookup: XMATCH the row header and column header, then INDEX into the body. Optional if_not_found and XMATCH modes.
+Parameters: vlookup_value, vlookup_array, hlookup_value, hlookup_array, return_array, [if_not_found], [vmatch_mode], [vsearch_mode], [hmatch_mode], [hsearch_mode]
+Docs: docs/lambda/DoubleXLookup.md
+=LAMBDA(vlookup_value,vlookup_array,hlookup_value,hlookup_array,return_array,[if_not_found],[vmatch_mode],[vsearch_mode],[hmatch_mode],[hsearch_mode], IFERROR( INDEX(return_array,XMATCH(vlookup_value,vlookup_array,vmatch_mode,vsearch_mode),XMATCH(hlookup_value,hlookup_array,hmatch_mode,hsearch_mode)), IF(ISOMITTED(if_not_found),NA(),if_not_found)))
