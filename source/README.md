@@ -1,13 +1,10 @@
 # Source
 
-`scripts/` holds one TypeScript file per Automate script. Each file must define:
+This repo holds two Excel libraries:
 
-```typescript
-function main(workbook: ExcelScript.Workbook): void {
-  // ...
-}
-```
-
-`shared/` holds helpers that are **copied** into a script. Office Scripts cannot import modules from this folder.
+| Folder | What it is | How you use it |
+|--------|------------|----------------|
+| `office-scripts/` | Automate TypeScript | Paste one file into **Automate → New Script** |
+| `lambda/` | Named `LAMBDA` formulas | Paste into **Name Manager** (or Excel Labs AFE) |
 
 Do not put VBA (`.bas`) or Power Query (`.pq`) here.

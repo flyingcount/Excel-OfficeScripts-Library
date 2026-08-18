@@ -1,0 +1,4 @@
+Name: IFERROR0
+Description: Return the value, or 0 if the value is an error.
+Parameters: value
+=LAMBDA(value, IFERROR(value, 0))

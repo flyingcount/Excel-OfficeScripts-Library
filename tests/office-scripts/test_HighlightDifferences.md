@@ -3,7 +3,7 @@
 ## Setup
 
 1. Excel on the web (or desktop Automate) → **Automate** → **New Script**.
-2. Paste `source/scripts/HighlightDifferences.ts`. Save as **Highlight Differences**.
+2. Paste `source/office-scripts/scripts/HighlightDifferences.ts`. Save as **Highlight Differences**.
 3. Enter values in `Q11:Q14`:
 
 | Cell | Value |

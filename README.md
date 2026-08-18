@@ -1,8 +1,8 @@
-# Excel Office Scripts Library
+# Excel Office Scripts and Lambda Library
 
-Reusable **Excel Office Scripts** (TypeScript) for Excel on the web and desktop Automate.
+Reusable **Excel Office Scripts** (TypeScript) and named **LAMBDA** functions for Excel on the web and Microsoft 365.
 
-Each file under `source/scripts/` is one script you paste into **Automate → New Script**. Grow the library one script at a time; do not mix these with the VBA add-in.
+Office Scripts live under `source/office-scripts/`. Named formulas live under `source/lambda/`. Grow each library one file at a time. Do not mix these with the VBA add-in.
 
 Related:
 
@@ -17,42 +17,65 @@ Related:
 ├── CHANGELOG.md
 ├── LICENSE
 ├── docs/
-│   ├── AddingScripts.md   ← how to add the next script
-│   └── ScriptMap.md       ← inventory of scripts
+│   ├── AddingScripts.md   ← next Automate script
+│   ├── AddingLambdas.md   ← next named LAMBDA
+│   ├── ScriptMap.md
+│   └── LambdaMap.md
 ├── source/
-│   ├── scripts/           ← one TypeScript file per Automate script
-│   └── shared/            ← helpers to copy into a script (single-file runtime)
+│   ├── office-scripts/
+│   │   ├── scripts/       ← one TypeScript file per Automate script
+│   │   └── shared/        ← helpers to copy into a script
+│   └── lambda/
+│       ├── functions/     ← one named LAMBDA per file
+│       └── shared/        ← fragments to copy into a LAMBDA
 ├── tests/
+│   ├── office-scripts/
+│   └── lambda/
 └── types/                 ← ExcelScript typings for the editor
 ```
 
-## Quick start
+## Quick start: Office Scripts
 
 Office Scripts in Excel are **one file each**. The Automate editor cannot import other files from this repo.
 
 1. Excel on the web (or desktop with Automate) → **Automate** → **New Script**.
-2. Paste the contents of a file from `source/scripts/`.
+2. Paste the contents of a file from `source/office-scripts/scripts/`.
 3. **Save** → **Run**.
 
-Example: `source/scripts/ListWorksheets.ts` writes a **Worksheets** inventory sheet.
+Example: `source/office-scripts/scripts/ListWorksheets.ts` writes a **Worksheets** inventory sheet.
+
+## Quick start: Lambda functions
+
+Excel named formulas are **one `LAMBDA` each**. Excel cannot import the folder; you paste into Name Manager.
+
+1. Formulas → **Name Manager** (desktop) or **Defined names** (Excel on the web) → New.
+2. Name: the `Name:` line in the file (for example `ROUND2`).
+3. Refers to: paste the `=LAMBDA(...)` line from `source/lambda/functions/`.
+4. On a sheet: `=ROUND2(A1)`.
+
+Excel Labs **Advanced Formula Environment** can store the same named formulas.
 
 ## Scripts
 
 | Script | File | What it does |
 |--------|------|----------------|
-| List worksheets | `source/scripts/ListWorksheets.ts` | Sheet name, visibility, used range |
-| Paul's format | `source/scripts/PaulsFormat.ts` | Number format on the selection (0dp / 2dp / colour / k / m / dates) |
-| Format Table | `source/scripts/FormatTable.ts` | Green tab, gridlines, TableStyleLight14 on the table at the active cell |
-| Table of contents | `source/scripts/TableOfContents.ts` | First-tab sheet with hyperlinks to every other worksheet |
-| Highlight Differences | `source/scripts/HighlightDifferences.ts` | Green/red fill on the selection: ROUND to 2 d.p. equal to zero vs not |
+| List worksheets | `source/office-scripts/scripts/ListWorksheets.ts` | Sheet name, visibility, used range |
+| Paul's format | `source/office-scripts/scripts/PaulsFormat.ts` | Number format on the selection (0dp / 2dp / colour / k / m / dates) |
+| Format Table | `source/office-scripts/scripts/FormatTable.ts` | Green tab, gridlines, TableStyleLight14 on the table at the active cell |
+| Table of contents | `source/office-scripts/scripts/TableOfContents.ts` | First-tab sheet with hyperlinks to every other worksheet |
+| Highlight Differences | `source/office-scripts/scripts/HighlightDifferences.ts` | Green/red fill on the selection: ROUND to 2 d.p. equal to zero vs not |
 
-See [docs/ScriptMap.md](docs/ScriptMap.md) for the full list as it grows.
+See [docs/ScriptMap.md](docs/ScriptMap.md). Add scripts with [docs/AddingScripts.md](docs/AddingScripts.md).
 
-## Adding a script
+## Lambda functions
 
-Follow [docs/AddingScripts.md](docs/AddingScripts.md): one `.ts` file, a `main(workbook)` entry point, a changelog line, a test note, and a ScriptMap row.
+| Name | File | What it does |
+|------|------|----------------|
+| `ROUND2` | `source/lambda/functions/ROUND2.lambda` | Round to two decimal places |
+| `ISZERO2` | `source/lambda/functions/ISZERO2.lambda` | TRUE if the value rounds to 0 at 2 d.p. |
+| `IFERROR0` | `source/lambda/functions/IFERROR0.lambda` | Value, or 0 on error |
 
-Shared helpers live in `source/shared/`. Copy the function into the script file; do not `import` it (Automate will not resolve that).
+See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambdas.md](docs/AddingLambdas.md).
 
 ## License
 

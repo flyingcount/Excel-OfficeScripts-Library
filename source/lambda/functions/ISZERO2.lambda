@@ -1,0 +1,4 @@
+Name: ISZERO2
+Description: TRUE if a number rounds to zero at two decimal places.
+Parameters: value
+=LAMBDA(value, ROUND(value, 2)=0)

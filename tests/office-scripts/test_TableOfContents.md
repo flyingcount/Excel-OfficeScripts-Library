@@ -3,7 +3,7 @@
 ## Setup
 
 1. Excel on the web (or desktop Automate) → **Automate** → **New Script**.
-2. Paste `source/scripts/TableOfContents.ts`. Save as **Table of contents**.
+2. Paste `source/office-scripts/scripts/TableOfContents.ts`. Save as **Table of contents**.
 3. Use a workbook with at least two worksheets (not already named **Table of Contents**). Include a sheet whose name has a space.
 
 ## Run

@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `FormatTable` (**Format Table**) — green sheet tab, gridlines, and TableStyleLight14 on the table at the active cell.
 - `TableOfContents` (**Table of contents**) — first-tab sheet with numbered hyperlinks to A1 of every other worksheet.
 - `HighlightDifferences` (**Highlight Differences**) — conditional formatting on the selection: green `#97FFC6` if `ROUND(cell,2)=0`, else red `#FFBDBD` when `ROUND` of the top-row cell in that column is not 0.
+- Lambda library under `source/lambda/functions/`: `ROUND2`, `ISZERO2`, `IFERROR0`.
 
 ### Changed
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.
+- Split source into `source/office-scripts/` and `source/lambda/`. Office Script tests moved to `tests/office-scripts/`.

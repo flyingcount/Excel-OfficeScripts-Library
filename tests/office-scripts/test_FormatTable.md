@@ -3,7 +3,7 @@
 ## Setup
 
 1. Excel on the web (or desktop Automate) → **Automate** → **New Script**.
-2. Paste `source/scripts/FormatTable.ts`. Save as **Format Table**.
+2. Paste `source/office-scripts/scripts/FormatTable.ts`. Save as **Format Table**.
 3. On a sheet, create an Excel table (Insert → Table) with a few columns. Leave another cell **outside** the table for the no-table case.
 
 ## Run

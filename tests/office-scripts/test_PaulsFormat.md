@@ -3,7 +3,7 @@
 ## Setup
 
 1. Excel on the web (or desktop Automate) → **Automate** → **New Script**.
-2. Paste `source/scripts/PaulsFormat.ts`. Save as **Paul's format**.
+2. Paste `source/office-scripts/scripts/PaulsFormat.ts`. Save as **Paul's format**.
 3. Put sample values in a block, e.g. `A1:A4`:
    - `1234.56`
    - `-1234.56`

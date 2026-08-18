@@ -1,0 +1,4 @@
+Name: ROUND2
+Description: Round a number to two decimal places.
+Parameters: value
+=LAMBDA(value, ROUND(value, 2))

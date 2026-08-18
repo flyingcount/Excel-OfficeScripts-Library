@@ -3,7 +3,7 @@
 ## Setup
 
 1. Excel on the web (or desktop Automate) → **Automate** → **New Script**.
-2. Paste `source/scripts/ListWorksheets.ts`.
+2. Paste `source/office-scripts/scripts/ListWorksheets.ts`.
 3. Use a workbook with at least two worksheets, one of them hidden.
 
 ## Run

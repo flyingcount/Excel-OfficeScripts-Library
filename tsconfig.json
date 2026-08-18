@@ -7,5 +7,5 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["source/**/*.ts", "types/**/*.d.ts"]
+  "include": ["source/office-scripts/**/*.ts", "types/**/*.d.ts"]
 }
