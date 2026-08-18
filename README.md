@@ -41,6 +41,8 @@ Example: `source/scripts/ListWorksheets.ts` writes a **Worksheets** inventory sh
 | Script | File | What it does |
 |--------|------|----------------|
 | List worksheets | `source/scripts/ListWorksheets.ts` | Sheet name, visibility, used range |
+| Paul's format | `source/scripts/PaulsFormat.ts` | Number format on the selection (0dp / 2dp / colour / k / m / dates) |
+| Format Table | `source/scripts/FormatTable.ts` | Green tab, gridlines, TableStyleLight14 on the table at the active cell |
 
 See [docs/ScriptMap.md](docs/ScriptMap.md) for the full list as it grows.
 
