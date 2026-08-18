@@ -8,36 +8,45 @@
  * Automate → New Script → paste this file → Save as **Activate Lambda functions**.
  */
 function main(workbook: ExcelScript.Workbook): void {
-  const sheetName = "Lambda functions";
-  const sheet = workbook.getWorksheet(sheetName);
-  if (!sheet) {
+  const sheetName: string = "Lambda functions";
+  const worksheets: ExcelScript.Worksheet[] = workbook.getWorksheets();
+  let sheet: ExcelScript.Worksheet = worksheets[0];
+  let foundSheet: boolean = false;
+  for (let w: number = 0; w < worksheets.length; w++) {
+    if (worksheets[w].getName() === sheetName) {
+      sheet = worksheets[w];
+      foundSheet = true;
+      break;
+    }
+  }
+  if (!foundSheet) {
     throw new Error('Sheet "Lambda functions" was not found.');
   }
 
-  const selected = workbook.getSelectedRange();
+  const selected: ExcelScript.Range = workbook.getSelectedRange();
   if (selected.getWorksheet().getName() !== sheetName) {
     throw new Error('Select one or more rows on "Lambda functions", then run this script.');
   }
 
-  const headerRow = findHeaderRow(sheet);
+  const headerRow: number = findHeaderRow(sheet);
   if (headerRow < 0) {
     throw new Error('Could not find a header row with Name, Lambda code, Note.');
   }
 
-  const first = selected.getRowIndex();
-  const rowCount = selected.getRowCount();
-  let activated = 0;
+  const first: number = selected.getRowIndex();
+  const rowCount: number = selected.getRowCount();
+  let activated: number = 0;
   const skipped: string[] = [];
 
-  for (let i = 0; i < rowCount; i++) {
-    const row = first + i;
+  for (let i: number = 0; i < rowCount; i++) {
+    const row: number = first + i;
     if (row <= headerRow) {
       continue;
     }
 
-    const name = cellText(sheet, row, 0);
-    const formula = lambdaFormula(sheet, row, 1);
-    const note = cellText(sheet, row, 2);
+    const name: string = cellText(sheet, row, 0);
+    const formula: string = lambdaFormula(sheet, row, 1);
+    const note: string = cellText(sheet, row, 2);
 
     if (name === "" || name === "Name") {
       continue;
@@ -62,9 +71,9 @@ function main(workbook: ExcelScript.Workbook): void {
 }
 
 function findHeaderRow(sheet: ExcelScript.Worksheet): number {
-  for (let r = 0; r < 20; r++) {
-    const a = cellText(sheet, r, 0).toLowerCase();
-    const b = cellText(sheet, r, 1).toLowerCase();
+  for (let r: number = 0; r < 20; r++) {
+    const a: string = cellText(sheet, r, 0).toLowerCase();
+    const b: string = cellText(sheet, r, 1).toLowerCase();
     if (a === "name" && b.indexOf("lambda") >= 0) {
       return r;
     }
@@ -73,20 +82,17 @@ function findHeaderRow(sheet: ExcelScript.Worksheet): number {
 }
 
 function cellText(sheet: ExcelScript.Worksheet, row: number, column: number): string {
-  const cell = sheet.getCell(row, column);
-  const value = cell.getValue();
-  if (value === undefined || value === null) {
-    return "";
-  }
+  const cell: ExcelScript.Range = sheet.getCell(row, column);
+  const value: string | number | boolean = cell.getValue();
   return String(value).trim();
 }
 
 function lambdaFormula(sheet: ExcelScript.Worksheet, row: number, column: number): string {
-  const cell = sheet.getCell(row, column);
-  let formula = "";
-  const asFormula = cell.getFormula();
-  if (asFormula && String(asFormula).charAt(0) === "=") {
-    formula = String(asFormula).trim();
+  const cell: ExcelScript.Range = sheet.getCell(row, column);
+  let formula: string = "";
+  const asFormula: string = cell.getFormula();
+  if (asFormula && asFormula.charAt(0) === "=") {
+    formula = asFormula.trim();
   } else {
     formula = cellText(sheet, row, column);
   }
@@ -105,15 +111,16 @@ function replaceNamedItem(
   formula: string,
   note: string
 ): void {
-  const items = workbook.getNamedItems();
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].getName() === name) {
-      items[i].delete();
+  const items: ExcelScript.NamedItem[] = workbook.getNamedItems();
+  for (let i: number = 0; i < items.length; i++) {
+    const named: ExcelScript.NamedItem = items[i];
+    if (named.getName() === name) {
+      named.delete();
       break;
     }
   }
-  const item = workbook.addNamedItem(name, formula);
-  if (note && note !== "") {
+  const item: ExcelScript.NamedItem = workbook.addNamedItem(name, formula);
+  if (note !== "") {
     item.setComment(note);
   }
 }
