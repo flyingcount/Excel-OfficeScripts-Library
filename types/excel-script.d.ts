@@ -17,6 +17,8 @@ declare namespace ExcelScript {
     getSelectedRange(): Range;
     getActiveCell(): Range;
     getNamedItems(): NamedItem[];
+    getNames(): NamedItem[];
+    getNamedItem(name: string): NamedItem | undefined;
     addNamedItem(name: string, formula: string, comment?: string): NamedItem;
     getTable(name: string): Table;
   }

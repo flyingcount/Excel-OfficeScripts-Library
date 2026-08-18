@@ -77,19 +77,10 @@ function main(workbook: ExcelScript.Workbook): void {
       continue;
     }
 
-    const items: ExcelScript.NamedItem[] = workbook.getNamedItems();
-    let n: number = 0;
-    for (n = 0; n < items.length; n++) {
-      const named: ExcelScript.NamedItem = items[n];
-      if (named.getName() === name) {
-        named.delete();
-        break;
-      }
+    if (workbook.getNamedItem(name)) {
+      workbook.getNamedItem(name).delete();
     }
-    const item: ExcelScript.NamedItem = workbook.addNamedItem(name, formula);
-    if (note !== "") {
-      item.setComment(note);
-    }
+    workbook.addNamedItem(name, formula, note);
     activated++;
   }
 
