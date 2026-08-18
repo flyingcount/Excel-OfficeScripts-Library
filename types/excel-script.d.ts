@@ -53,7 +53,9 @@ declare namespace ExcelScript {
     getResizedRange(deltaRows: number, deltaColumns: number): Range;
     setValue(value: string | number | boolean): void;
     getValue(): string | number | boolean | undefined;
+    getValues(): (string | number | boolean)[][];
     getFormula(): string;
+    getFormulas(): string[][];
     getRowIndex(): number;
     getWorksheet(): Worksheet;
     setValues(values: (string | number | boolean)[][]): void;

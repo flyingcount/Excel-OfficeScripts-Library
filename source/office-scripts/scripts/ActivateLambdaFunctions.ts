@@ -31,11 +31,12 @@ function main(workbook: ExcelScript.Workbook): void {
     throw new Error('Select one or more rows on "Lambda functions", then run this script.');
   }
 
+  const headerBlock: (string | number | boolean)[][] = sheet.getRangeByIndexes(0, 0, 20, 3).getValues();
   let headerRow: number = -1;
   let r: number = 0;
-  for (r = 0; r < 20; r++) {
-    const headerName: string = String(sheet.getCell(r, 0).getValue()).trim().toLowerCase();
-    const headerCode: string = String(sheet.getCell(r, 1).getValue()).trim().toLowerCase();
+  for (r = 0; r < headerBlock.length; r++) {
+    const headerName: string = String(headerBlock[r][0]).trim().toLowerCase();
+    const headerCode: string = String(headerBlock[r][1]).trim().toLowerCase();
     if (headerName === "name" && headerCode.indexOf("lambda") >= 0) {
       headerRow = r;
       break;
@@ -47,6 +48,17 @@ function main(workbook: ExcelScript.Workbook): void {
 
   const first: number = selected.getRowIndex();
   const rowCount: number = selected.getRowCount();
+  const dataRange: ExcelScript.Range = sheet.getRangeByIndexes(first, 0, rowCount, 3);
+  const values: (string | number | boolean)[][] = dataRange.getValues();
+  const formulas: string[][] = dataRange.getFormulas();
+
+  const namedItems: ExcelScript.NamedItem[] = workbook.getNames();
+  const namedItemNames: string[] = [];
+  let n0: number = 0;
+  for (n0 = 0; n0 < namedItems.length; n0++) {
+    namedItemNames.push(namedItems[n0].getName().toUpperCase());
+  }
+
   let activated: number = 0;
   const skipped: string[] = [];
   let i: number = 0;
@@ -56,11 +68,10 @@ function main(workbook: ExcelScript.Workbook): void {
       continue;
     }
 
-    const name: string = String(sheet.getCell(row, 0).getValue()).trim();
-    const codeCell: ExcelScript.Range = sheet.getCell(row, 1);
-    let formula: string = String(codeCell.getFormula()).trim();
+    const name: string = String(values[i][0]).trim();
+    let formula: string = String(formulas[i][1]).trim();
     if (formula === "" || formula.charAt(0) !== "=") {
-      formula = String(codeCell.getValue()).trim();
+      formula = String(values[i][1]).trim();
     }
     if (formula.charAt(0) === "'") {
       formula = formula.substring(1);
@@ -68,7 +79,7 @@ function main(workbook: ExcelScript.Workbook): void {
     if (formula !== "" && formula.charAt(0) !== "=") {
       formula = "=" + formula;
     }
-    const note: string = String(sheet.getCell(row, 2).getValue()).trim();
+    const note: string = String(values[i][2]).trim();
 
     if (name === "" || name === "Name") {
       continue;
@@ -78,20 +89,22 @@ function main(workbook: ExcelScript.Workbook): void {
       continue;
     }
 
-    // Office Scripts collection is getNames(), not getNamedItems().
-    const namedItems: ExcelScript.NamedItem[] = workbook.getNames();
-    let replaced: boolean = false;
+    const nameUpper: string = name.toUpperCase();
+    let foundIndex: number = -1;
     let n: number = 0;
-    for (n = 0; n < namedItems.length; n++) {
-      if (namedItems[n].getName().toUpperCase() === name.toUpperCase()) {
-        namedItems[n].setFormula(formula);
-        namedItems[n].setComment(note);
-        replaced = true;
+    for (n = 0; n < namedItemNames.length; n++) {
+      if (namedItemNames[n] === nameUpper) {
+        foundIndex = n;
         break;
       }
     }
-    if (!replaced) {
-      workbook.addNamedItem(name, formula, note);
+    if (foundIndex >= 0) {
+      namedItems[foundIndex].setFormula(formula);
+      namedItems[foundIndex].setComment(note);
+    } else {
+      const added: ExcelScript.NamedItem = workbook.addNamedItem(name, formula, note);
+      namedItems.push(added);
+      namedItemNames.push(nameUpper);
     }
     activated++;
   }
