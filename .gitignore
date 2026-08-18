@@ -1,0 +1,22 @@
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Excel / Office temp
+~$*
+*.tmp
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Node (if a bundler is added later)
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Secrets
+.env
+.env.*
