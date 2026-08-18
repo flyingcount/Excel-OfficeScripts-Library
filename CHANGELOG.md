@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `TableOfContents` (**Table of contents**) — first-tab sheet with numbered hyperlinks to A1 of every other worksheet.
 - `HighlightDifferences` (**Highlight Differences**) — conditional formatting on the selection: green `#97FFC6` if `ROUND(cell,2)=0`, else red `#FFBDBD` when `ROUND` of the top-row cell in that column is not 0.
 - Lambda library under `source/lambda/functions/`: `ROUND2`, `ISZERO2`, `IFERROR0`.
+- Exponential smoothing Lambdas: `EXPSMOOTHWEIGHTS`, `ESMOOTHWEIGHTEDVALUES`, `EXPSMOOTHSERIES`, `EXPSMOOTH` (optional alpha, default 0.2).
 
 ### Changed
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.

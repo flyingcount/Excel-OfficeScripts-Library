@@ -74,6 +74,10 @@ See [docs/ScriptMap.md](docs/ScriptMap.md). Add scripts with [docs/AddingScripts
 | `ROUND2` | `source/lambda/functions/ROUND2.lambda` | Round to two decimal places |
 | `ISZERO2` | `source/lambda/functions/ISZERO2.lambda` | TRUE if the value rounds to 0 at 2 d.p. |
 | `IFERROR0` | `source/lambda/functions/IFERROR0.lambda` | Value, or 0 on error |
+| `EXPSMOOTHWEIGHTS` | `source/lambda/functions/EXPSMOOTHWEIGHTS.lambda` | Exponential-smoothing weights (default α 0.2) |
+| `ESMOOTHWEIGHTEDVALUES` | `source/lambda/functions/ESMOOTHWEIGHTEDVALUES.lambda` | Values times SES weights |
+| `EXPSMOOTHSERIES` | `source/lambda/functions/EXPSMOOTHSERIES.lambda` | Full simple exponential smoothing series |
+| `EXPSMOOTH` | `source/lambda/functions/EXPSMOOTH.lambda` | Last SES smoothed value |
 
 See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambdas.md](docs/AddingLambdas.md).
 

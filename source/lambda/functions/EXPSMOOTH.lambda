@@ -1,0 +1,4 @@
+Name: EXPSMOOTH
+Description: Simple exponential smoothing of a column (default alpha 0.2). Returns only the last smoothed value.
+Parameters: data, [alpha]
+=LAMBDA(data,[alpha],LET(a,IF(ISOMITTED(alpha),0.2,alpha),smooth,SCAN(INDEX(data,1),DROP(data,1),LAMBDA(prev,x,a*x+(1-a)*prev)),TAKE(smooth,-1)))

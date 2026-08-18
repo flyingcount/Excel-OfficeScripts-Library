@@ -1,0 +1,4 @@
+Name: EXPSMOOTHSERIES
+Description: Simple exponential smoothing of a column (default alpha 0.2). Returns the full series, starting with the first observation.
+Parameters: data, [alpha]
+=LAMBDA(data,[alpha],LET(a,IF(ISOMITTED(alpha),0.2,alpha),VSTACK(INDEX(data,1),SCAN(INDEX(data,1),DROP(data,1),LAMBDA(prev,x,a*x+(1-a)*prev)))))

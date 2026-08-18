@@ -1,0 +1,4 @@
+Name: ESMOOTHWEIGHTEDVALUES
+Description: Each value times its exponential-smoothing weight (default alpha 0.2). Weights are the same as EXPSMOOTHWEIGHTS.
+Parameters: values, [alpha]
+=LAMBDA(values,[alpha],LET(a,IF(ISOMITTED(alpha),0.2,alpha),n,ROWS(values),w,a*(1-a)^(n-SEQUENCE(n)),residual,1-SUM(w),adjW,w+(SEQUENCE(n)=1)*residual,values*adjW))
