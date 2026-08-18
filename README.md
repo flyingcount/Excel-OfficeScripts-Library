@@ -78,6 +78,7 @@ See [docs/ScriptMap.md](docs/ScriptMap.md). Add scripts with [docs/AddingScripts
 | `ESMOOTHWEIGHTEDVALUES` | `source/lambda/functions/ESMOOTHWEIGHTEDVALUES.lambda` | Values times SES weights |
 | `EXPSMOOTHSERIES` | `source/lambda/functions/EXPSMOOTHSERIES.lambda` | Full simple exponential smoothing series |
 | `EXPSMOOTH` | `source/lambda/functions/EXPSMOOTH.lambda` | Last SES smoothed value |
+| `DDL` | `source/lambda/functions/DDL.lambda` | Dependent drop-down list from a hierarchy table |
 
 See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambdas.md](docs/AddingLambdas.md).
 

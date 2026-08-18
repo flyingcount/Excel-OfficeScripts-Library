@@ -18,6 +18,7 @@ One named formula = one file under `source/lambda/functions/`.
 4. Add a row to [LambdaMap.md](LambdaMap.md) and the README Lambda table.
 5. Add a short note under **Added** in `CHANGELOG.md`.
 6. Add `tests/lambda/test_NAME.md` with a grid of inputs and expected results.
+7. If the function needs more than a one-line description, add `docs/lambda/NAME.md` and link it from [LambdaMap.md](LambdaMap.md).
 
 ## Install in Excel
 

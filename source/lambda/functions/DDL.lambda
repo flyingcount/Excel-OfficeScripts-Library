@@ -1,0 +1,5 @@
+Name: DDL
+Description: Dependent drop-down list from a hierarchy table. With no lookups, returns column 1; otherwise returns the next-level values that match the parent path.
+Parameters: range, [lookup1], [lookup2], [lookup3], [lookup4], [lookup5], [lookup6], [lookup7], [lookup8], [lookup9], [lookup10]
+Docs: docs/lambda/DDL.md
+=LAMBDA(range,[lookup1],[lookup2],[lookup3],[lookup4],[lookup5],[lookup6],[lookup7],[lookup8],[lookup9],[lookup10],LET(_s, "%^&&@", lookupValue, lookup1 & _s & lookup2 & _s & lookup3 & _s & lookup4 & _s & lookup5 & _s & lookup6 & _s & lookup7 & _s & lookup8 & _s & lookup9 & _s & lookup10, levelIndex, IFERROR(ROWS(TEXTSPLIT(lookupValue, , _s, TRUE())), 0) + 1, lookupArray, BYROW(EXPAND(CHOOSECOLS(range, SEQUENCE(1, levelIndex - 1)), , 10, ""), LAMBDA(row, TEXTJOIN(_s, FALSE, row))), returnRange, INDEX(range, 0, levelIndex), result, IF(ISOMITTED(lookup1) * levelIndex = 1, returnRange, XLOOKUP(lookupValue, lookupArray, returnRange):XLOOKUP(lookupValue, lookupArray, returnRange, , , -1)), result))

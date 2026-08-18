@@ -11,3 +11,4 @@ Inventory of named `LAMBDA` formulas. Add a row when you add a file under `sourc
 | `ESMOOTHWEIGHTEDVALUES` | `source/lambda/functions/ESMOOTHWEIGHTEDVALUES.lambda` | `=LAMBDA(values,[alpha],…)` | Values times those weights. |
 | `EXPSMOOTHSERIES` | `source/lambda/functions/EXPSMOOTHSERIES.lambda` | `=LAMBDA(data,[alpha],…)` | Full SES series, first obs then SCAN. |
 | `EXPSMOOTH` | `source/lambda/functions/EXPSMOOTH.lambda` | `=LAMBDA(data,[alpha],…)` | Last SES value only. |
+| `DDL` | `source/lambda/functions/DDL.lambda` | `=LAMBDA(range,[lookup1],…,[lookup10],…)` | Dependent drop-down from a hierarchy table. See [docs/lambda/DDL.md](lambda/DDL.md). |
