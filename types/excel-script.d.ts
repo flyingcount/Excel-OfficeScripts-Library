@@ -44,6 +44,33 @@ declare namespace ExcelScript {
     setHyperlink(hyperlink: RangeHyperlink): void;
     getFormat(): RangeFormat;
     getTables(): Table[];
+    addConditionalFormat(type: ConditionalFormatType): ConditionalFormat;
+    clearAllConditionalFormats(): void;
+  }
+
+  enum ConditionalFormatType {
+    custom = "Custom"
+  }
+
+  interface ConditionalFormat {
+    getCustom(): CustomConditionalFormat;
+  }
+
+  interface CustomConditionalFormat {
+    getRule(): ConditionalFormatRule;
+    getFormat(): ConditionalRangeFormat;
+  }
+
+  interface ConditionalFormatRule {
+    setFormula(formula: string): void;
+  }
+
+  interface ConditionalRangeFormat {
+    getFill(): ConditionalRangeFill;
+  }
+
+  interface ConditionalRangeFill {
+    setColor(color: string): void;
   }
 
   interface RangeHyperlink {

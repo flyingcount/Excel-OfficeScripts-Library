@@ -44,6 +44,7 @@ Example: `source/scripts/ListWorksheets.ts` writes a **Worksheets** inventory sh
 | Paul's format | `source/scripts/PaulsFormat.ts` | Number format on the selection (0dp / 2dp / colour / k / m / dates) |
 | Format Table | `source/scripts/FormatTable.ts` | Green tab, gridlines, TableStyleLight14 on the table at the active cell |
 | Table of contents | `source/scripts/TableOfContents.ts` | First-tab sheet with hyperlinks to every other worksheet |
+| Highlight Differences | `source/scripts/HighlightDifferences.ts` | Green/red fill on the selection when values match to 2 decimal places |
 
 See [docs/ScriptMap.md](docs/ScriptMap.md) for the full list as it grows.
 
