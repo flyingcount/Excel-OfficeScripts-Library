@@ -27,16 +27,30 @@ declare namespace ExcelScript {
     getRangeByIndexes(startRow: number, startColumn: number, rowCount: number, columnCount: number): Range;
     setShowGridlines(show: boolean): void;
     setTabColor(color: string | undefined): void;
+    setPosition(position: number): void;
+    setName(name: string): void;
+    activate(): void;
   }
 
   interface Range {
     getAddress(): string;
     getRowCount(): number;
     getColumnCount(): number;
+    getCell(row: number, column: number): Range;
+    getResizedRange(deltaRows: number, deltaColumns: number): Range;
+    setValue(value: string | number | boolean): void;
     setValues(values: (string | number | boolean)[][]): void;
     setNumberFormat(format: string): void;
+    setHyperlink(hyperlink: RangeHyperlink): void;
     getFormat(): RangeFormat;
     getTables(): Table[];
+  }
+
+  interface RangeHyperlink {
+    address?: string;
+    documentReference?: string;
+    screenTip?: string;
+    textToDisplay?: string;
   }
 
   interface Table {
