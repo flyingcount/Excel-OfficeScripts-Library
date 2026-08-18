@@ -6,6 +6,7 @@
  * (replaced if it already exists) using the Lambda code column.
  *
  * Automate → New Script → paste this file → Save as **Activate Lambda functions**.
+ * GitHub and the catalog workbook do not update Automate. Replace the whole script.
  * Office Scripts only reliably runs code inside main, so helpers are inlined.
  */
 function main(workbook: ExcelScript.Workbook): void {
@@ -77,10 +78,21 @@ function main(workbook: ExcelScript.Workbook): void {
       continue;
     }
 
-    if (workbook.getNamedItem(name)) {
-      workbook.getNamedItem(name).delete();
+    // Office Scripts collection is getNames(), not getNamedItems().
+    const namedItems: ExcelScript.NamedItem[] = workbook.getNames();
+    let replaced: boolean = false;
+    let n: number = 0;
+    for (n = 0; n < namedItems.length; n++) {
+      if (namedItems[n].getName().toUpperCase() === name.toUpperCase()) {
+        namedItems[n].setFormula(formula);
+        namedItems[n].setComment(note);
+        replaced = true;
+        break;
+      }
     }
-    workbook.addNamedItem(name, formula, note);
+    if (!replaced) {
+      workbook.addNamedItem(name, formula, note);
+    }
     activated++;
   }
 

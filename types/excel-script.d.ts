@@ -16,7 +16,6 @@ declare namespace ExcelScript {
     getActiveWorksheet(): Worksheet;
     getSelectedRange(): Range;
     getActiveCell(): Range;
-    getNamedItems(): NamedItem[];
     getNames(): NamedItem[];
     getNamedItem(name: string): NamedItem | undefined;
     addNamedItem(name: string, formula: string, comment?: string): NamedItem;
@@ -26,6 +25,7 @@ declare namespace ExcelScript {
   interface NamedItem {
     getName(): string;
     getFormula(): string;
+    setFormula(formula: string): void;
     delete(): void;
     setComment(comment: string): void;
   }
