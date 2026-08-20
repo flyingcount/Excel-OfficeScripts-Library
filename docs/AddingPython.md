@@ -31,15 +31,27 @@ One reusable function = one file under `source/python-in-excel/functions/`.
 
 ## Install in Excel
 
-Python in Excel is Microsoft 365 only. Default initialization already imports `pandas` as `pd` and `numpy` as `np`.
+Python in Excel is Microsoft 365 only.
 
-**Workbook-wide (preferred):** Formulas → **Initialization** → paste `source/python-in-excel/init/PaulPythonLibrary.py` **after** the default imports → Save. Then in a PY cell: `describe("Table1[#All]")`.
+**Workbook-wide (preferred):** Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes the Excel default imports and the library functions. Then in a PY cell: `describe("Table1[#All]")`.
 
-**One function:** paste that file’s `def` into Initialization, or into a Python cell above and to the left of the cells that call it.
+**One function:** paste that file’s `def` into Initialization after the default imports, or into a Python cell above and to the left of the cells that call it.
 
 **One-shot:** in a PY cell, paste a call such as `describe(xl("A1:D20", headers=True))` without installing the library.
 
 Switch the cell to **Excel value** if the result should spill into the grid.
+
+## Restore default Initialization
+
+Excel’s default Initialization is stored at `source/python-in-excel/init/DefaultInitialization.py` (`numpy`, `pandas`, `matplotlib`, `seaborn`, `statsmodels`, `excel`, `warnings`, and the `xl` scalar/array conversion settings).
+
+If those imports were deleted or edited:
+
+1. Formulas → **Initialization**.
+2. Select all in the editor and paste `DefaultInitialization.py`.
+3. Save.
+
+To restore defaults **and** the library functions in one step, paste `PaulPythonLibrary.py` instead. Do not wrap either file in `=PY(...)`.
 
 ## Naming
 

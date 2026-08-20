@@ -32,7 +32,7 @@ Related:
 │   │   └── shared/        ← fragments to copy into a LAMBDA
 │   └── python-in-excel/
 │       ├── functions/     ← one Python function per file
-│       ├── init/          ← paste into Formulas → Initialization
+│       ├── init/          ← PaulPythonLibrary.py or DefaultInitialization.py → Formulas → Initialization
 │       └── shared/        ← fragments to copy into a function
 ├── tests/
 │   ├── office-scripts/
@@ -73,12 +73,14 @@ You can still paste a single `=LAMBDA(...)` into Name Manager by hand. Excel Lab
 
 ## Quick start: Python in Excel
 
-Microsoft 365 with Python in Excel enabled. Default initialization already imports pandas and numpy.
+Microsoft 365 with Python in Excel enabled.
 
-1. Formulas → **Initialization** → paste `source/python-in-excel/init/PaulPythonLibrary.py` **after** the default imports → Save.
+1. Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes Excel’s default imports and the library functions.
 2. Insert a Python cell (**Formulas → Insert Python**, or `=PY`).
 3. Call a function, for example `describe("Table1[#All]")` or `stl_plot("A1:A24", 12)`.
 4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot`.
+
+If the default imports were deleted or edited, paste `source/python-in-excel/init/DefaultInitialization.py` into **Initialization** and Save. Then paste `PaulPythonLibrary.py` (or paste only from the first `def` onward if the defaults are already there).
 
 You can paste a single file from `source/python-in-excel/functions/` instead of the whole init module.
 

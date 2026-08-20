@@ -1,9 +1,26 @@
 # Paul Python in Excel library
 #
-# Paste AFTER the default imports in Formulas → Initialization, then Save.
-# Do not replace the default pandas / numpy / matplotlib / seaborn imports.
+# Formulas → Initialization → replace the editor contents with this file → Save.
+# This file is a complete Initialization: Excel defaults, then the library functions.
+#
+# Restore defaults only: paste init/DefaultInitialization.py instead.
+# Add functions to an existing default Initialization: paste from the first def onward.
 #
 # Requires Microsoft 365 Python in Excel. Functions use Excel's xl() helper.
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels as sm
+import excel
+import warnings
+
+warnings.simplefilter('ignore')
+
+excel.set_xl_scalar_conversion(excel.convert_to_scalar)
+excel.set_xl_array_conversion(excel.convert_to_dataframe)
+
 
 def xl_df(ref, headers=True):
     """Load Excel data with xl() and drop rows that are entirely empty.
