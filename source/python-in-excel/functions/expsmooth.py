@@ -25,3 +25,5 @@ def expsmooth(data, alpha=0.2, headers=False):
     for x in series.iloc[1:]:
         smooth = alpha * float(x) + (1 - alpha) * smooth
     return smooth
+
+"expsmooth(data, alpha=0.2, headers=False)"

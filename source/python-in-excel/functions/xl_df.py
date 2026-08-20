@@ -16,3 +16,5 @@ def xl_df(ref, headers=True):
     else:
         df = pd.DataFrame(data)
     return df.dropna(how="all")
+
+"xl_df(ref, headers=True)"

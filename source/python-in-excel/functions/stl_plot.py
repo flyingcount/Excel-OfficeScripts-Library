@@ -85,3 +85,5 @@ def stl_plot(data, period, dates=None, robust=False, weights=False, headers=Fals
     """
     fit = stl_fit(data, period, dates=dates, robust=robust, headers=headers)
     return fit.plot(weights=bool(weights))
+
+"stl_plot(data, period, dates=None, robust=False, weights=False, headers=False)"

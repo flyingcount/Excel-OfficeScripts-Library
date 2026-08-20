@@ -17,3 +17,5 @@ def corr(data, method="pearson", headers=True):
     else:
         df = pd.DataFrame(data)
     return df.dropna(how="all").corr(method=method, numeric_only=True)
+
+"corr(data, method='pearson', headers=True)"

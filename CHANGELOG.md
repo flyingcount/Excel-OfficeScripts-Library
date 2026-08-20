@@ -25,7 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `stl` — STL seasonal-trend-residual decomposition via statsmodels. Docs: `docs/python/stl.md`.
 - `stl_plot` — same STL fit as a four-panel matplotlib chart (`DecomposeResult.plot`). Docs: `docs/python/stl_plot.md`.
 - `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box and Jarque-Bera; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
+- `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 
 ### Changed
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.
 - Split source into `source/office-scripts/` and `source/lambda/`. Office Script tests moved to `tests/office-scripts/`.
+- Python in Excel function files end with a quoted call so a pasted PY cell displays the signature for reuse.

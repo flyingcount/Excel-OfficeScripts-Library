@@ -121,3 +121,5 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
             ],
         }
     )
+
+"resid_analysis(data, lags=None, plot=False, headers=False)"

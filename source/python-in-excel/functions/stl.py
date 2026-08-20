@@ -101,3 +101,5 @@ def stl(data, period, dates=None, robust=False, headers=False):
     if not isinstance(idx, pd.RangeIndex):
         out.insert(0, "date", idx)
     return out.reset_index(drop=True)
+
+"stl(data, period, dates=None, robust=False, headers=False)"

@@ -15,10 +15,14 @@ One reusable function = one file under `source/python-in-excel/functions/`.
    def name(arg1, arg2=default):
        """One line."""
        ...
+
+   "name(arg1, arg2=default)"
    ```
 
+   The last line is a quoted call. When the file is pasted into a PY cell, Excel displays that signature so it can be copied into another cell.
+
 3. The paste target is the `def` (and any helpers it needs). Do not wrap it in `=PY(...)`.
-4. Append the same `def` to `source/python-in-excel/init/PaulPythonLibrary.py`.
+4. Append the same `def` and quoted call to `source/python-in-excel/init/PaulPythonLibrary.py`.
 5. Add a row to [PythonMap.md](PythonMap.md) and the README Python in Excel table.
 6. Add a short note under **Added** in `CHANGELOG.md`.
 7. Add `tests/python-in-excel/test_name.md` with a grid of PY-cell inputs and expected results.

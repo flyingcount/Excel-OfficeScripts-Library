@@ -17,3 +17,5 @@ def describe(data, headers=True):
     else:
         df = pd.DataFrame(data)
     return df.dropna(how="all").describe()
+
+"describe(data, headers=True)"
