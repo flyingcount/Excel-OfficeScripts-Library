@@ -1,0 +1,81 @@
+---
+description: Conventions for Python in Excel PY-cell functions under source/python-in-excel. Use when adding, editing, testing, or documenting a reusable PY function.
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Python in Excel functions
+
+Follow the checklist in @docs/AddingPython.md. Match existing functions such as @source/python-in-excel/functions/expsmooth.py, @source/python-in-excel/functions/describe.py, and @source/python-in-excel/functions/stl.py.
+
+These are Microsoft 365 **Python in Excel** snippets (`=PY` cells), not a CPython package. Excel cannot import this repo.
+
+## File shape
+
+One function = `source/python-in-excel/functions/name.py`. File stem equals the Python name (`snake_case`).
+
+```python
+# Name: name
+# Description: One line.
+# Parameters: data, arg=default, headers=False
+
+def name(data, arg=default, headers=False):
+    """One line.
+
+    data: ref string, DataFrame, Series, or xl() result.
+    headers: used only when data is a ref string.
+    """
+    ...
+
+"name(data, arg=default, headers=False)"
+```
+
+- Paste target is the `def` (and helpers it needs). Do **not** wrap in `=PY(...)`.
+- Last line is a quoted call so a pasted PY cell shows the signature. String defaults use single quotes inside that string (`"corr(data, method='pearson', headers=True)"`).
+- Name: `snake_case`. Do not collide with `pd`, `np`, `xl`, or Excel `PY`.
+
+## Runtime
+
+Initialization already imports `numpy as np`, `pandas as pd`, `matplotlib.pyplot as plt`, `seaborn as sns`, `statsmodels as sm`, `excel`, and `warnings`. Do not re-import those.
+
+- Extra libraries (for example `statsmodels.tsa`, `scipy`) — `import` **inside** the function, as in @source/python-in-excel/functions/resid_analysis.py.
+- No `import` from this repo. Copy helpers into the function file.
+- New shared fragments go in `source/python-in-excel/shared/` **and** into every function file that needs them **and** once into @source/python-in-excel/init/PaulPythonLibrary.py. See `stl_fit` in @source/python-in-excel/shared/stl_fit.py (used by `stl` and `stl_plot`).
+- Nested `def` helpers are fine when only one function uses them.
+- Do not add functions to @source/python-in-excel/init/DefaultInitialization.py (Excel defaults only).
+
+## Inputs
+
+Accept a range string, `xl()` result, DataFrame, Series, or Python list — not only an Excel ref.
+
+```python
+if isinstance(data, str):
+    data = xl(data, headers=headers)
+```
+
+- `headers=True` for tabular ranges (`describe`, `corr`, `xl_df`). `headers=False` for a value column (`expsmooth`, `stl`, `arima_order`).
+- First numeric column: `numeric = data.select_dtypes(include="number")` then `numeric.iloc[:, 0]` (fallback `data.iloc[:, 0]`).
+- Coerce with `pd.to_numeric(..., errors="coerce")`.
+- Excel may pass a 1×1 array for a scalar. Unwrap with `int(pd.Series(x).iloc[0])` or `float(pd.Series(x).iloc[0])`.
+
+## Outputs
+
+- Scalar: `float` (see `expsmooth`).
+- Table: `DataFrame` that spills (`describe`, `stl`, `arima_order`).
+- Chart: matplotlib `Figure`; tell the user to leave the PY cell as a **Python object** (`stl_plot`).
+- Switch the cell to **Excel value** when a table or scalar should spill.
+
+## Ship checklist
+
+Copy the same `def` and quoted call into @source/python-in-excel/init/PaulPythonLibrary.py (after the default imports, with the other functions).
+
+Then:
+
+1. Row in @docs/PythonMap.md and the README Python in Excel table.
+2. **Added** note in `CHANGELOG.md`.
+3. `tests/python-in-excel/test_name.md` — Setup (paste into Initialization, sample cells) and a Cases table of PY calls vs expected. Follow @tests/python-in-excel/test_expsmooth.md.
+4. If the docstring is not enough, add `docs/python/name.md` (Install, Arguments, Result) and link it from PythonMap. Follow @docs/python/stl.md.
+
+## Do not add here
+
+Office Scripts, named LAMBDAs, VBA, Power Query, xlwings/PyXLL, secrets, or personal data.

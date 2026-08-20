@@ -2,6 +2,8 @@
 
 One reusable function = one file under `source/python-in-excel/functions/`.
 
+Cursor Agent: follow `.cursor/rules/python-in-excel.mdc` (same pattern as the existing PY-cell functions).
+
 ## Checklist
 
 1. Add `source/python-in-excel/functions/name.py`. The file name (without extension) should match the Python function name.
