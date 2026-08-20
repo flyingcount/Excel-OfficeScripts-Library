@@ -128,6 +128,8 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | Residual diagnostics (table, or `plot=True` for charts) |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
+| `adf` | `source/python-in-excel/functions/adf.py` | Augmented Dickey-Fuller stationarity test |
+| `acf_pacf` | `source/python-in-excel/functions/acf_pacf.py` | ACF and PACF plot (or lag table with `plot=False`) |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 
