@@ -12,3 +12,4 @@ Inventory of reusable Python functions. Add a row when you add a file under `sou
 | `stl_plot` | `source/python-in-excel/functions/stl_plot.py` | `stl_plot("A1:A24", 12)` | Same fit as `stl`, as `DecomposeResult.plot()`. See [docs/python/stl_plot.md](python/stl_plot.md). |
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | `resid_analysis("C2:C25")` | Residual diagnostics table, or `plot=True` for vs-order / hist / QQ / ACF. See [docs/python/resid_analysis.md](python/resid_analysis.md). |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | `arima_order("A1:A50")` | AIC grid search for ARIMA(p, d, q). See [docs/python/arima_order.md](python/arima_order.md). |
+| `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | `zscore_replace("A1:A9", z=2)` | Replace points outside a z-score cutoff by interpolation. See [docs/python/zscore_replace.md](python/zscore_replace.md). |
