@@ -20,6 +20,7 @@ One Automate script = one file under `source/office-scripts/scripts/`.
 ## What not to add here
 
 - Named `LAMBDA` formulas (use `source/lambda/` and [AddingLambdas.md](AddingLambdas.md))
+- Python in Excel (use `source/python-in-excel/` and [AddingPython.md](AddingPython.md))
 - VBA modules (use [Excel-VBA-Library](https://github.com/flyingcount/Excel-VBA-Library))
 - Power Query M (use [PowerQuery-Library](https://github.com/flyingcount/PowerQuery-Library))
 - Secrets, workbook data, or downloaded `.xlsx` samples with personal content

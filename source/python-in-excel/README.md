@@ -1,0 +1,9 @@
+# Python in Excel
+
+Each file under `functions/` is one reusable Python function for Microsoft 365 **Python in Excel** (`=PY` cells).
+
+Excel cannot import this folder. Paste a function into **Formulas → Initialization** (workbook-wide) or into a Python cell that runs before the cells that call it.
+
+`init/PaulPythonLibrary.py` is the whole set in one paste. `shared/` holds fragments you copy into a function file; the Excel Python runtime will not load that folder by itself.
+
+These snippets use Excel’s `xl()` helper and the default initialization imports (`pandas` as `pd`, `numpy` as `np`). They are not a CPython package.

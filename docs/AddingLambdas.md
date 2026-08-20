@@ -40,6 +40,7 @@ You can still add a name by hand: Formulas → **Name Manager** → New → past
 ## What not to add here
 
 - Office Scripts (use `source/office-scripts/`)
+- Python in Excel (use `source/python-in-excel/` and [AddingPython.md](AddingPython.md))
 - VBA modules (use [Excel-VBA-Library](https://github.com/flyingcount/Excel-VBA-Library))
 - Power Query M (use [PowerQuery-Library](https://github.com/flyingcount/PowerQuery-Library))
 - Secrets or personal data. The catalog workbook `workbook/Paul Lambda function library.xlsx` is rebuilt, not edited by hand.

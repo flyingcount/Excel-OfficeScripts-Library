@@ -17,6 +17,11 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Python (local runs; Excel Python does not use these)
+__pycache__/
+*.py[cod]
+.venv/
+
 # Secrets
 .env
 .env.*

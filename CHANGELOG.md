@@ -21,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `SuperXLookup` — `XLOOKUP` that returns a whole row (one-column lookup value) or whole column. Docs: `docs/lambda/SuperXLookup.md`.
 - `workbook/Paul Lambda function library.xlsx` — git-synced catalog of every `LAMBDA` (sheet **Lambda functions**). Rebuild with `scripts/Build-LambdaWorkbook.ps1`.
 - `ActivateLambdaFunctions` (**Activate Lambda functions**) — write selected catalog rows into Name Manager.
+- Python in Excel library under `source/python-in-excel/functions/`: `xl_df`, `describe`, `corr`, `expsmooth`. Paste `init/PaulPythonLibrary.py` into **Formulas → Initialization**.
+- `stl` — STL seasonal-trend-residual decomposition via statsmodels. Docs: `docs/python/stl.md`.
+- `stl_plot` — same STL fit as a four-panel matplotlib chart (`DecomposeResult.plot`). Docs: `docs/python/stl_plot.md`.
+- `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box and Jarque-Bera; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
 
 ### Changed
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.
