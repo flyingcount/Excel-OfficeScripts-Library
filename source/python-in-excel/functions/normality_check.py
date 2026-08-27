@@ -185,6 +185,7 @@ def normality_check(data, plot=True, headers=False):
 qq_norm = normality_check
 
 """normality_check(data, plot=True, headers=False)
-qq_norm(data, plot=True, headers=False)
-shapiro(data)
-anderson(data)"""
+ qq_norm(data, plot=True, headers=False)
+ shapiro(data, metric=None, headers=False)
+ anderson(data, metric=None, headers=False)
+ _norm_values(data, headers=False)"""
