@@ -27,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box and Jarque-Bera; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
 - `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
-- `qq_norm` — normal Q-Q plot with Shapiro-Wilk and Anderson-Darling on the chart; stats are figure attributes for other PY cells (`plot=False` spills a table). Docs: `docs/python/qq_norm.md`.
+- `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.
 

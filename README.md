@@ -126,7 +126,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `stl` | `source/python-in-excel/functions/stl.py` | STL seasonal-trend-residual decomposition |
 | `stl_plot` | `source/python-in-excel/functions/stl_plot.py` | STL four-panel chart (`DecomposeResult.plot`) |
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | Residual diagnostics (table, or `plot=True` for charts) |
-| `qq_norm` | `source/python-in-excel/functions/qq_norm.py` | Normal Q-Q plot with Shapiro-Wilk and Anderson-Darling |
+| `normality_check` | `source/python-in-excel/functions/normality_check.py` | Q-Q plot plus Shapiro-Wilk and Anderson-Darling (one paste) |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
 

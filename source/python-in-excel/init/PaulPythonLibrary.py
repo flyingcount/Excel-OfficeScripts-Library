@@ -345,7 +345,118 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
 "resid_analysis(data, lags=None, plot=False, headers=False)"
 
 
-def qq_norm(data, plot=True, headers=False):
+def _norm_values(data, headers=False):
+    """First numeric column as a float array. Drops blanks. Need at least 3 values."""
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna().to_numpy(dtype=float)
+    if y.size < 3:
+        raise ValueError("Need at least 3 numeric values.")
+    return y
+
+
+def shapiro(data, metric=None, headers=False):
+    """Shapiro-Wilk W and p-value.
+
+    data: column range, ref string, Series, list, or xl() result.
+    metric: omit to spill a metric/value table. "pvalue" or "stat" returns that float.
+    headers: first row is headers when data is a ref string.
+
+    Switch the PY cell to Excel value. Need at least 3 numeric values.
+    If p > 0.05, a normal distribution in the data can be assumed.
+    """
+    from scipy import stats
+
+    y = _norm_values(data, headers)
+    try:
+        sh_stat, sh_p = stats.shapiro(y)
+        sh_stat, sh_p = float(sh_stat), float(sh_p)
+    except ValueError:
+        sh_stat, sh_p = float("nan"), float("nan")
+
+    rows = {"shapiro_stat": sh_stat, "shapiro_pvalue": sh_p}
+    if metric is not None:
+        key = str(pd.Series(metric).iloc[0]).strip().lower()
+        aliases = {
+            "stat": "shapiro_stat",
+            "w": "shapiro_stat",
+            "shapiro_stat": "shapiro_stat",
+            "pvalue": "shapiro_pvalue",
+            "p": "shapiro_pvalue",
+            "p_value": "shapiro_pvalue",
+            "shapiro_pvalue": "shapiro_pvalue",
+        }
+        if key not in aliases:
+            raise ValueError("metric must be 'stat', 'pvalue', or omitted for the table.")
+        return float(rows[aliases[key]])
+
+    return pd.DataFrame({"metric": list(rows.keys()), "value": list(rows.values())})
+
+"shapiro(data, metric=None, headers=False)"
+
+
+def anderson(data, metric=None, headers=False):
+    """Anderson-Darling A^2 and critical values for a normal distribution.
+
+    data: column range, ref string, Series, list, or xl() result.
+    metric: omit to spill a metric/value table. "stat" or "critical_5" returns that float.
+    headers: first row is headers when data is a ref string.
+
+    Switch the PY cell to Excel value. Need at least 3 numeric values.
+    A^2 above the 5% critical value suggests the data are not normal.
+    """
+    from scipy import stats
+
+    y = _norm_values(data, headers)
+    rows = {"anderson_stat": float("nan")}
+    aliases = {
+        "stat": "anderson_stat",
+        "a2": "anderson_stat",
+        "anderson_stat": "anderson_stat",
+    }
+    try:
+        ad = stats.anderson(y, dist="norm")
+        rows["anderson_stat"] = float(ad.statistic)
+        for sig, val in zip(
+            np.asarray(ad.significance_level, dtype=float),
+            np.asarray(ad.critical_values, dtype=float),
+        ):
+            if abs(sig - 2.5) < 1e-9:
+                name = "anderson_critical_2_5"
+                short = "critical_2_5"
+            elif abs(sig - int(sig)) < 1e-9:
+                name = f"anderson_critical_{int(sig)}"
+                short = f"critical_{int(sig)}"
+            else:
+                tag = str(sig).replace(".", "_")
+                name = f"anderson_critical_{tag}"
+                short = f"critical_{tag}"
+            rows[name] = float(val)
+            aliases[short] = name
+            aliases[name] = name
+            aliases[str(int(sig)) if abs(sig - int(sig)) < 1e-9 else str(sig)] = name
+    except ValueError:
+        pass
+
+    if metric is not None:
+        key = str(pd.Series(metric).iloc[0]).strip().lower()
+        if key not in aliases:
+            raise ValueError(
+                "metric must be 'stat', 'critical_5' (or another critical_*), or omitted for the table."
+            )
+        return float(rows[aliases[key]])
+
+    return pd.DataFrame({"metric": list(rows.keys()), "value": list(rows.values())})
+
+"anderson(data, metric=None, headers=False)"
+
+
+def normality_check(data, plot=True, headers=False):
     """Q-Q plot against the normal distribution, with Shapiro-Wilk and Anderson-Darling.
 
     data: column range, ref string, Series, list, or xl() result.
@@ -356,42 +467,19 @@ def qq_norm(data, plot=True, headers=False):
     tests, and the same values are attributes for other PY cells, for example
     B2.shapiro_pvalue, B2.anderson_stat, B2.results (if the chart is in B2).
 
-    Table includes n, Shapiro-Wilk W and p, Anderson-Darling A^2, and the 5%
-    critical value. Need at least 3 numeric values.
+    For a single number in another cell, call shapiro(data, 'pvalue') or
+    anderson(data, 'stat') and switch that cell to Excel value.
+    Need at least 3 numeric values.
     """
     import matplotlib.pyplot as plt
     from scipy import stats
 
-    if isinstance(data, str):
-        data = xl(data, headers=headers)
-    if isinstance(data, pd.DataFrame):
-        numeric = data.select_dtypes(include="number")
-        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
-    else:
-        values = data
-    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna().to_numpy(dtype=float)
+    y = _norm_values(data, headers)
     n = int(y.size)
-    if n < 3:
-        raise ValueError("Need at least 3 numeric values.")
-
-    try:
-        sh_stat, sh_p = stats.shapiro(y)
-        sh_stat, sh_p = float(sh_stat), float(sh_p)
-    except ValueError:
-        sh_stat, sh_p = float("nan"), float("nan")
-
-    ad_stat = float("nan")
-    crit_5 = float("nan")
-    try:
-        ad = stats.anderson(y, dist="norm")
-        ad_stat = float(ad.statistic)
-        sig = np.asarray(ad.significance_level, dtype=float)
-        crit = np.asarray(ad.critical_values, dtype=float)
-        match = np.where(np.isclose(sig, 5.0))[0]
-        if match.size:
-            crit_5 = float(crit[int(match[0])])
-    except ValueError:
-        pass
+    sh_stat = shapiro(y, "stat")
+    sh_p = shapiro(y, "pvalue")
+    ad_stat = anderson(y, "stat")
+    crit_5 = anderson(y, "critical_5")
 
     table = pd.DataFrame(
         {
@@ -441,7 +529,12 @@ def qq_norm(data, plot=True, headers=False):
     fig.results = table
     return fig
 
-"qq_norm(data, plot=True, headers=False)"
+qq_norm = normality_check
+
+"""normality_check(data, plot=True, headers=False)
+qq_norm(data, plot=True, headers=False)
+shapiro(data)
+anderson(data)"""
 
 
 def arima_order(data, p_max=3, d_max=2, q_max=3, headers=False):
