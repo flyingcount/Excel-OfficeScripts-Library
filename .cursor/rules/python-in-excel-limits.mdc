@@ -1,0 +1,23 @@
+---
+description: Excel formula and cell limits that Python in Excel library .py files must stay within.
+globs: source/python-in-excel/**/*.py
+alwaysApply: false
+---
+
+# Excel limits for Python in Excel library files
+
+Pasteable `functions/*.py` files become PY-cell formulas. Stay within Excel's limits:
+
+| Limit | Maximum | What it means here |
+|-------|---------|--------------------|
+| Formula text length | 8,192 characters | The whole `functions/name.py` paste must be ≤ 8,192 characters. Compact docstrings, share helpers, drop duplicate strings. `init/PaulPythonLibrary.py` can be larger (Initialization, not a cell formula). |
+| Function arguments | 255 arguments | Keep public `def` signatures small. Prefer a range/DataFrame plus a few options over a long parameter list. |
+| Nested function levels | 64 levels | Do not emit or document Excel formulas nested more than 64 deep. Nested Python `def` helpers inside a PY file do not count. |
+| Cell content length | 32,767 characters | Each spilled cell (names, values, guidance/interpretation, scalars) must be ≤ 32,767 characters. Keep guidance to one short line. |
+
+```python
+# ❌ BAD — functions/name.py over 8,192 characters; multi-paragraph text in a spill cell
+# ✅ GOOD — file under 8,192; few arguments; one-line guidance
+```
+
+Before shipping a function file, confirm character count ≤ 8,192.

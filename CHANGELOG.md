@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
+- Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.
 - Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.
 
 ### Changed
