@@ -68,9 +68,9 @@ if isinstance(data, str):
 
 ## Ship checklist
 
-Copy the same `def` and quoted call into @source/python-in-excel/init/PaulPythonLibrary.py (after the default imports, with the other functions).
+Copy the same `def` and quoted call into @source/python-in-excel/init/PaulPythonLibrary.py (after the default imports, with the other functions). Add a row to that file's `contents()` in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
 
-If the function is a **sampler** (draws a subset of rows or items from a population; names often end in `_sample`), also copy that `def` into @source/python-in-excel/init/Sampling.py. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
+If the function is a **sampler** (draws a subset of rows or items from a population; names often end in `_sample`), also copy that `def` into @source/python-in-excel/init/Sampling.py and add a `contents()` row there. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
 
 Then:
 

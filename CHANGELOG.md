@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `contents()` in `init/PaulPythonLibrary.py` and `init/Sampling.py` — spill a table of public function names and a brief explanation. Cursor rule `.cursor/rules/python-in-excel-init-contents.mdc` requires a `contents()` row for every public function added to those init files.
 - Repository scaffold for an Excel Office Scripts library (`source/scripts`, shared helpers, script map).
 - `ListWorksheets` — write a **Worksheets** sheet with name, visibility, and used range for each worksheet.
 - `PaulsFormat` (**Paul's format**) — apply a named custom number format to the selected range.

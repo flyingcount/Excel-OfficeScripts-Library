@@ -1,0 +1,35 @@
+---
+description: Every public function in a Python in Excel init file must be listed in that file's contents() function.
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Python in Excel init `contents()`
+
+`contents()` is the catalog of public functions in an Initialization paste. It spills a `function` / `description` table so a PY cell can show what that init file installed.
+
+## Where it lives
+
+- @source/python-in-excel/init/PaulPythonLibrary.py — every public library function in that file
+- @source/python-in-excel/init/Sampling.py — every public sampling function in that file
+
+Do **not** add `contents` (or any other function) to @source/python-in-excel/init/DefaultInitialization.py. That file is Excel defaults only.
+
+`contents()` is init-only. Do not add `functions/contents.py`. Each init file has its own list.
+
+## Keep the list complete
+
+When you add a public `def` to an init file, add a row to **that same file's** `contents()` in the same change.
+
+```python
+# ❌ BAD — new def in PaulPythonLibrary.py, contents() unchanged
+# ✅ GOOD — same change adds ("new_name", "Brief explanation") to contents()
+```
+
+- List every public function: no leading underscore, and either a quoted call line or an alias (`qq_norm`).
+- List `contents` itself.
+- Do **not** list private helpers (`_norm_values`) or internal helpers with no quoted call (`stl_fit`).
+- Description: one short phrase. If the readable name is enough, use that (`"Stratified sample"`, `"Systematic sample"`).
+- Samplers go in **both** init files, so add a `contents()` row in **both** (see @.cursor/rules/python-in-excel-sampling.mdc).
+
+Then follow @.cursor/rules/python-in-excel.mdc for the function file, PythonMap, README, CHANGELOG, tests, and docs.

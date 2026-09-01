@@ -2,6 +2,7 @@
 #
 # Formulas → Initialization → replace the editor contents with this file → Save.
 # This file is a complete Initialization: Excel defaults, then the library functions.
+# After Save, call contents() in a PY cell for the public function list.
 #
 # Restore defaults only: paste init/DefaultInitialization.py instead.
 # Sampling functions only: paste init/Sampling.py instead.
@@ -21,6 +22,40 @@ warnings.simplefilter('ignore')
 
 excel.set_xl_scalar_conversion(excel.convert_to_scalar)
 excel.set_xl_array_conversion(excel.convert_to_dataframe)
+
+
+def contents():
+    """List library functions in this Initialization.
+
+    Result spills as function / description. A readable name is enough when
+    that already says what the function does (for example Stratified sample).
+    """
+    return pd.DataFrame(
+        [
+            ("contents", "List library functions"),
+            ("xl_df", "Load Excel data, drop empty rows"),
+            ("describe", "Summary statistics"),
+            ("corr", "Pairwise correlation"),
+            ("expsmooth", "Last SES value"),
+            ("stl", "STL decomposition table"),
+            ("stl_plot", "Four-panel STL chart"),
+            ("resid_analysis", "Residual diagnostics"),
+            ("shapiro", "Shapiro-Wilk"),
+            ("anderson", "Anderson-Darling"),
+            ("normality_check", "Q-Q plot with Shapiro-Wilk and Anderson-Darling"),
+            ("qq_norm", "Alias for normality_check"),
+            ("arima_order", "ARIMA(p, d, q) by AIC"),
+            ("zscore_replace", "Replace |z| outliers by interpolation"),
+            ("cluster_prep", "Scale and one-hot encode for clustering"),
+            ("stratified_sample", "Stratified sample"),
+            ("systematic_sample", "Systematic sample"),
+            ("two_stage_cluster_sample", "Two-stage cluster sample"),
+            ("reservoir_sample", "Reservoir sample"),
+        ],
+        columns=["function", "description"],
+    )
+
+"contents()"
 
 
 def xl_df(ref, headers=True):

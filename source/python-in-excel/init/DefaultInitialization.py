@@ -3,6 +3,7 @@
 # Formulas → Initialization → replace the editor contents with this file → Save.
 # Use this when the default imports or xl conversion settings were deleted or edited.
 # This is the Excel default only. It does not include the Paul Python library functions.
+# It has no contents() catalog; paste PaulPythonLibrary.py or Sampling.py for that.
 #
 # Requires Microsoft 365 Python in Excel.
 
