@@ -38,6 +38,7 @@ Related:
 │   ├── office-scripts/
 │   ├── lambda/
 │   └── python-in-excel/
+├── examples/              ← reference workbooks (not the library)
 ├── workbook/                ← Paul Lambda function library.xlsx
 ├── scripts/
 │   └── Build-LambdaWorkbook.ps1
