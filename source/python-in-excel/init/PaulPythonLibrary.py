@@ -231,8 +231,9 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
     headers: first row is headers when data is a ref string.
 
     Table includes n, mean, std, min, max, sum, slope/intercept/R² vs order
-    (same idea as VBA ResidualsAnalysis), Ljung-Box, and Jarque-Bera.
-    Chart: residuals vs order, histogram, QQ, ACF.
+    (same idea as VBA ResidualsAnalysis), Ljung-Box, Durbin-Watson, Jarque-Bera,
+    Shapiro-Wilk, and z-scored residual summaries. Chart: residuals vs order,
+    histogram, QQ, ACF. The z-scored series is result.std_resid.
     Need at least 3 numeric values.
     """
     import matplotlib.pyplot as plt
@@ -240,6 +241,7 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
     from statsmodels.graphics.gofplots import qqplot
     from statsmodels.graphics.tsaplots import plot_acf
     from statsmodels.stats.diagnostic import acorr_ljungbox
+    from statsmodels.stats.stattools import durbin_watson
 
     if isinstance(data, str):
         data = xl(data, headers=headers)
@@ -287,6 +289,32 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
         jb_stat = float("nan")
         jb_p = float("nan")
 
+    try:
+        dw_stat = float(durbin_watson(y))
+    except (ValueError, ZeroDivisionError):
+        dw_stat = float("nan")
+    if not np.isfinite(dw_stat):
+        dw_stat = float("nan")
+
+    try:
+        sh_stat, sh_p = stats.shapiro(y)
+        sh_stat, sh_p = float(sh_stat), float(sh_p)
+    except ValueError:
+        sh_stat, sh_p = float("nan"), float("nan")
+
+    try:
+        std_resid = np.asarray(stats.zscore(y), dtype=float)
+    except ValueError:
+        std_resid = np.full(n, np.nan)
+    finite_z = np.isfinite(std_resid)
+    if finite_z.any():
+        std_resid_max_abs = float(np.max(np.abs(std_resid[finite_z])))
+        n_std_resid_gt_2 = int(np.sum(np.abs(std_resid[finite_z]) > 2.0))
+    else:
+        std_resid_max_abs = float("nan")
+        n_std_resid_gt_2 = 0
+    std_resid_series = pd.Series(std_resid)
+
     if plot:
         fig, axes = plt.subplots(2, 2, figsize=(8, 8))
         axes[0, 0].scatter(order, y, marker="x", s=16, color="black")
@@ -303,9 +331,10 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
         axes[1, 1].set_title("ACF")
         fig.suptitle("Residual analysis")
         fig.tight_layout()
+        fig.std_resid = std_resid_series
         return fig
 
-    return pd.DataFrame(
+    out = pd.DataFrame(
         {
             "metric": [
                 "n",
@@ -322,6 +351,11 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
                 "ljung_box_pvalue",
                 "jarque_bera_stat",
                 "jarque_bera_pvalue",
+                "durbin_watson",
+                "shapiro_stat",
+                "shapiro_pvalue",
+                "std_resid_max_abs",
+                "n_std_resid_gt_2",
             ],
             "value": [
                 n,
@@ -338,9 +372,17 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
                 lb_p,
                 jb_stat,
                 jb_p,
+                dw_stat,
+                sh_stat,
+                sh_p,
+                std_resid_max_abs,
+                n_std_resid_gt_2,
             ],
         }
     )
+    object.__setattr__(out, "std_resid", std_resid_series)
+    return out
+
 
 "resid_analysis(data, lags=None, plot=False, headers=False)"
 

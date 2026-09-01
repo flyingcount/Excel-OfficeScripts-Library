@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Python in Excel library under `source/python-in-excel/functions/`: `xl_df`, `describe`, `corr`, `expsmooth`. Paste `init/PaulPythonLibrary.py` into **Formulas → Initialization**.
 - `stl` — STL seasonal-trend-residual decomposition via statsmodels. Docs: `docs/python/stl.md`.
 - `stl_plot` — same STL fit as a four-panel matplotlib chart (`DecomposeResult.plot`). Docs: `docs/python/stl_plot.md`.
-- `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box and Jarque-Bera; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
+- `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box, Durbin–Watson, Jarque-Bera, and Shapiro–Wilk; z-scored residual summaries; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
 - `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.
 
 ### Changed
+- `resid_analysis` — Durbin–Watson, Shapiro–Wilk, and z-scored residual summaries (`std_resid_max_abs`, `n_std_resid_gt_2`; `.std_resid` on the table and figure). Existing metric rows keep their names and order.
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.
 - Split source into `source/office-scripts/` and `source/lambda/`. Office Script tests moved to `tests/office-scripts/`.
 - Python in Excel function files end with a quoted call so a pasted PY cell displays the signature for reuse.
