@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box, Durbin–Watson, Jarque-Bera, and Shapiro–Wilk; z-scored residual summaries; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
 - `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
+- `cluster_prep` — scale numeric columns and one-hot encode categoricals so mixed tables are ready for clustering. Docs: `docs/python/cluster_prep.md`.
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.

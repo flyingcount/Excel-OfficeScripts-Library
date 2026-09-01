@@ -130,6 +130,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `normality_check` | `source/python-in-excel/functions/normality_check.py` | Q-Q plot plus Shapiro-Wilk and Anderson-Darling (one paste) |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
+| `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 
