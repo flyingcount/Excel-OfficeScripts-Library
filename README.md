@@ -32,7 +32,7 @@ Related:
 │   │   └── shared/        ← fragments to copy into a LAMBDA
 │   └── python-in-excel/
 │       ├── functions/     ← one Python function per file
-│       ├── init/          ← PaulPythonLibrary.py or DefaultInitialization.py → Formulas → Initialization
+│       ├── init/          ← PaulPythonLibrary.py, Sampling.py, or DefaultInitialization.py → Formulas → Initialization
 │       └── shared/        ← fragments to copy into a function
 ├── tests/
 │   ├── office-scripts/
@@ -76,7 +76,7 @@ You can still paste a single `=LAMBDA(...)` into Name Manager by hand. Excel Lab
 
 Microsoft 365 with Python in Excel enabled.
 
-1. Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes Excel’s default imports and the library functions.
+1. Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes Excel’s default imports and the library functions. For **sampling functions only**, paste `init/Sampling.py` instead.
 2. Insert a Python cell (**Formulas → Insert Python**, or `=PY`).
 3. Call a function, for example `describe("Table1[#All]")` or `stl_plot("A1:A24", 12)`.
 4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot`.
@@ -131,6 +131,9 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
 | `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
+| `stratified_sample` | `source/python-in-excel/functions/stratified_sample.py` | Proportional stratified sample from a table |
+| `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | Systematic sample of rows at a regular interval |
+| `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | Two-stage cluster sample: pick clusters, then rows |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 

@@ -1,0 +1,27 @@
+---
+description: When adding a Python in Excel sampling function, copy it into init/Sampling.py and init/PaulPythonLibrary.py.
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Python in Excel sampling functions
+
+Sampling functions draw a subset of rows or items from a population (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, simple random sample, and similar). Names often end in `_sample`. `cluster_prep` is clustering prep, not sampling.
+
+## Init files
+
+Copy the same `def` and quoted call into **both**:
+
+1. @source/python-in-excel/init/PaulPythonLibrary.py (full library)
+2. @source/python-in-excel/init/Sampling.py (sampling-only Initialization)
+
+Do not add sampling functions to @source/python-in-excel/init/DefaultInitialization.py.
+
+Keep the two copies identical. `Sampling.py` is a complete Initialization: Excel default imports, then sampling `def`s only.
+
+```python
+# ❌ BAD — sampling function only in PaulPythonLibrary.py
+# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and Sampling.py
+```
+
+Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

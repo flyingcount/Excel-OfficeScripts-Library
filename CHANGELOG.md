@@ -28,7 +28,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
 - `cluster_prep` — scale numeric columns and one-hot encode categoricals so mixed tables are ready for clustering. Docs: `docs/python/cluster_prep.md`.
+- `stratified_sample` — proportional stratified sample from a table by a stratum column. Docs: `docs/python/stratified_sample.md`.
+- `systematic_sample` — systematic sample of rows at a regular interval from a random start. Docs: `docs/python/systematic_sample.md`.
+- `two_stage_cluster_sample` — two-stage cluster sample (select clusters, then rows within each). Docs: `docs/python/two_stage_cluster_sample.md`.
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
+- `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`).
+- Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — copy new sampling functions into both `init/Sampling.py` and `init/PaulPythonLibrary.py`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.
 - Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.

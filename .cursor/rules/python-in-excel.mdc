@@ -70,6 +70,8 @@ if isinstance(data, str):
 
 Copy the same `def` and quoted call into @source/python-in-excel/init/PaulPythonLibrary.py (after the default imports, with the other functions).
 
+If the function is a **sampler** (draws a subset of rows or items from a population; names often end in `_sample`), also copy that `def` into @source/python-in-excel/init/Sampling.py. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
+
 Then:
 
 1. Row in @docs/PythonMap.md and the README Python in Excel table.

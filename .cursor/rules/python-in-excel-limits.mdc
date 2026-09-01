@@ -10,7 +10,7 @@ Pasteable `functions/*.py` files become PY-cell formulas. Stay within Excel's li
 
 | Limit | Maximum | What it means here |
 |-------|---------|--------------------|
-| Formula text length | 8,192 characters | The whole `functions/name.py` paste must be ≤ 8,192 characters. Compact docstrings, share helpers, drop duplicate strings. `init/PaulPythonLibrary.py` can be larger (Initialization, not a cell formula). |
+| Formula text length | 8,192 characters | The whole `functions/name.py` paste must be ≤ 8,192 characters. Compact docstrings, share helpers, drop duplicate strings. `init/PaulPythonLibrary.py` and `init/Sampling.py` can be larger (Initialization, not a cell formula). |
 | Function arguments | 255 arguments | Keep public `def` signatures small. Prefer a range/DataFrame plus a few options over a long parameter list. |
 | Nested function levels | 64 levels | Do not emit or document Excel formulas nested more than 64 deep. Nested Python `def` helpers inside a PY file do not count. |
 | Cell content length | 32,767 characters | Each spilled cell (names, values, guidance/interpretation, scalars) must be ≤ 32,767 characters. Keep guidance to one short line. |
