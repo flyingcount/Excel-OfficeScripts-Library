@@ -33,3 +33,7 @@ Table: set the PY cell to **Excel value**. Plot, and rows that read `.std_resid`
 | `type(resid_analysis("A1:A5", plot=True)).__name__` | `Figure` |
 | `len(resid_analysis("A1:A5", plot=True).axes)` | at least `4` |
 | `len(resid_analysis("A1:A5", plot=True).std_resid)` | `5` |
+| `list(resid_analysis("A1:A5").columns)` | `metric`, `value`, `guidance` |
+| `resid_analysis("A1:A5")["guidance"].notna().all() and (resid_analysis("A1:A5")["guidance"].str.len() > 0).all()` | `True` |
+| `"0.05" in resid_analysis("A1:A5").set_index("metric").loc["ljung_box_pvalue", "guidance"]` | `True` |
+| `"Near 2" in resid_analysis("A1:A5").set_index("metric").loc["durbin_watson", "guidance"]` | `True` |

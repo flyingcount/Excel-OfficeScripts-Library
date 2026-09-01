@@ -39,19 +39,19 @@ Need at least 3 numeric values. Blanks are dropped. If `data` is a DataFrame, th
 
 ## Result (table)
 
-Two columns: `metric`, `value`. Existing rows stay in the same order; new diagnostics are appended.
+Three columns: `metric`, `value`, `guidance`. Existing metric rows stay in the same order. The `guidance` column is a short note on how to read that row.
 
-| Metric | Meaning |
-|--------|---------|
-| `n` | Count after dropping blanks. |
-| `mean`, `std`, `min`, `max`, `sum` | Sample stats (`std` uses n−1). |
-| `slope_vs_order`, `intercept_vs_order`, `rsq_vs_order` | Linear fit of residuals on 1…n (VBA Slope / Intercept / R²). |
-| `ljung_box_lags`, `ljung_box_stat`, `ljung_box_pvalue` | Ljung-Box at the chosen lag. Small p → leftover autocorrelation. |
-| `jarque_bera_stat`, `jarque_bera_pvalue` | Jarque-Bera normality. Small p → not normal. |
-| `durbin_watson` | Durbin–Watson. Near 2 → little lag-1 autocorrelation; toward 0 → positive; toward 4 → negative. |
-| `shapiro_stat`, `shapiro_pvalue` | Shapiro–Wilk normality. Small p → not normal. |
-| `std_resid_max_abs` | Largest absolute z-score (population sd, ddof=0). Blank when the series is constant. |
-| `n_std_resid_gt_2` | Count of points with \|z-score\| > 2. |
+| Metric | Meaning | Guidance (spilled) |
+|--------|---------|--------------------|
+| `n` | Count after dropping blanks. | Count of residual values after dropping blanks. |
+| `mean`, `std`, `min`, `max`, `sum` | Sample stats (`std` uses n−1). | Mean near 0; large \|mean\| suggests bias. `std` is noise. `min`/`max` can flag outliers. `sum` near 0 when mean is near 0. |
+| `slope_vs_order`, `intercept_vs_order`, `rsq_vs_order` | Linear fit of residuals on 1…n (VBA Slope / Intercept / R²). | Slope near 0 means no drift. R² near 0 is better. |
+| `ljung_box_lags`, `ljung_box_stat`, `ljung_box_pvalue` | Ljung-Box at the chosen lag. | p < 0.05 → leftover autocorrelation. |
+| `jarque_bera_stat`, `jarque_bera_pvalue` | Jarque-Bera normality. | p < 0.05 → residuals not normal. |
+| `durbin_watson` | Durbin–Watson. | Near 2 → little lag-1 autocorrelation; toward 0 → positive; toward 4 → negative. |
+| `shapiro_stat`, `shapiro_pvalue` | Shapiro–Wilk normality. | p > 0.05: normality can be assumed. p < 0.05: not normal. |
+| `std_resid_max_abs` | Largest absolute z-score (population sd, ddof=0). | \|z\| > 2 is unusual; \|z\| > 3 is extreme. Blank if constant. |
+| `n_std_resid_gt_2` | Count of points with \|z-score\| > 2. | Zero is typical; many suggest outliers. |
 
 ## Result (plot)
 
