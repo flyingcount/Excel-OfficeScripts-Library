@@ -3,21 +3,12 @@
 # Parameters: data, lags=None, plot=False, headers=False
 
 def resid_analysis(data, lags=None, plot=False, headers=False):
-    """Diagnose a residual series.
+    """Diagnose a residual series. plot=False spills metric/value/guidance; True is a 4-panel chart.
 
-    data: residual column, stl() result (uses column resid), DataFrame, Series, or xl() result.
-    lags: Ljung-Box / ACF lag count. Default min(10, n-2).
-    plot: False spills a metric/value/guidance table; True returns a matplotlib Figure.
-    headers: first row is headers when data is a ref string.
-
-    Table includes n, mean, std, min, max, sum, slope/intercept/R² vs order
-    (same idea as VBA ResidualsAnalysis), Ljung-Box, Durbin-Watson, Jarque-Bera,
-    Shapiro-Wilk, and z-scored residual summaries. The guidance column says how
-    to read each metric. Chart: residuals vs order, histogram, QQ, ACF.
-    The z-scored series is result.std_resid.
-    Need at least 3 numeric values.
+    data: residual column, stl() result (uses resid), DataFrame, Series, or xl() result.
+    lags: Ljung-Box / ACF lags. Default min(10, n-2). headers: first row is headers for a ref string.
+    Need at least 3 numeric values. Z-scored series is result.std_resid.
     """
-    import matplotlib.pyplot as plt
     from scipy import stats
     from statsmodels.graphics.gofplots import qqplot
     from statsmodels.graphics.tsaplots import plot_acf

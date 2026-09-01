@@ -37,7 +37,7 @@ Python in Excel is Microsoft 365 only.
 
 **Workbook-wide (preferred):** Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes the Excel default imports and the library functions. Then in a PY cell: `describe("Table1[#All]")`.
 
-**One function:** paste that file’s `def` into Initialization after the default imports, or into a Python cell above and to the left of the cells that call it.
+**One function:** paste that file’s `def` into Initialization after the default imports, or into a Python cell above and to the left of the cells that call it. A Python formula is limited to **8192 characters**, so keep each `functions/*.py` file under that size.
 
 **One-shot:** in a PY cell, paste a call such as `describe(xl("A1:D20", headers=True))` without installing the library.
 

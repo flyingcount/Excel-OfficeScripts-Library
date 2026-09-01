@@ -10,6 +10,8 @@ Functions in the file: `shapiro`, `anderson`, `normality_check` (Q-Q chart; `qq_
 
 Formulas → **Initialization** → paste the whole file after the default imports → Save. Or paste `init/PaulPythonLibrary.py`.
 
+The file is kept under 8192 characters so it can also be pasted into a PY cell (Excel’s Python formula limit).
+
 If you paste the file into a PY cell instead, that cell shows:
 
 ```text

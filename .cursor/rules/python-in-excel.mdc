@@ -31,6 +31,7 @@ def name(data, arg=default, headers=False):
 ```
 
 - Paste target is the `def` (and helpers it needs). Do **not** wrap in `=PY(...)`.
+- Keep each function file under **8192 characters** (Python in Excel formula limit).
 - Last line is a quoted call so a pasted PY cell shows the signature. String defaults use single quotes inside that string (`"corr(data, method='pearson', headers=True)"`).
 - Name: `snake_case`. Do not collide with `pd`, `np`, `xl`, or Excel `PY`.
 
