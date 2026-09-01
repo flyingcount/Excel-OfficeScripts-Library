@@ -1,3 +1,5 @@
+# Source: https://www.statology.org/5-sampling-techniques-that-are-better-than-simple-random-sampling/
+
 # Name: stratified_sample
 # Description: Proportional stratified sample from a range, table, or DataFrame.
 # Parameters: data, strata_col, total_n, random_state=42, headers=True
