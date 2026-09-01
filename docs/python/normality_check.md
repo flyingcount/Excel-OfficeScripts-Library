@@ -45,7 +45,7 @@ anderson("A1:A10", "stat")
 
 5% critical value: `anderson("A1:A10", "critical_5")`. Full table: `anderson("A1:A10")` (includes `interpretation`).
 
-A^2 above the 5% critical value suggests the data are not normal at 5%.
+If A^2 is less than the 5% critical value, the data is normal. If not, it is not normal.
 
 ## Q-Q plot (Python object)
 

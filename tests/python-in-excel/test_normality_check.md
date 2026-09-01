@@ -23,6 +23,8 @@ Table / scalar: set the PY cell to **Excel value**. Plot: leave as a **Python ob
 | `anderson("A1:A10", "stat") == anderson("A1:A10", "anderson_stat")` | `True` |
 | `anderson("A1:A10", "critical_5") == anderson("A1:A10", "anderson_critical_5")` | `True` |
 | `"anderson_critical_5" in list(anderson("A1:A10")["metric"])` | `True` |
+| `"If A^2 is less than this value" in anderson("A1:A10").set_index("metric").loc["anderson_critical_5", "interpretation"]` | `True` |
+| `"the data is normal" in anderson("A1:A10").set_index("metric").loc["anderson_stat", "interpretation"]` | `True` |
 | `normality_check("A1:A10", plot=False).set_index("metric").loc["n", "value"]` | `10` |
 | `list(normality_check("A1:A10", plot=False).columns)` | `metric`, `value`, `interpretation` |
 | `"p > 0.05" in normality_check("A1:A10", plot=False).set_index("metric").loc["shapiro_pvalue", "interpretation"]` | `True` |

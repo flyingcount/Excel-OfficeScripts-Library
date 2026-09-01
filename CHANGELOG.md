@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `resid_analysis` — metric table spills a third `guidance` column with how to interpret each row. `metric` and `value` are unchanged.
 - `normality_check` / `shapiro` / `anderson` spilled tables include an `interpretation` column. `metric` and `value` are unchanged.
 - Compacted `normality_check.py` and `resid_analysis.py` so each file stays under the 8192-character Python in Excel formula limit.
+- `anderson` interpretation text says whether the data is normal from A^2 vs the critical value, instead of "reject normality".
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.
 - Split source into `source/office-scripts/` and `source/lambda/`. Office Script tests moved to `tests/office-scripts/`.
 - Python in Excel function files end with a quoted call so a pasted PY cell displays the signature for reuse.

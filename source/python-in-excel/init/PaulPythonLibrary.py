@@ -499,12 +499,12 @@ def anderson(data, metric=None, headers=False):
         return float(rows[aliases[key]])
     ad_stat, crit_5 = rows["anderson_stat"], rows.get("anderson_critical_5", float("nan"))
     if not np.isfinite(ad_stat) or not np.isfinite(crit_5):
-        ad_note = "A^2. Larger than the 5% critical value suggests non-normality."
+        ad_note = "If A^2 is less than the 5% critical value, the data is normal. If not, it is not normal."
     elif ad_stat > crit_5:
-        ad_note = "A^2 above the 5% critical value: data are not normal at 5%."
+        ad_note = "A^2 is not less than the 5% critical value, so the data is not normal."
     else:
-        ad_note = "A^2 at or below the 5% critical value: normality not rejected at 5%."
-    crit_note = "Reject normality at this level if A^2 exceeds this critical value."
+        ad_note = "A^2 is less than the 5% critical value, so the data is normal."
+    crit_note = "If A^2 is less than this value, the data is normal. If not, it is not normal."
     notes = [ad_note if n == "anderson_stat" else crit_note if n.startswith("anderson_critical_") else "" for n in rows]
     return _norm_df(rows, notes)
 
