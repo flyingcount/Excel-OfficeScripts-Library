@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Python in Excel sampling functions
 
-Sampling functions draw a subset of rows or items from a population (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, simple random sample, and similar). Names often end in `_sample`. `cluster_prep` is clustering prep, not sampling.
+Sampling functions draw a subset of rows or items from a population (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`, simple random sample, and similar). Names often end in `_sample`. `cluster_prep` is clustering prep, not sampling.
 
 ## Init files
 

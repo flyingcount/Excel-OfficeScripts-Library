@@ -31,8 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `stratified_sample` — proportional stratified sample from a table by a stratum column. Docs: `docs/python/stratified_sample.md`.
 - `systematic_sample` — systematic sample of rows at a regular interval from a random start. Docs: `docs/python/systematic_sample.md`.
 - `two_stage_cluster_sample` — two-stage cluster sample (select clusters, then rows within each). Docs: `docs/python/two_stage_cluster_sample.md`.
+- `reservoir_sample` — Algorithm R reservoir sample of rows from a table or stream. Docs: `docs/python/reservoir_sample.md`.
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
-- `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`).
+- `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`).
 - Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — copy new sampling functions into both `init/Sampling.py` and `init/PaulPythonLibrary.py`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.
