@@ -26,6 +26,7 @@ def shapiro(data, metric=None, headers=False):
 
     Switch the PY cell to Excel value. Need at least 3 numeric values.
     If p > 0.05, a normal distribution in the data can be assumed.
+    The spilled table has metric, value, and interpretation.
     """
     from scipy import stats
 
@@ -52,7 +53,23 @@ def shapiro(data, metric=None, headers=False):
             raise ValueError("metric must be 'stat', 'pvalue', or omitted for the table.")
         return float(rows[aliases[key]])
 
-    return pd.DataFrame({"metric": list(rows.keys()), "value": list(rows.values())})
+    if not np.isfinite(sh_p):
+        p_note = "Test did not run."
+    elif sh_p > 0.05:
+        p_note = "p > 0.05: a normal distribution in the data can be assumed."
+    else:
+        p_note = "p ≤ 0.05: the data are not consistent with a normal distribution."
+    interp = {
+        "shapiro_stat": "Shapiro-Wilk W. Values near 1 support normality.",
+        "shapiro_pvalue": p_note,
+    }
+    return pd.DataFrame(
+        {
+            "metric": list(rows.keys()),
+            "value": list(rows.values()),
+            "interpretation": [interp[k] for k in rows],
+        }
+    )
 
 
 def anderson(data, metric=None, headers=False):
@@ -64,6 +81,7 @@ def anderson(data, metric=None, headers=False):
 
     Switch the PY cell to Excel value. Need at least 3 numeric values.
     A^2 above the 5% critical value suggests the data are not normal.
+    The spilled table has metric, value, and interpretation.
     """
     from scipy import stats
 
@@ -106,14 +124,38 @@ def anderson(data, metric=None, headers=False):
             )
         return float(rows[aliases[key]])
 
-    return pd.DataFrame({"metric": list(rows.keys()), "value": list(rows.values())})
+    ad_stat = rows["anderson_stat"]
+    crit_5 = rows.get("anderson_critical_5", float("nan"))
+    if not np.isfinite(ad_stat) or not np.isfinite(crit_5):
+        ad_note = "Anderson-Darling A^2. Larger than the 5% critical value suggests non-normality."
+    elif ad_stat > crit_5:
+        ad_note = "A^2 above the 5% critical value: data are not normal at 5%."
+    else:
+        ad_note = "A^2 at or below the 5% critical value: normality not rejected at 5%."
+    interp = []
+    for name in rows:
+        if name == "anderson_stat":
+            interp.append(ad_note)
+        elif name.startswith("anderson_critical_"):
+            interp.append(
+                "Reject normality at this significance level if A^2 exceeds this critical value."
+            )
+        else:
+            interp.append("")
+    return pd.DataFrame(
+        {
+            "metric": list(rows.keys()),
+            "value": list(rows.values()),
+            "interpretation": interp,
+        }
+    )
 
 
 def normality_check(data, plot=True, headers=False):
     """Q-Q plot against the normal distribution, with Shapiro-Wilk and Anderson-Darling.
 
     data: column range, ref string, Series, list, or xl() result.
-    plot: True (default) returns a matplotlib Figure; False spills a metric/value table.
+    plot: True (default) returns a matplotlib Figure; False spills metric, value, interpretation.
     headers: first row is headers when data is a ref string.
 
     Chart: leave the PY cell as a Python object. The figure is annotated with both
@@ -134,6 +176,18 @@ def normality_check(data, plot=True, headers=False):
     ad_stat = anderson(y, "stat")
     crit_5 = anderson(y, "critical_5")
 
+    if not np.isfinite(sh_p):
+        p_note = "Test did not run."
+    elif sh_p > 0.05:
+        p_note = "p > 0.05: a normal distribution in the data can be assumed."
+    else:
+        p_note = "p ≤ 0.05: the data are not consistent with a normal distribution."
+    if not np.isfinite(ad_stat) or not np.isfinite(crit_5):
+        ad_note = "Anderson-Darling A^2. Larger than the 5% critical value suggests non-normality."
+    elif ad_stat > crit_5:
+        ad_note = "A^2 above the 5% critical value: data are not normal at 5%."
+    else:
+        ad_note = "A^2 at or below the 5% critical value: normality not rejected at 5%."
     table = pd.DataFrame(
         {
             "metric": [
@@ -149,6 +203,13 @@ def normality_check(data, plot=True, headers=False):
                 sh_p,
                 ad_stat,
                 crit_5,
+            ],
+            "interpretation": [
+                "Count of numeric values after dropping blanks.",
+                "Shapiro-Wilk W. Values near 1 support normality.",
+                p_note,
+                ad_note,
+                "Reject normality at 5% if A^2 exceeds this critical value.",
             ],
         }
     )

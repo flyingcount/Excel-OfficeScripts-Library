@@ -17,11 +17,15 @@ Table / scalar: set the PY cell to **Excel value**. Plot: leave as a **Python ob
 | `0 < shapiro("A1:A10", "stat") <= 1` | `True` |
 | `shapiro("A1:A10").set_index("metric").loc["shapiro_pvalue", "value"] > 0.05` | `True` |
 | `list(shapiro("A1:A10")["metric"])` | `shapiro_stat`, `shapiro_pvalue` |
+| `list(shapiro("A1:A10").columns)` | `metric`, `value`, `interpretation` |
+| `"p > 0.05" in shapiro("A1:A10").set_index("metric").loc["shapiro_pvalue", "interpretation"]` | `True` |
 | `anderson("A1:A10", "stat") < anderson("A1:A10", "critical_5")` | `True` |
 | `anderson("A1:A10", "stat") == anderson("A1:A10", "anderson_stat")` | `True` |
 | `anderson("A1:A10", "critical_5") == anderson("A1:A10", "anderson_critical_5")` | `True` |
 | `"anderson_critical_5" in list(anderson("A1:A10")["metric"])` | `True` |
 | `normality_check("A1:A10", plot=False).set_index("metric").loc["n", "value"]` | `10` |
+| `list(normality_check("A1:A10", plot=False).columns)` | `metric`, `value`, `interpretation` |
+| `"p > 0.05" in normality_check("A1:A10", plot=False).set_index("metric").loc["shapiro_pvalue", "interpretation"]` | `True` |
 | `normality_check("A1:A10", plot=False).set_index("metric").loc["shapiro_pvalue", "value"] > 0.05` | `True` |
 | `type(normality_check("A1:A10")).__name__` | `Figure` |
 | `qq_norm is normality_check` | `True` |

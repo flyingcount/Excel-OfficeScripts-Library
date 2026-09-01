@@ -29,7 +29,7 @@ P-value in that cell:
 shapiro("A1:A10", "pvalue")
 ```
 
-Statistic: `shapiro("A1:A10", "stat")`. Both values as a table: `shapiro("A1:A10")`.
+Statistic: `shapiro("A1:A10", "stat")`. Both values as a table: `shapiro("A1:A10")` (columns `metric`, `value`, `interpretation`).
 
 If p > 0.05, a normal distribution in the data can be assumed.
 
@@ -41,7 +41,7 @@ A^2 in that cell:
 anderson("A1:A10", "stat")
 ```
 
-5% critical value: `anderson("A1:A10", "critical_5")`. Full table: `anderson("A1:A10")`.
+5% critical value: `anderson("A1:A10", "critical_5")`. Full table: `anderson("A1:A10")` (includes `interpretation`).
 
 A^2 above the 5% critical value suggests the data are not normal at 5%.
 
@@ -52,7 +52,7 @@ normality_check("A1:A10")
 qq_norm("A1:A10")
 ```
 
-Leave as a **Python object**. Combined table: `normality_check("A1:A10", plot=False)` as **Excel value**.
+Leave as a **Python object**. Combined table: `normality_check("A1:A10", plot=False)` as **Excel value** (`metric`, `value`, `interpretation`).
 
 If the chart is in `B2`, other PY cells (Excel value):
 
@@ -70,4 +70,4 @@ Shared: `data` is a value column, Series, list, or `xl()` result. `headers` is T
 |----------|-----------------|
 | `shapiro` | `metric`: `"pvalue"` or `"stat"` for a float; omit to spill the table. |
 | `anderson` | `metric`: `"stat"` or `"critical_5"` (also `critical_15`, `critical_10`, `critical_2_5`, `critical_1`); omit to spill the table. |
-| `normality_check` / `qq_norm` | `plot`: `True` (default) is the chart; `False` spills n, Shapiro, and Anderson. |
+| `normality_check` / `qq_norm` | `plot`: `True` (default) is the chart; `False` spills n, Shapiro, Anderson, and an interpretation column. |
