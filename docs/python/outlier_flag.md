@@ -1,6 +1,6 @@
 # outlier_flag
 
-Flag outlier rows using **IQR**, **MAD**, or **z-score** methods. Returns the original values alongside an outlier flag, the detection score, and the lower/upper bounds so you can filter, chart, or feed the flag into a model.
+Flag outlier rows using **IQR**, **MAD**, **z-score**, **STL residuals**, or **Isolation Forest**. Returns the original values alongside an outlier flag, the detection score, and lower/upper bounds.
 
 Formula: `source/python-in-excel/functions/outlier_flag.py`
 
@@ -14,6 +14,8 @@ In a PY cell (output **Excel value**):
 outlier_flag("B2:B100")
 outlier_flag("B2:B100", method="mad", threshold=2)
 outlier_flag("B2:B100", method="zscore", threshold=3)
+outlier_flag("B2:B100", method="stl", threshold=3, period=12)
+outlier_flag("B2:B100", method="iforest", threshold=0.05)
 ```
 
 ## Arguments
@@ -21,9 +23,12 @@ outlier_flag("B2:B100", method="zscore", threshold=3)
 | Argument | Required | Meaning |
 |----------|----------|---------|
 | `data` | Yes | Value column, ref string, DataFrame, Series, or list. First numeric column is used. |
-| `method` | No | `'iqr'` (default), `'mad'`, or `'zscore'`. |
+| `method` | No | `'iqr'` (default), `'mad'`, `'zscore'`, `'stl'`, or `'iforest'`. |
 | `threshold` | No | Sensitivity. Meaning depends on method (see below). Default `1.5`. |
 | `headers` | No | First row is headers when `data` is a ref string. Default `False`. |
+| `period` | No | STL seasonal length. Default `12`. Ignored by other methods. |
+
+Aliases: `stl-resid` → `stl`. `isolation-forest` / `iso` → `iforest`.
 
 ## Methods
 
@@ -51,9 +56,25 @@ Population z-score (mean and std with ddof=0, same convention as `zscore_replace
 - `threshold=3` is the classic three-sigma rule.
 - `score` column is |z|.
 
+### STL residuals
+
+Robust STL on the ordered series, then |residual z-score| > t (same idea as `detect_anomalies` with `method="stl"`). Need at least two full seasons.
+
+- `threshold=3` is the usual cutoff (pass it; the function default 1.5 is for IQR).
+- `score` is |residual z|.
+- `lower_bound` / `upper_bound` vary by row: trend + seasonal ± t × residual sd.
+
+### Isolation Forest
+
+sklearn `IsolationForest` (`random_state=42`) on the numeric values (order does not matter).
+
+- `threshold` in `(0, 0.5)` is the contamination rate (expected outlier fraction). Default `1.5` and any other value use sklearn `'auto'`.
+- `score` is `-score_samples` (higher = more anomalous).
+- Bounds are blank (not a fence method).
+
 ## Constant data
 
-When the spread (IQR, MAD, or std) is zero, no points are flagged.
+When the spread (IQR, MAD, residual sd, or std) is zero, no points are flagged.
 
 ## Result
 
@@ -63,9 +84,9 @@ A DataFrame with one row per input value. Set the PY cell to **Excel value** to 
 |--------|-------|
 | `value` | The original numeric values (coerced, same length as input). |
 | `is_outlier` | `1` if outlier, `0` otherwise. Blank rows stay blank. |
-| `score` | IQR: raw value. MAD: scaled deviation. Z-score: |z|. |
-| `lower_bound` | Lower fence (same for every row). |
-| `upper_bound` | Upper fence (same for every row). |
+| `score` | IQR: raw value. MAD: scaled deviation. Z-score/STL: \|z\|. Isolation Forest: anomaly score. |
+| `lower_bound` | Lower fence (constant for IQR/MAD/z-score; row-wise for STL; blank for Isolation Forest). |
+| `upper_bound` | Upper fence (same pattern as lower). |
 
 ## Example
 

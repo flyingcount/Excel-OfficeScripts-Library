@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `outlier_flag` — adds `stl` (robust STL residual |z|) and `iforest` (sklearn Isolation Forest). `period=12` is used by STL. Docs: `docs/python/outlier_flag.md`.
 - `expsmooth` — spills actuals plus an `h`-step SES forecast (default 12) with `lower`/`upper` prediction intervals (`level=0.95`). `plot=True` returns a chart. Future steps are flat at the last level (same as LAMBDA `EXPSMOOTH`). Docs: `docs/python/expsmooth.md`.
 - `ets_forecast` — same interval columns and `plot=True` chart as `expsmooth`. Interval uses Hyndman additive-error `v_h` around the Holt-Winters point forecast. Docs: `docs/python/ets_forecast.md`.
 - `sarima_forecast` — same interval columns and `plot=True` chart. Interval from statsmodels `get_forecast` at `level=0.95`. Docs: `docs/python/sarima_forecast.md`.

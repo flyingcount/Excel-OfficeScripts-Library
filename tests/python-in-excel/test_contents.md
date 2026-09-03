@@ -25,6 +25,7 @@ In a PY cell, set output to **Excel value**.
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `"_norm_values" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "describe", "call"].iloc[0]` | `describe(data, headers=True)` |
+| `contents().loc[contents()["function"] == "outlier_flag", "call"].iloc[0]` | `outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)` |
 | `contents().loc[contents()["function"] == "contents", "call"].iloc[0]` | `contents()` |
 | `len(contents())` | `10` |
 
