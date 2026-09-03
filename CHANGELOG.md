@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
 - `date_features` — expand a date column into calendar parts, cyclical sine/cosine encodings (month, day, dayofweek, dayofyear), and a public-holiday flag (`country_holiday='UK'` default, or `'US'`; `None` to disable). Holidays are computed algorithmically — no external package needed. Docs: `docs/python/date_features.md`.
+- `outlier_flag` — flag outlier rows using IQR (Tukey fence), MAD, or z-score methods. Returns value, is_outlier, score, lower_bound, upper_bound. Docs: `docs/python/outlier_flag.md`.
 - `cluster_prep` — scale numeric columns and one-hot encode categoricals so mixed tables are ready for clustering. Docs: `docs/python/cluster_prep.md`.
 - `stratified_sample` — proportional stratified sample from a table by a stratum column. Docs: `docs/python/stratified_sample.md`.
 - `systematic_sample` — systematic sample of rows at a regular interval from a random start. Docs: `docs/python/systematic_sample.md`.
