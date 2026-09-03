@@ -139,6 +139,17 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
 | `date_features` | `source/python-in-excel/functions/date_features.py` | Calendar parts, cyclical sine/cosine encodings, and public-holiday flag |
 | `lag_features` | `source/python-in-excel/functions/lag_features.py` | Lag columns, rolling-window statistics, and EMA from a value series |
+| `fourier_features` | `source/python-in-excel/functions/fourier_features.py` | Sine/cosine Fourier terms for a seasonal period |
+| `difference` | `source/python-in-excel/functions/difference.py` | Regular or seasonal differencing |
+| `impute` | `source/python-in-excel/functions/impute.py` | Fill blanks in a series |
+| `seasonal_indices` | `source/python-in-excel/functions/seasonal_indices.py` | Seasonal index per slot |
+| `seasonally_adjust` | `source/python-in-excel/functions/seasonally_adjust.py` | Remove seasonal index from a series |
+| `kpss_test` | `source/python-in-excel/functions/kpss_test.py` | KPSS stationarity test |
+| `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | Holt-Winters ETS forecast |
+| `arima_forecast` | `source/python-in-excel/functions/arima_forecast.py` | ARIMA(p,d,q) forecast |
+| `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | Seasonal ARIMA forecast |
+| `rolling_cv` | `source/python-in-excel/functions/rolling_cv.py` | Walk-forward CV for baseline methods |
+| `detect_anomalies` | `source/python-in-excel/functions/detect_anomalies.py` | Flag series anomalies (STL, IQR, z-score) |
 | `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
 | `outlier_flag` | `source/python-in-excel/functions/outlier_flag.py` | Flag outliers by IQR, MAD, or z-score |
 | `stratified_sample` | `source/python-in-excel/functions/stratified_sample.py` | Proportional stratified sample from a table |

@@ -1,6 +1,6 @@
 # Python in Excel time series library
 #
-# Formulas → Initialization → replace the editor contents with this file → Save.
+# Formulas â†’ Initialization â†’ replace the editor contents with this file â†’ Save.
 # This file is a complete Initialization: Excel defaults, then time series functions only.
 # After Save, call contents() in a PY cell for the public function list.
 #
@@ -49,6 +49,17 @@ def contents():
             ("zscore_replace", "Replace |z| outliers by interpolation", "zscore_replace(data, z=3, dates=None, headers=False)"),
             ("date_features", "Calendar parts, cycles, holidays", "date_features(data, cyclical=True, calendar=True, fourier=1, country_holiday='UK', headers=False)"),
             ("lag_features", "Lags, rolling stats, and EMA", "lag_features(data, value_col=None, date_col=None, lags=1, windows=7, stats='mean', ema=0, headers=True)"),
+            ("fourier_features", "Sine/cosine Fourier terms", "fourier_features(data, period=365, order=3, headers=False)"),
+            ("difference", "Regular or seasonal difference", "difference(data, lag=1, order=1, headers=False)"),
+            ("impute", "Fill blanks in a series", "impute(data, method='linear', period=12, headers=False)"),
+            ("seasonal_indices", "Seasonal index per slot", "seasonal_indices(data, period=12, kind='multiplicative', headers=False)"),
+            ("seasonally_adjust", "Remove seasonal index", "seasonally_adjust(data, period=12, kind='multiplicative', headers=False)"),
+            ("kpss_test", "KPSS stationarity test", "kpss_test(data, alpha=0.05, regression='c', headers=False)"),
+            ("ets_forecast", "Holt-Winters ETS forecast", "ets_forecast(data, h=12, trend='add', seasonal='add', period=12, headers=False)"),
+            ("arima_forecast", "ARIMA(p,d,q) forecast", "arima_forecast(data, h=12, p=1, d=1, q=1, headers=False)"),
+            ("sarima_forecast", "Seasonal ARIMA forecast", "sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, headers=False)"),
+            ("rolling_cv", "Rolling-origin CV metrics", "rolling_cv(data, h=1, min_train=None, step=1, method='naive', period=12, full=False, headers=False)"),
+            ("detect_anomalies", "Flag series anomalies", "detect_anomalies(data, method='stl', period=12, z=3, headers=False)"),
         ],
         columns=["function", "description", "call"],
     )
@@ -1507,3 +1518,646 @@ def lag_features(data, value_col=None, date_col=None, lags=1, windows=7,
     return out
 
 "lag_features(data, value_col=None, date_col=None, lags=1, windows=7, stats='mean', ema=0, headers=True)"
+
+def fourier_features(data, period=365, order=3, headers=False):
+    """Sine and cosine Fourier terms for seasonal regression.
+
+    For harmonic k = 1..order, angle = 2 * pi * k * t / period with t = 0
+    at the first row. Spills the original value plus sin_k / cos_k columns.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    period: seasonal length in rows. Default 365.
+    order: number of harmonics. Default 3.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    n = int(y.size)
+    if n < 1:
+        raise ValueError("Need at least 1 value row.")
+    period = float(pd.Series(period).iloc[0])
+    order = int(pd.Series(order).iloc[0])
+    if period <= 0:
+        raise ValueError("period must be positive.")
+    if order < 1:
+        raise ValueError("order must be at least 1.")
+    t = np.arange(n, dtype="float64")
+    out = pd.DataFrame({"t": t, "value": y})
+    for k in range(1, order + 1):
+        angle = 2.0 * np.pi * k * t / period
+        out["sin_%d" % k] = np.sin(angle)
+        out["cos_%d" % k] = np.cos(angle)
+    return out
+
+"fourier_features(data, period=365, order=3, headers=False)"
+
+
+def difference(data, lag=1, order=1, headers=False):
+    """Difference a series. lag=1 is regular; lag=period is seasonal.
+
+    Applied `order` times. Leading rows that cannot be differenced are blank.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    lag: difference step. Default 1.
+    order: how many times to difference. Default 1.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    lag = int(pd.Series(lag).iloc[0])
+    order = int(pd.Series(order).iloc[0])
+    if lag < 1 or order < 1:
+        raise ValueError("lag and order must be at least 1.")
+    d = y.copy()
+    for _ in range(order):
+        d = d.diff(lag)
+    return pd.DataFrame({"value": y, "diff": d})
+
+"difference(data, lag=1, order=1, headers=False)"
+
+
+def impute(data, method="linear", period=12, headers=False):
+    """Fill missing values in a series. Spills value, imputed, was_missing.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    method: 'linear' (default), 'ffill', 'bfill', 'mean', 'median', or
+        'seasonal' (season means; needs period).
+    period: season length for method='seasonal'. Default 12.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    m = str(pd.Series(method).iloc[0]).strip().lower() if not isinstance(
+        method, str) else method.strip().lower()
+    missing = y.isna()
+    filled = y.copy()
+    if m == "linear":
+        filled = y.interpolate(method="linear", limit_direction="both")
+    elif m == "ffill":
+        filled = y.ffill().bfill()
+    elif m == "bfill":
+        filled = y.bfill().ffill()
+    elif m == "mean":
+        filled = y.fillna(float(y.mean(skipna=True)))
+    elif m == "median":
+        filled = y.fillna(float(y.median(skipna=True)))
+    elif m == "seasonal":
+        p = int(pd.Series(period).iloc[0])
+        if p < 2:
+            raise ValueError("period must be at least 2 for seasonal impute.")
+        idx = np.arange(int(y.size)) % p
+        means = y.groupby(idx).transform("mean")
+        filled = y.fillna(means).fillna(float(y.mean(skipna=True)))
+    else:
+        raise ValueError("method must be linear, ffill, bfill, mean, median, or seasonal.")
+    return pd.DataFrame({
+        "value": y,
+        "imputed": filled,
+        "was_missing": missing.astype("float64"),
+    })
+
+"impute(data, method='linear', period=12, headers=False)"
+
+
+def seasonal_indices(data, period=12, kind="multiplicative", headers=False):
+    """One seasonal index per slot 1..period from the series in row order.
+
+    Multiplicative: slot mean / grand mean (indices average to 1).
+    Additive: slot mean - grand mean (indices average to 0).
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    period: season length. Default 12.
+    kind: 'multiplicative' (default) or 'additive'.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    p = int(pd.Series(period).iloc[0])
+    k = str(pd.Series(kind).iloc[0]).strip().lower() if not isinstance(
+        kind, str) else kind.strip().lower()
+    if k in ("mult", "mul"):
+        k = "multiplicative"
+    if k in ("add",):
+        k = "additive"
+    if p < 2:
+        raise ValueError("period must be at least 2.")
+    if int(y.notna().sum()) < p:
+        raise ValueError("Need at least one full season of numeric values.")
+    if k not in ("multiplicative", "additive"):
+        raise ValueError("kind must be 'multiplicative' or 'additive'.")
+    slot = (np.arange(int(y.size)) % p) + 1
+    g = y.groupby(slot)
+    means = g.mean()
+    grand = float(y.mean(skipna=True))
+    if k == "multiplicative":
+        if grand == 0 or not np.isfinite(grand):
+            raise ValueError("Grand mean is 0; use kind='additive'.")
+        idx = means / grand
+    else:
+        idx = means - grand
+    return pd.DataFrame({
+        "season": np.arange(1, p + 1),
+        "index": idx.reindex(np.arange(1, p + 1)).to_numpy(dtype="float64"),
+        "kind": k,
+    })
+
+"seasonal_indices(data, period=12, kind='multiplicative', headers=False)"
+
+
+def seasonally_adjust(data, period=12, kind="multiplicative", headers=False):
+    """Seasonally adjust a series using seasonal_indices of the same kind.
+
+    Multiplicative: value / index. Additive: value - index.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    period: season length. Default 12.
+    kind: 'multiplicative' (default) or 'additive'.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    p = int(pd.Series(period).iloc[0])
+    k = str(pd.Series(kind).iloc[0]).strip().lower() if not isinstance(
+        kind, str) else kind.strip().lower()
+    if k in ("mult", "mul"):
+        k = "multiplicative"
+    if k in ("add",):
+        k = "additive"
+    if p < 2:
+        raise ValueError("period must be at least 2.")
+    if k not in ("multiplicative", "additive"):
+        raise ValueError("kind must be 'multiplicative' or 'additive'.")
+    slot = np.arange(int(y.size)) % p
+    means = y.groupby(slot + 1).mean()
+    grand = float(y.mean(skipna=True))
+    if k == "multiplicative":
+        if grand == 0 or not np.isfinite(grand):
+            raise ValueError("Grand mean is 0; use kind='additive'.")
+        idx_vals = (means / grand).reindex(np.arange(1, p + 1)).to_numpy(dtype="float64")
+        factor = idx_vals[slot]
+        adj = y.to_numpy(dtype="float64") / factor
+    else:
+        idx_vals = (means - grand).reindex(np.arange(1, p + 1)).to_numpy(dtype="float64")
+        factor = idx_vals[slot]
+        adj = y.to_numpy(dtype="float64") - factor
+    return pd.DataFrame({
+        "value": y,
+        "season": slot + 1,
+        "index": factor,
+        "adjusted": adj,
+    })
+
+"seasonally_adjust(data, period=12, kind='multiplicative', headers=False)"
+
+
+def kpss_test(data, alpha=0.05, regression="c", headers=False):
+    """KPSS unit-root / stationarity test. Spills metric, value, guidance.
+
+    H0: the series is stationary (around a level or a trend). Reject H0
+    when p-value < alpha (treat as non-stationary). Opposite of ADF.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    alpha: significance level. Default 0.05.
+    regression: 'c' level-stationary (default) or 'ct' trend-stationary.
+    headers: first row is headers when data is a ref string.
+    """
+    import warnings
+    from statsmodels.tsa.stattools import kpss
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna()
+    n = int(y.shape[0])
+    if n < 8:
+        raise ValueError("Need at least 8 observations.")
+    alpha = float(pd.Series(alpha).iloc[0])
+    reg = str(pd.Series(regression).iloc[0]).strip().lower() if not isinstance(
+        regression, str) else regression.strip().lower()
+    if reg not in ("c", "ct"):
+        raise ValueError("regression must be 'c' or 'ct'.")
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        stat, pval, lags, crit = kpss(y, regression=reg, nlags="auto")
+    stat, pval = float(stat), float(pval)
+    lags = int(lags)
+    c1 = float(crit.get("1%", np.nan))
+    c5 = float(crit.get("5%", np.nan))
+    c10 = float(crit.get("10%", np.nan))
+    is_stat = 1.0 if pval >= alpha else 0.0
+    if pval < alpha:
+        note = "p < alpha: reject stationarity. Treat the series as non-stationary."
+    else:
+        note = "p >= alpha: fail to reject stationarity. Treat as stationary."
+    return pd.DataFrame(
+        [
+            ("n", n, "Count of numeric values after dropping blanks."),
+            ("kpss_stat", stat, "Larger than a critical value supports non-stationarity."),
+            ("pvalue", pval, "p < alpha rejects H0 (stationary). Series is then non-stationary."),
+            ("lags", lags, "Truncation lag used in the test."),
+            ("crit_1", c1, "1% critical value."),
+            ("crit_5", c5, "5% critical value. Usual cutoff with alpha=0.05."),
+            ("crit_10", c10, "10% critical value."),
+            ("alpha", alpha, "Significance level used for the stationary flag."),
+            ("regression", reg, "c=level stationary, ct=trend stationary."),
+            ("stationary", is_stat, "1 if pvalue >= alpha, else 0."),
+            ("interpretation", note, note),
+        ],
+        columns=["metric", "value", "guidance"],
+    )
+
+"kpss_test(data, alpha=0.05, regression='c', headers=False)"
+
+
+def ets_forecast(data, h=12, trend="add", seasonal="add", period=12, headers=False):
+    """Holt-Winters (ETS) forecast. Spills actuals then forecast rows.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    h: forecast horizon. Default 12.
+    trend: 'add', 'mul', or 'none'. Default 'add'.
+    seasonal: 'add', 'mul', or 'none'. Default 'add'.
+    period: seasonal length when seasonal is not none. Default 12.
+    headers: first row is headers when data is a ref string.
+
+    Result columns: t, value, label ('Actual' or 'Forecast ETS').
+    """
+    import warnings
+    from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna().reset_index(drop=True)
+    h = int(pd.Series(h).iloc[0])
+    period = int(pd.Series(period).iloc[0])
+    tr = str(pd.Series(trend).iloc[0]).strip().lower() if not isinstance(
+        trend, str) else trend.strip().lower()
+    se = str(pd.Series(seasonal).iloc[0]).strip().lower() if not isinstance(
+        seasonal, str) else seasonal.strip().lower()
+    if tr in ("none", "null", "false", ""):
+        tr = None
+    if se in ("none", "null", "false", ""):
+        se = None
+    if tr not in (None, "add", "mul"):
+        raise ValueError("trend must be 'add', 'mul', or 'none'.")
+    if se not in (None, "add", "mul"):
+        raise ValueError("seasonal must be 'add', 'mul', or 'none'.")
+    if h < 1:
+        raise ValueError("h must be at least 1.")
+    n = int(y.size)
+    need = 2 * period if se else 3
+    if n < need:
+        raise ValueError("Need at least %d observations for this ETS spec." % need)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        kw = {"trend": tr, "seasonal": se}
+        if se is not None:
+            kw["seasonal_periods"] = period
+        fit = ExponentialSmoothing(y, **kw).fit()
+        fc = np.asarray(fit.forecast(h), dtype="float64")
+    actual = pd.DataFrame({
+        "t": np.arange(1, n + 1, dtype="float64"),
+        "value": y.to_numpy(dtype="float64"),
+        "label": "Actual",
+    })
+    future = pd.DataFrame({
+        "t": np.arange(n + 1, n + h + 1, dtype="float64"),
+        "value": fc,
+        "label": "Forecast ETS",
+    })
+    return pd.concat([actual, future], ignore_index=True)
+
+"ets_forecast(data, h=12, trend='add', seasonal='add', period=12, headers=False)"
+
+
+def arima_forecast(data, h=12, p=1, d=1, q=1, headers=False):
+    """ARIMA(p,d,q) forecast. Spills actuals then forecast rows.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    h: forecast horizon. Default 12.
+    p, d, q: ARIMA orders. Default 1, 1, 1.
+    headers: first row is headers when data is a ref string.
+
+    Result columns: t, value, label ('Actual' or 'Forecast ARIMA').
+    Pair with arima_estimate to choose p, d, q.
+    """
+    import warnings
+    from statsmodels.tsa.arima.model import ARIMA
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna().reset_index(drop=True)
+    h = int(pd.Series(h).iloc[0])
+    p = int(pd.Series(p).iloc[0])
+    d = int(pd.Series(d).iloc[0])
+    q = int(pd.Series(q).iloc[0])
+    if h < 1:
+        raise ValueError("h must be at least 1.")
+    n = int(y.size)
+    if n < 4:
+        raise ValueError("Need at least 4 observations.")
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        fit = ARIMA(y, order=(p, d, q)).fit()
+        fc = np.asarray(fit.forecast(h), dtype="float64")
+    actual = pd.DataFrame({
+        "t": np.arange(1, n + 1, dtype="float64"),
+        "value": y.to_numpy(dtype="float64"),
+        "label": "Actual",
+    })
+    future = pd.DataFrame({
+        "t": np.arange(n + 1, n + h + 1, dtype="float64"),
+        "value": fc,
+        "label": "Forecast ARIMA",
+    })
+    return pd.concat([actual, future], ignore_index=True)
+
+"arima_forecast(data, h=12, p=1, d=1, q=1, headers=False)"
+
+
+def sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, headers=False):
+    """SARIMA(p,d,q)(P,D,Q)s forecast. Spills actuals then forecast rows.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    h: forecast horizon. Default 12.
+    p, d, q: non-seasonal ARIMA orders. Default 1, 1, 1.
+    P, D, Q, s: seasonal orders and period. Default 1, 1, 1, 12.
+    headers: first row is headers when data is a ref string.
+
+    Result columns: t, value, label ('Actual' or 'Forecast SARIMA').
+    """
+    import warnings
+    from statsmodels.tsa.arima.model import ARIMA
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna().reset_index(drop=True)
+    h = int(pd.Series(h).iloc[0])
+    p = int(pd.Series(p).iloc[0])
+    d = int(pd.Series(d).iloc[0])
+    q = int(pd.Series(q).iloc[0])
+    P = int(pd.Series(P).iloc[0])
+    D = int(pd.Series(D).iloc[0])
+    Q = int(pd.Series(Q).iloc[0])
+    s = int(pd.Series(s).iloc[0])
+    if h < 1:
+        raise ValueError("h must be at least 1.")
+    if s < 2:
+        raise ValueError("s must be at least 2.")
+    n = int(y.size)
+    need = s * 2
+    if n < need:
+        raise ValueError("Need at least %d observations for seasonal period s." % need)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        fit = ARIMA(y, order=(p, d, q), seasonal_order=(P, D, Q, s)).fit()
+        fc = np.asarray(fit.forecast(h), dtype="float64")
+    actual = pd.DataFrame({
+        "t": np.arange(1, n + 1, dtype="float64"),
+        "value": y.to_numpy(dtype="float64"),
+        "label": "Actual",
+    })
+    future = pd.DataFrame({
+        "t": np.arange(n + 1, n + h + 1, dtype="float64"),
+        "value": fc,
+        "label": "Forecast SARIMA",
+    })
+    return pd.concat([actual, future], ignore_index=True)
+
+"sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, headers=False)"
+
+
+def rolling_cv(data, h=1, min_train=None, step=1, method="naive", period=12,
+               full=False, headers=False):
+    """Walk-forward CV. At each origin, forecast h steps from history only.
+
+    method: 'naive', 'seasonal_naive' (or 'snaive'), or 'drift' - same as
+    baseline_forecast, so the loop stays fast in Excel.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    h: forecast horizon. Default 1.
+    min_train: smallest training length. Default max(h * 2, period + 1).
+    step: origin stride. Default 1.
+    period: seasonal period for seasonal_naive. Default 12.
+    full: False (default) spills MAE/RMSE/MAPE. True spills each origin.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna().to_numpy(dtype="float64")
+    h = int(pd.Series(h).iloc[0])
+    step = int(pd.Series(step).iloc[0])
+    period = int(pd.Series(period).iloc[0])
+    m = str(pd.Series(method).iloc[0]).strip().lower() if not isinstance(
+        method, str) else method.strip().lower()
+    if m in ("snaive", "seasonal"):
+        m = "seasonal_naive"
+    n = int(y.size)
+    if min_train is None or min_train is False:
+        min_n = max(h * 2, period + 1 if m == "seasonal_naive" else h + 1)
+    else:
+        min_n = int(pd.Series(min_train).iloc[0])
+    if h < 1 or step < 1:
+        raise ValueError("h and step must be at least 1.")
+    if m not in ("naive", "seasonal_naive", "drift"):
+        raise ValueError("method must be naive, seasonal_naive, or drift.")
+    if n < min_n + h:
+        raise ValueError("Need at least min_train + h observations.")
+
+    def predict(hist):
+        last = float(hist[-1])
+        if m == "naive":
+            return np.repeat(last, h)
+        if m == "drift":
+            k = hist.size
+            slope = (last - float(hist[0])) / (k - 1) if k > 1 else 0.0
+            return last + slope * np.arange(1, h + 1)
+        seas = np.empty(h, dtype="float64")
+        for i in range(h):
+            pos = hist.size - period + (i % period)
+            seas[i] = float(hist[pos]) if pos >= 0 else last
+        return seas
+
+    rows = []
+    origin = min_n
+    while origin + h <= n:
+        hist = y[:origin]
+        fc = predict(hist)
+        act = y[origin:origin + h]
+        err = act - fc
+        rows.append(pd.DataFrame({
+            "origin": origin,
+            "horizon": np.arange(1, h + 1),
+            "actual": act,
+            "forecast": fc,
+            "error": err,
+        }))
+        origin += step
+    if not rows:
+        raise ValueError("No CV windows. Increase data or lower min_train / h.")
+    folds = pd.concat(rows, ignore_index=True)
+    if full:
+        return folds
+    e = folds["error"].to_numpy(dtype="float64")
+    a = folds["actual"].to_numpy(dtype="float64")
+    nz = a != 0
+    mape = float(np.mean(np.abs(e[nz] / a[nz])) * 100) if nz.any() else np.nan
+    return pd.DataFrame(
+        [
+            ("n_forecasts", int(e.size), "Holdout points across all origins."),
+            ("n_origins", int(folds["origin"].nunique()), "Walk-forward origins."),
+            ("h", h, "Forecast horizon per origin."),
+            ("method", m, "naive, seasonal_naive, or drift."),
+            ("MAE", float(np.mean(np.abs(e))), "Mean absolute error."),
+            ("RMSE", float(np.sqrt(np.mean(e ** 2))), "Root mean squared error."),
+            ("MAPE", mape, "Mean |error|/|actual| as %. Skips zero actuals."),
+        ],
+        columns=["metric", "value", "guidance"],
+    )
+
+"rolling_cv(data, h=1, min_train=None, step=1, method='naive', period=12, full=False, headers=False)"
+
+
+def detect_anomalies(data, method="stl", period=12, z=3, headers=False):
+    """Flag unusual points in an ordered series.
+
+    stl: |STL residual z-score| > z (season-aware). iqr / zscore: same
+    fences as outlier_flag on the raw values.
+
+    data: value column, ref string, Series, or DataFrame (first numeric col).
+    method: 'stl' (default), 'iqr', or 'zscore'.
+    period: STL seasonal length. Default 12.
+    z: cutoff. STL/zscore: |z| > z (default 3). IQR: fence multiplier
+        (default 3 here; pass 1.5 for Tukey).
+    headers: first row is headers when data is a ref string.
+
+    Result: t, value, residual, score, is_anomaly (1/0).
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    n = int(y.size)
+    if n < 4:
+        raise ValueError("Need at least 4 observations.")
+    m = str(pd.Series(method).iloc[0]).strip().lower() if not isinstance(
+        method, str) else method.strip().lower()
+    tcut = abs(float(pd.Series(z).iloc[0]))
+    period = int(pd.Series(period).iloc[0])
+    resid = pd.Series(np.nan, index=y.index, dtype="float64")
+    score = pd.Series(np.nan, index=y.index, dtype="float64")
+    flag = pd.Series(False, index=y.index)
+
+    if m == "stl":
+        from statsmodels.tsa.seasonal import STL
+        if period < 2:
+            raise ValueError("period must be at least 2 for STL.")
+        ok = y.notna()
+        if int(ok.sum()) < period * 2:
+            raise ValueError("Need at least 2 full seasons for STL.")
+        fit = STL(y[ok].to_numpy(dtype="float64"), period=period, robust=True).fit()
+        r = pd.Series(fit.resid, index=y.index[ok])
+        resid.loc[ok] = r
+        mu = float(r.mean())
+        sd = float(r.std(ddof=0))
+        if sd == 0 or not np.isfinite(sd):
+            sc = pd.Series(0.0, index=r.index)
+        else:
+            sc = (r - mu) / sd
+        score.loc[ok] = sc
+        flag.loc[ok] = sc.abs() > tcut
+    elif m == "iqr":
+        q1 = float(y.quantile(0.25))
+        q3 = float(y.quantile(0.75))
+        iqr = q3 - q1
+        lo, hi = q1 - tcut * iqr, q3 + tcut * iqr
+        resid = y - float(y.median(skipna=True))
+        score = y.copy()
+        if iqr != 0:
+            flag = (y < lo) | (y > hi)
+        flag = flag.fillna(False)
+    elif m == "zscore":
+        mu = float(y.mean(skipna=True))
+        sd = float(y.std(ddof=0, skipna=True))
+        resid = y - mu
+        if sd == 0 or not np.isfinite(sd):
+            score = pd.Series(0.0, index=y.index)
+        else:
+            score = (y - mu) / sd
+            flag = score.abs() > tcut
+        flag = flag.fillna(False)
+    else:
+        raise ValueError("method must be 'stl', 'iqr', or 'zscore'.")
+
+    out = pd.DataFrame({
+        "t": np.arange(1, n + 1, dtype="float64"),
+        "value": y,
+        "residual": resid,
+        "score": score,
+        "is_anomaly": flag.astype("float64"),
+    })
+    blank = y.isna().to_numpy()
+    if blank.any():
+        out.loc[blank, ["residual", "score", "is_anomaly"]] = np.nan
+    return out
+
+"detect_anomalies(data, method='stl', period=12, z=3, headers=False)"
+
+
