@@ -135,6 +135,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `arima_estimate` | `source/python-in-excel/functions/arima_estimate.py` | ADF + AIC/BIC grid search for ARIMA(p, d, q) |
 | `baseline_forecast` | `source/python-in-excel/functions/baseline_forecast.py` | Actuals plus appended forecast with date/value labels |
+| `forecast_metrics` | `source/python-in-excel/functions/forecast_metrics.py` | MAE, RMSE, MAPE, MASE from actual and forecast columns |
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
 | `date_features` | `source/python-in-excel/functions/date_features.py` | Calendar parts, cyclical sine/cosine encodings, and public-holiday flag |
 | `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
