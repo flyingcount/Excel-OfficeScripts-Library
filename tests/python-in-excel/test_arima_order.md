@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Formulas → **Initialization** → paste `arima_order` from `source/python-in-excel/functions/arima_order.py` after the default imports → Save.
+1. Formulas → **Initialization** → paste `arima_order` from `source/python-in-excel/functions/arima_order.py` after the default imports → Save. Or paste `init/TimeSeries.py`.
 2. Put a numeric series of at least 20 values in `A1:A24` (for example two copies of `1` … `12`).
 
 The search can take several seconds. Set the PY cell to **Excel value**.

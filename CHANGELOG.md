@@ -35,6 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
 - `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`).
 - Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — copy new sampling functions into both `init/Sampling.py` and `init/PaulPythonLibrary.py`.
+- `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `zscore_replace`).
+- Cursor rule `.cursor/rules/python-in-excel-timeseries.mdc` — copy new time series functions into both `init/TimeSeries.py` and `init/PaulPythonLibrary.py`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.
 - Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.

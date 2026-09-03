@@ -41,7 +41,7 @@ Initialization already imports `numpy as np`, `pandas as pd`, `matplotlib.pyplot
 
 - Extra libraries (for example `statsmodels.tsa`, `scipy`) — `import` **inside** the function, as in @source/python-in-excel/functions/resid_analysis.py.
 - No `import` from this repo. Copy helpers into the function file.
-- New shared fragments go in `source/python-in-excel/shared/` **and** into every function file that needs them **and** once into @source/python-in-excel/init/PaulPythonLibrary.py. See `stl_fit` in @source/python-in-excel/shared/stl_fit.py (used by `stl` and `stl_plot`).
+- New shared fragments go in `source/python-in-excel/shared/` **and** into every function file that needs them **and** once into @source/python-in-excel/init/PaulPythonLibrary.py. Time series helpers also go once into @source/python-in-excel/init/TimeSeries.py. See `stl_fit` in @source/python-in-excel/shared/stl_fit.py (used by `stl` and `stl_plot`).
 - Nested `def` helpers are fine when only one function uses them.
 - Do not add functions to @source/python-in-excel/init/DefaultInitialization.py (Excel defaults only).
 
@@ -71,6 +71,8 @@ if isinstance(data, str):
 Copy the same `def` and quoted call into @source/python-in-excel/init/PaulPythonLibrary.py (after the default imports, with the other functions).
 
 If the function is a **sampler** (draws a subset of rows or items from a population; names often end in `_sample`), also copy that `def` into @source/python-in-excel/init/Sampling.py. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
+
+If the function is a **time series** function (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series), also copy that `def` into @source/python-in-excel/init/TimeSeries.py. See @.cursor/rules/python-in-excel-timeseries.mdc. `describe`, `corr`, `normality_check`, and `cluster_prep` are not time series.
 
 Then:
 

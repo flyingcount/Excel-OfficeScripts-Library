@@ -26,11 +26,12 @@ Cursor Agent: follow `.cursor/rules/python-in-excel.mdc` (same pattern as the ex
 3. The paste target is the `def` (and any helpers it needs). Do not wrap it in `=PY(...)`.
 4. Append the same `def` and quoted call to `source/python-in-excel/init/PaulPythonLibrary.py`.
 5. If it is a sampling function (draws a subset of rows or items; names often end in `_sample`), also append that `def` to `source/python-in-excel/init/Sampling.py`. Cursor Agent: follow `.cursor/rules/python-in-excel-sampling.mdc`. `cluster_prep` is not a sampler.
-6. Add a row to [PythonMap.md](PythonMap.md) and the README Python in Excel table.
-7. Add a short note under **Added** in `CHANGELOG.md`.
-8. Add `tests/python-in-excel/test_name.md` with a grid of PY-cell inputs and expected results.
-9. If the function needs more than a one-line description, add `docs/python/name.md` and link it from [PythonMap.md](PythonMap.md).
-10. Copy any new helper into `source/python-in-excel/shared/` and into the function file (no `import` from this repo).
+6. If it is a time series function (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series), also append that `def` to `source/python-in-excel/init/TimeSeries.py`. Cursor Agent: follow `.cursor/rules/python-in-excel-timeseries.mdc`. `describe`, `corr`, `normality_check`, and `cluster_prep` are not time series.
+7. Add a row to [PythonMap.md](PythonMap.md) and the README Python in Excel table.
+8. Add a short note under **Added** in `CHANGELOG.md`.
+9. Add `tests/python-in-excel/test_name.md` with a grid of PY-cell inputs and expected results.
+10. If the function needs more than a one-line description, add `docs/python/name.md` and link it from [PythonMap.md](PythonMap.md).
+11. Copy any new helper into `source/python-in-excel/shared/` and into the function file (no `import` from this repo).
 
 ## Install in Excel
 
@@ -39,6 +40,8 @@ Python in Excel is Microsoft 365 only.
 **Workbook-wide (preferred):** Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes the Excel default imports and the library functions. Then in a PY cell: `describe("Table1[#All]")`.
 
 **Sampling only:** paste `source/python-in-excel/init/Sampling.py` instead. That file is Excel defaults plus sampling functions (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`, and any later samplers). It does not include the rest of the library.
+
+**Time series only:** paste `source/python-in-excel/init/TimeSeries.py` instead. That file is Excel defaults plus time series functions (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `zscore_replace`, and any later series tools). It does not include the rest of the library.
 
 **One function:** paste that file’s `def` into Initialization after the default imports, or into a Python cell above and to the left of the cells that call it.
 
@@ -51,7 +54,7 @@ Excel limits for a pasted PY cell (`functions/*.py`):
 | Nested Excel functions | 64 levels |
 | Cell value | 32,767 characters (each spilled cell) |
 
-`init/PaulPythonLibrary.py` and `init/Sampling.py` can exceed 8,192 characters because they are Initialization, not a cell formula. Details: `.cursor/rules/python-in-excel-limits.mdc`.
+`init/PaulPythonLibrary.py`, `init/Sampling.py`, and `init/TimeSeries.py` can exceed 8,192 characters because they are Initialization, not a cell formula. Details: `.cursor/rules/python-in-excel-limits.mdc`.
 
 **One-shot:** in a PY cell, paste a call such as `describe(xl("A1:D20", headers=True))` without installing the library.
 
@@ -67,7 +70,7 @@ If those imports were deleted or edited:
 2. Select all in the editor and paste `DefaultInitialization.py`.
 3. Save.
 
-To restore defaults **and** the library functions in one step, paste `PaulPythonLibrary.py` instead. For sampling functions only, paste `Sampling.py`. Do not wrap these files in `=PY(...)`.
+To restore defaults **and** the library functions in one step, paste `PaulPythonLibrary.py` instead. For sampling functions only, paste `Sampling.py`. For time series functions only, paste `TimeSeries.py`. Do not wrap these files in `=PY(...)`.
 
 ## Naming
 

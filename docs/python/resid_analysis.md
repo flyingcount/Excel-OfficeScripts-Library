@@ -8,7 +8,7 @@ Works on a residual column or on `stl()` output (uses the `resid` column).
 
 ## Install
 
-Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste the whole `init/PaulPythonLibrary.py`.
+Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste `init/TimeSeries.py` (time series functions only) or the whole `init/PaulPythonLibrary.py`.
 
 Table (PY cell output **Excel value**):
 

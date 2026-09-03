@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Formulas → **Initialization** → paste `expsmooth` from `source/python-in-excel/functions/expsmooth.py` after the default imports → Save.
+1. Formulas → **Initialization** → paste `expsmooth` from `source/python-in-excel/functions/expsmooth.py` after the default imports → Save. Or paste `init/TimeSeries.py`.
 2. Put `10`, `12`, `14` in `A1:A3`.
 3. Optional: add LAMBDA `EXPSMOOTH` to cross-check.
 

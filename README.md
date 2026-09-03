@@ -32,7 +32,7 @@ Related:
 │   │   └── shared/        ← fragments to copy into a LAMBDA
 │   └── python-in-excel/
 │       ├── functions/     ← one Python function per file
-│       ├── init/          ← PaulPythonLibrary.py, Sampling.py, or DefaultInitialization.py → Formulas → Initialization
+│       ├── init/          ← PaulPythonLibrary.py, Sampling.py, TimeSeries.py, or DefaultInitialization.py → Formulas → Initialization
 │       └── shared/        ← fragments to copy into a function
 ├── tests/
 │   ├── office-scripts/
@@ -76,7 +76,7 @@ You can still paste a single `=LAMBDA(...)` into Name Manager by hand. Excel Lab
 
 Microsoft 365 with Python in Excel enabled.
 
-1. Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes Excel’s default imports and the library functions. For **sampling functions only**, paste `init/Sampling.py` instead.
+1. Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes Excel’s default imports and the library functions. For **sampling functions only**, paste `init/Sampling.py` instead. For **time series functions only**, paste `init/TimeSeries.py` instead.
 2. Insert a Python cell (**Formulas → Insert Python**, or `=PY`).
 3. Call a function, for example `describe("Table1[#All]")` or `stl_plot("A1:A24", 12)`.
 4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot`.

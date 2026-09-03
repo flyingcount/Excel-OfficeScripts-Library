@@ -1,0 +1,27 @@
+---
+description: When adding a Python in Excel time series function, copy it into init/TimeSeries.py and init/PaulPythonLibrary.py.
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Python in Excel time series functions
+
+Time series functions operate on an ordered series (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `zscore_replace`, forecasting, seasonal decomposition, and similar). `describe`, `corr`, `normality_check`, `cluster_prep`, and sampling functions are not time series.
+
+## Init files
+
+Copy the same `def` and quoted call into **both**:
+
+1. @source/python-in-excel/init/PaulPythonLibrary.py (full library)
+2. @source/python-in-excel/init/TimeSeries.py (time-series-only Initialization)
+
+Do not add time series functions to @source/python-in-excel/init/DefaultInitialization.py.
+
+Keep the two copies identical. `TimeSeries.py` is a complete Initialization: Excel default imports, then time series `def`s only (including shared helpers such as `stl_fit`).
+
+```python
+# ❌ BAD — time series function only in PaulPythonLibrary.py
+# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and TimeSeries.py
+```
+
+Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

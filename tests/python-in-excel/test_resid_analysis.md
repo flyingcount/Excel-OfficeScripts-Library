@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Formulas → **Initialization** → paste `resid_analysis` from `source/python-in-excel/functions/resid_analysis.py` after the default imports → Save.
+1. Formulas → **Initialization** → paste `resid_analysis` from `source/python-in-excel/functions/resid_analysis.py` after the default imports → Save. Or paste `init/TimeSeries.py`.
 2. Put `1`, `2`, `3`, `4`, `5` in `A1:A5`.
 3. Optional: 24 seasonal values in `B1:B24` for the `stl` cross-check.
 
