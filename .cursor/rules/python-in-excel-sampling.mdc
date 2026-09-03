@@ -19,9 +19,12 @@ Do not add sampling functions to @source/python-in-excel/init/DefaultInitializat
 
 Keep the two copies identical. `Sampling.py` is a complete Initialization: Excel default imports, then sampling `def`s only.
 
+Add a `contents()` row in **both** init files. See @.cursor/rules/python-in-excel-init-contents.mdc.
+
 ```python
 # ❌ BAD — sampling function only in PaulPythonLibrary.py
-# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and Sampling.py
+# ❌ BAD — def copied, contents() not updated
+# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and Sampling.py; contents() row in both init files
 ```
 
 Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

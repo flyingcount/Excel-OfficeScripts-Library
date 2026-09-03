@@ -24,8 +24,8 @@ Cursor Agent: follow `.cursor/rules/python-in-excel.mdc` (same pattern as the ex
    The last line is a quoted call. When the file is pasted into a PY cell, Excel displays that signature so it can be copied into another cell.
 
 3. The paste target is the `def` (and any helpers it needs). Do not wrap it in `=PY(...)`.
-4. Append the same `def` and quoted call to `source/python-in-excel/init/PaulPythonLibrary.py`.
-5. If it is a sampling function (draws a subset of rows or items; names often end in `_sample`), also append that `def` to `source/python-in-excel/init/Sampling.py`. Cursor Agent: follow `.cursor/rules/python-in-excel-sampling.mdc`. `cluster_prep` is not a sampler.
+4. Append the same `def` and quoted call to `source/python-in-excel/init/PaulPythonLibrary.py`. Add a row to that file’s `contents()` (function name and a brief explanation; a readable name is enough when it already describes the function, for example Stratified sample). Cursor Agent: follow `.cursor/rules/python-in-excel-init-contents.mdc`.
+5. If it is a sampling function (draws a subset of rows or items; names often end in `_sample`), also append that `def` to `source/python-in-excel/init/Sampling.py` and add a `contents()` row there. Cursor Agent: follow `.cursor/rules/python-in-excel-sampling.mdc`. `cluster_prep` is not a sampler.
 6. If it is a time series function (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series), also append that `def` to `source/python-in-excel/init/TimeSeries.py`. Cursor Agent: follow `.cursor/rules/python-in-excel-timeseries.mdc`. `describe`, `corr`, `normality_check`, and `cluster_prep` are not time series.
 7. Add a row to [PythonMap.md](PythonMap.md) and the README Python in Excel table.
 8. Add a short note under **Added** in `CHANGELOG.md`.
@@ -37,9 +37,9 @@ Cursor Agent: follow `.cursor/rules/python-in-excel.mdc` (same pattern as the ex
 
 Python in Excel is Microsoft 365 only.
 
-**Workbook-wide (preferred):** Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes the Excel default imports and the library functions. Then in a PY cell: `describe("Table1[#All]")`.
+**Workbook-wide (preferred):** Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes the Excel default imports and the library functions. Then in a PY cell: `describe("Table1[#All]")`. Call `contents()` to spill the public function names and a brief explanation.
 
-**Sampling only:** paste `source/python-in-excel/init/Sampling.py` instead. That file is Excel defaults plus sampling functions (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`, and any later samplers). It does not include the rest of the library.
+**Sampling only:** paste `source/python-in-excel/init/Sampling.py` instead. That file is Excel defaults plus sampling functions (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`, and any later samplers). It does not include the rest of the library. `contents()` lists only the sampling functions.
 
 **Time series only:** paste `source/python-in-excel/init/TimeSeries.py` instead. That file is Excel defaults plus time series functions (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `fft_spectrum`, `arima_order`, `arima_estimate`, `baseline_forecast`, `forecast_metrics`, `zscore_replace`, `date_features`, `lag_features`, and any later series tools). It does not include the rest of the library.
 

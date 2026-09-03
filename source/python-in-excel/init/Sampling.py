@@ -2,6 +2,7 @@
 #
 # Formulas → Initialization → replace the editor contents with this file → Save.
 # This file is a complete Initialization: Excel defaults, then sampling functions only.
+# After Save, call contents() in a PY cell for the public function list.
 #
 # Full library (all functions): paste init/PaulPythonLibrary.py instead.
 # Restore defaults only: paste init/DefaultInitialization.py instead.
@@ -20,6 +21,26 @@ warnings.simplefilter('ignore')
 
 excel.set_xl_scalar_conversion(excel.convert_to_scalar)
 excel.set_xl_array_conversion(excel.convert_to_dataframe)
+
+
+def contents():
+    """List sampling functions in this Initialization.
+
+    Result spills as function / description. A readable name is enough when
+    that already says what the function does (for example Stratified sample).
+    """
+    return pd.DataFrame(
+        [
+            ("contents", "List library functions"),
+            ("stratified_sample", "Stratified sample"),
+            ("systematic_sample", "Systematic sample"),
+            ("two_stage_cluster_sample", "Two-stage cluster sample"),
+            ("reservoir_sample", "Reservoir sample"),
+        ],
+        columns=["function", "description"],
+    )
+
+"contents()"
 
 
 def stratified_sample(data, strata_col, total_n, random_state=42, headers=True):
