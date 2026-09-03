@@ -42,3 +42,5 @@ def arima_order(data, p_max=3, d_max=2, q_max=3, headers=False):
     if best_order is None:
         return pd.DataFrame(columns=["p", "d", "q"])
     return pd.DataFrame([best_order], columns=["p", "d", "q"])
+
+"arima_order(data, p_max=3, d_max=2, q_max=3, headers=False)"
