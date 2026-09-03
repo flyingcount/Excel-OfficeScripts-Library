@@ -147,7 +147,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `kpss_test` | `source/python-in-excel/functions/kpss_test.py` | KPSS stationarity test |
 | `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | Holt-Winters ETS forecast with prediction interval, or `plot=True` for a chart |
 | `arima_forecast` | `source/python-in-excel/functions/arima_forecast.py` | ARIMA(p,d,q) forecast |
-| `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | Seasonal ARIMA forecast |
+| `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | Seasonal ARIMA forecast with prediction interval, or `plot=True` for a chart |
 | `rolling_cv` | `source/python-in-excel/functions/rolling_cv.py` | Walk-forward CV for baseline methods |
 | `detect_anomalies` | `source/python-in-excel/functions/detect_anomalies.py` | Flag series anomalies (STL, IQR, z-score) |
 | `forecast_plot` | `source/python-in-excel/functions/forecast_plot.py` | Chart of actuals, forecast, and optional interval |
