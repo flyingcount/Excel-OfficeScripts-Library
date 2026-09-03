@@ -37,11 +37,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
 - `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`).
 - Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — copy new sampling functions into both `init/Sampling.py` and `init/PaulPythonLibrary.py`.
+- `adf_test` — Augmented Dickey–Fuller unit-root test for stationarity (p-value, critical values, `stationary` flag). Docs: `docs/python/adf_test.md`.
 - `acf_pacf` — sample ACF and PACF as a table (`plot=False`) or a two-panel chart (`plot=True`). Docs: `docs/python/acf_pacf.md`.
 - `acf_ljungbox` — sample ACF and Ljung-Box Q at each lag (default 20), with Bartlett bands and significance flags. Docs: `docs/python/acf_ljungbox.md`.
 - `baseline_forecast` — naive, seasonal naive, or drift baseline forecast with configurable horizon. Docs: `docs/python/baseline_forecast.md`.
 - `arima_estimate` — estimate ARIMA(p,d,q) using ADF-based differencing and AIC/BIC grid search. Returns p, d, q, aic, bic, adf_pvalue; `full=True` spills the entire grid. Docs: `docs/python/arima_estimate.md`.
-- `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `arima_order`, `arima_estimate`, `baseline_forecast`, `zscore_replace`, `date_features`).
+- `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `arima_order`, `arima_estimate`, `baseline_forecast`, `zscore_replace`, `date_features`).
 - Cursor rule `.cursor/rules/python-in-excel-timeseries.mdc` — copy new time series functions into both `init/TimeSeries.py` and `init/PaulPythonLibrary.py`.
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.

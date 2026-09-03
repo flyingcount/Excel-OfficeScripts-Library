@@ -129,6 +129,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | Residual diagnostics (table, or `plot=True` for charts) |
 | `acf_ljungbox` | `source/python-in-excel/functions/acf_ljungbox.py` | ACF and Ljung-Box Q at each lag (default 20) |
 | `acf_pacf` | `source/python-in-excel/functions/acf_pacf.py` | ACF and PACF table, or `plot=True` for charts |
+| `adf_test` | `source/python-in-excel/functions/adf_test.py` | Augmented Dickey–Fuller test for stationarity |
 | `normality_check` | `source/python-in-excel/functions/normality_check.py` | Q-Q plot plus Shapiro-Wilk and Anderson-Darling (one paste) |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `arima_estimate` | `source/python-in-excel/functions/arima_estimate.py` | ADF + AIC/BIC grid search for ARIMA(p, d, q) |
