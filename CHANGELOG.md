@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `expsmooth` — spills actuals plus an `h`-step SES forecast (default 12) with `lower`/`upper` prediction intervals (`level=0.95`). `plot=True` returns a chart. Future steps are flat at the last level (same as LAMBDA `EXPSMOOTH`). Docs: `docs/python/expsmooth.md`.
+- `ets_forecast` — same interval columns and `plot=True` chart as `expsmooth`. Interval uses Hyndman additive-error `v_h` around the Holt-Winters point forecast. Docs: `docs/python/ets_forecast.md`.
+
+### Fixed
+- `ets_forecast` — `trend="mul"` / `seasonal="mul"` no longer fail with “endog must be strictly positive” when the series has zeros or blank-as-zero Excel cells. Those points are linearly interpolated for the fit. Docs: `docs/python/ets_forecast.md`.
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added

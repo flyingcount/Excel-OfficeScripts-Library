@@ -62,5 +62,7 @@ In a PY cell, set output to **Excel value**.
 | `"stratified_sample" in set(contents()["function"])` | `False` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
+| `contents().loc[contents()["function"] == "expsmooth", "call"].iloc[0]` | `expsmooth(data, alpha=0.2, h=12, level=0.95, plot=False, headers=False)` |
+| `contents().loc[contents()["function"] == "ets_forecast", "call"].iloc[0]` | `ets_forecast(data, h=12, trend='add', seasonal='add', period=12, level=0.95, plot=False, headers=False)` |
 | `contents().loc[contents()["function"] == "stl", "call"].iloc[0]` | `stl(data, period, dates=None, robust=False, headers=False)` |
 | `len(contents())` | `28` |

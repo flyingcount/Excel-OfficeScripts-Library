@@ -7,7 +7,7 @@ Inventory of reusable Python functions. Add a row when you add a file under `sou
 | `xl_df` | `source/python-in-excel/functions/xl_df.py` | `xl_df("Table1[#All]")` | DataFrame from a range, table, or name. Drops all-empty rows. |
 | `describe` | `source/python-in-excel/functions/describe.py` | `describe("A1:D20")` | pandas `describe()`. Accepts a ref string or a DataFrame. |
 | `corr` | `source/python-in-excel/functions/corr.py` | `corr("A1:D20")` | Numeric correlation matrix. `method` pearson / kendall / spearman. |
-| `expsmooth` | `source/python-in-excel/functions/expsmooth.py` | `expsmooth("A1:A3")` | Last SES value, default α 0.2. Matches LAMBDA `EXPSMOOTH`. |
+| `expsmooth` | `source/python-in-excel/functions/expsmooth.py` | `expsmooth("A1:A24", h=12)` | SES forecast with lower/upper interval (default α 0.2, h 12, 95%). `plot=True` for a chart. See [docs/python/expsmooth.md](python/expsmooth.md). |
 | `stl` | `source/python-in-excel/functions/stl.py` | `stl("A1:A24", 12)` | STL trend / seasonal / resid table. See [docs/python/stl.md](python/stl.md). |
 | `stl_plot` | `source/python-in-excel/functions/stl_plot.py` | `stl_plot("A1:A24", 12)` | Same fit as `stl`, as `DecomposeResult.plot()`. See [docs/python/stl_plot.md](python/stl_plot.md). |
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | `resid_analysis("C2:C25")` | Residual diagnostics table (Ljung-Box, Durbin–Watson, Jarque-Bera, Shapiro–Wilk, z-scored residuals), or `plot=True` for vs-order / hist / QQ / ACF. See [docs/python/resid_analysis.md](python/resid_analysis.md). |
@@ -29,7 +29,7 @@ Inventory of reusable Python functions. Add a row when you add a file under `sou
 | `seasonal_indices` | `source/python-in-excel/functions/seasonal_indices.py` | `seasonal_indices("A1:A48", period=12)` | Seasonal index per slot (multiplicative or additive). See [docs/python/seasonal_indices.md](python/seasonal_indices.md). |
 | `seasonally_adjust` | `source/python-in-excel/functions/seasonally_adjust.py` | `seasonally_adjust("A1:A48", period=12)` | Remove seasonal index from a series. See [docs/python/seasonally_adjust.md](python/seasonally_adjust.md). |
 | `kpss_test` | `source/python-in-excel/functions/kpss_test.py` | `kpss_test("A1:A50")` | KPSS stationarity test (p-value, critical values, `stationary` flag). See [docs/python/kpss_test.md](python/kpss_test.md). |
-| `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | `ets_forecast("A1:A48", h=12)` | Holt-Winters ETS forecast with actual + forecast rows. See [docs/python/ets_forecast.md](python/ets_forecast.md). |
+| `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | `ets_forecast("A1:A48", h=12)` | Holt-Winters ETS forecast with lower/upper interval (default 95%). `plot=True` for a chart. See [docs/python/ets_forecast.md](python/ets_forecast.md). |
 | `arima_forecast` | `source/python-in-excel/functions/arima_forecast.py` | `arima_forecast("A1:A50", h=12)` | ARIMA(p,d,q) forecast with actual + forecast rows. See [docs/python/arima_forecast.md](python/arima_forecast.md). |
 | `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | `sarima_forecast("A1:A48", h=12, s=12)` | Seasonal ARIMA forecast with actual + forecast rows. See [docs/python/sarima_forecast.md](python/sarima_forecast.md). |
 | `rolling_cv` | `source/python-in-excel/functions/rolling_cv.py` | `rolling_cv("A1:A50", h=1, method="naive")` | Walk-forward CV metrics for naive / seasonal naive / drift. See [docs/python/rolling_cv.md](python/rolling_cv.md). |

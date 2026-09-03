@@ -123,7 +123,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `xl_df` | `source/python-in-excel/functions/xl_df.py` | Load a range, table, or name as a DataFrame |
 | `describe` | `source/python-in-excel/functions/describe.py` | pandas summary statistics |
 | `corr` | `source/python-in-excel/functions/corr.py` | Numeric correlation matrix |
-| `expsmooth` | `source/python-in-excel/functions/expsmooth.py` | Last simple-exponential-smoothing value (default α 0.2) |
+| `expsmooth` | `source/python-in-excel/functions/expsmooth.py` | SES forecast with prediction interval, or `plot=True` for a chart |
 | `stl` | `source/python-in-excel/functions/stl.py` | STL seasonal-trend-residual decomposition |
 | `stl_plot` | `source/python-in-excel/functions/stl_plot.py` | STL four-panel chart (`DecomposeResult.plot`) |
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | Residual diagnostics (table, or `plot=True` for charts) |
@@ -145,7 +145,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `seasonal_indices` | `source/python-in-excel/functions/seasonal_indices.py` | Seasonal index per slot |
 | `seasonally_adjust` | `source/python-in-excel/functions/seasonally_adjust.py` | Remove seasonal index from a series |
 | `kpss_test` | `source/python-in-excel/functions/kpss_test.py` | KPSS stationarity test |
-| `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | Holt-Winters ETS forecast |
+| `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | Holt-Winters ETS forecast with prediction interval, or `plot=True` for a chart |
 | `arima_forecast` | `source/python-in-excel/functions/arima_forecast.py` | ARIMA(p,d,q) forecast |
 | `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | Seasonal ARIMA forecast |
 | `rolling_cv` | `source/python-in-excel/functions/rolling_cv.py` | Walk-forward CV for baseline methods |

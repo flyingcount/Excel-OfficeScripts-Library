@@ -61,8 +61,8 @@ if isinstance(data, str):
 
 ## Outputs
 
-- Scalar: `float` (see `expsmooth`).
-- Table: `DataFrame` that spills (`describe`, `stl`, `arima_order`).
+- Scalar: `float`.
+- Table: `DataFrame` that spills (`describe`, `stl`, `expsmooth`, `arima_order`).
 - Chart: matplotlib `Figure`; tell the user to leave the PY cell as a **Python object** (`stl_plot`).
 - Switch the cell to **Excel value** when a table or scalar should spill.
 
