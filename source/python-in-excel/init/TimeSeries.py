@@ -2,8 +2,10 @@
 #
 # Formulas → Initialization → replace the editor contents with this file → Save.
 # This file is a complete Initialization: Excel defaults, then time series functions only.
+# After Save, call contents() in a PY cell for the public function list.
 #
-# Full library (all functions): paste init/PaulPythonLibrary.py instead.
+# General (non-series) functions: paste init/PaulPythonLibrary.py instead.
+# Sampling functions only: paste init/Sampling.py instead.
 # Restore defaults only: paste init/DefaultInitialization.py instead.
 #
 # Requires Microsoft 365 Python in Excel. Functions use Excel's xl() helper.
@@ -20,6 +22,38 @@ warnings.simplefilter('ignore')
 
 excel.set_xl_scalar_conversion(excel.convert_to_scalar)
 excel.set_xl_array_conversion(excel.convert_to_dataframe)
+
+
+def contents():
+    """List time series functions in this Initialization.
+
+    Result spills as function / description / call. A readable description is
+    enough when it already says what the function does. call matches the
+    quoted signature after each def.
+    """
+    return pd.DataFrame(
+        [
+            ("contents", "List library functions", "contents()"),
+            ("expsmooth", "Last SES value", "expsmooth(data, alpha=0.2, headers=False)"),
+            ("stl", "STL decomposition table", "stl(data, period, dates=None, robust=False, headers=False)"),
+            ("stl_plot", "Four-panel STL chart", "stl_plot(data, period, dates=None, robust=False, weights=False, headers=False)"),
+            ("resid_analysis", "Residual diagnostics", "resid_analysis(data, lags=None, plot=False, headers=False)"),
+            ("acf_ljungbox", "ACF and Ljung-Box Q", "acf_ljungbox(data, lags=20, alpha=0.05, headers=False)"),
+            ("acf_pacf", "ACF and PACF", "acf_pacf(data, lags=20, plot=False, headers=False)"),
+            ("adf_test", "Augmented Dickey-Fuller", "adf_test(data, alpha=0.05, regression='c', headers=False)"),
+            ("fft_spectrum", "FFT periodogram", "fft_spectrum(data, dt=1, plot=False, headers=False)"),
+            ("arima_order", "ARIMA(p, d, q) by AIC", "arima_order(data, p_max=3, d_max=2, q_max=3, headers=False)"),
+            ("arima_estimate", "ARIMA via ADF and AIC/BIC", "arima_estimate(data, p_max=3, q_max=3, d_max=2, criterion='aic', alpha=0.05, full=False, headers=False)"),
+            ("baseline_forecast", "Naive, seasonal naive, or drift", "baseline_forecast(data, date_col=None, value_col=None, h=12, method='naive', period=1, headers=True)"),
+            ("forecast_metrics", "MAE, RMSE, MAPE, MASE", "forecast_metrics(data, actual_col, forecast_col, headers=True)"),
+            ("zscore_replace", "Replace |z| outliers by interpolation", "zscore_replace(data, z=3, dates=None, headers=False)"),
+            ("date_features", "Calendar parts, cycles, holidays", "date_features(data, cyclical=True, calendar=True, fourier=1, country_holiday='UK', headers=False)"),
+            ("lag_features", "Lags, rolling stats, and EMA", "lag_features(data, value_col=None, date_col=None, lags=1, windows=7, stats='mean', ema=0, headers=True)"),
+        ],
+        columns=["function", "description", "call"],
+    )
+
+"contents()"
 
 
 def expsmooth(data, alpha=0.2, headers=False):

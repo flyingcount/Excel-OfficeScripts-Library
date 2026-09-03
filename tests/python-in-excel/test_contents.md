@@ -1,10 +1,10 @@
 # Test: contents
 
-## Setup (full library)
+## Setup (general library)
 
 1. Formulas → **Initialization** → paste `source/python-in-excel/init/PaulPythonLibrary.py` → Save.
 
-## Cases (full library)
+## Cases (general library)
 
 In a PY cell, set output to **Excel value**.
 
@@ -12,18 +12,19 @@ In a PY cell, set output to **Excel value**.
 |--------|----------|
 | `list(contents().columns)` | `['function', 'description', 'call']` |
 | `"xl_df" in set(contents()["function"])` | `True` |
-| `"stratified_sample" in set(contents()["function"])` | `True` |
+| `"describe" in set(contents()["function"])` | `True` |
 | `"qq_norm" in set(contents()["function"])` | `True` |
-| `"contents" in set(contents()["function"])` | `True` |
-| `"lag_features" in set(contents()["function"])` | `True` |
 | `"outlier_flag" in set(contents()["function"])` | `True` |
+| `"cluster_prep" in set(contents()["function"])` | `True` |
+| `"contents" in set(contents()["function"])` | `True` |
+| `"expsmooth" in set(contents()["function"])` | `False` |
+| `"lag_features" in set(contents()["function"])` | `False` |
+| `"stratified_sample" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `"_norm_values" in set(contents()["function"])` | `False` |
-| `contents().loc[contents()["function"] == "stratified_sample", "description"].iloc[0]` | `Stratified sample` |
 | `contents().loc[contents()["function"] == "describe", "call"].iloc[0]` | `describe(data, headers=True)` |
-| `contents().loc[contents()["function"] == "lag_features", "call"].iloc[0]` | `lag_features(data, value_col=None, date_col=None, lags=1, windows=7, stats='mean', ema=0, headers=True)` |
 | `contents().loc[contents()["function"] == "contents", "call"].iloc[0]` | `contents()` |
-| `len(contents())` | `29` |
+| `len(contents())` | `10` |
 
 ## Setup (sampling only)
 
@@ -41,3 +42,22 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "reservoir_sample", "description"].iloc[0]` | `Reservoir sample` |
 | `contents().loc[contents()["function"] == "reservoir_sample", "call"].iloc[0]` | `reservoir_sample(data, k, random_state=42, headers=True)` |
 | `len(contents())` | `5` |
+
+## Setup (time series only)
+
+1. Formulas → **Initialization** → paste `source/python-in-excel/init/TimeSeries.py` → Save.
+
+## Cases (time series only)
+
+In a PY cell, set output to **Excel value**.
+
+| Python | Expected |
+|--------|----------|
+| `list(contents().columns)` | `['function', 'description', 'call']` |
+| `"lag_features" in set(contents()["function"])` | `True` |
+| `"expsmooth" in set(contents()["function"])` | `True` |
+| `"stratified_sample" in set(contents()["function"])` | `False` |
+| `"describe" in set(contents()["function"])` | `False` |
+| `"stl_fit" in set(contents()["function"])` | `False` |
+| `contents().loc[contents()["function"] == "stl", "call"].iloc[0]` | `stl(data, period, dates=None, robust=False, headers=False)` |
+| `len(contents())` | `16` |

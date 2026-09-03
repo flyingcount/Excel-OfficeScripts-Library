@@ -1,36 +1,66 @@
 ---
-description: Every public function in a Python in Excel init file must be listed in that file's contents() function.
+description: Hard rule — every library init file must have contents(); update contents() whenever a public function is added to that init file. PaulPythonLibrary is general-only.
 globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
 alwaysApply: false
 ---
 
-# Python in Excel init `contents()`
+# Init files MUST have `contents()`
 
-`contents()` is the catalog of public functions in an Initialization paste. It spills a `function` / `description` / `call` table so a PY cell can show what that init file installed. `call` is the same quoted signature that follows each `def` (for example `describe(data, headers=True)`).
+## Hard requirements
 
-## Where it lives
-
-- @source/python-in-excel/init/PaulPythonLibrary.py — every public library function in that file
-- @source/python-in-excel/init/Sampling.py — every public sampling function in that file
-
-Do **not** add `contents` (or any other function) to @source/python-in-excel/init/DefaultInitialization.py. That file is Excel defaults only.
-
-`contents()` is init-only. Do not add `functions/contents.py`. Each init file has its own list.
-
-## Keep the list complete
-
-When you add a public `def` to an init file, add a row to **that same file's** `contents()` in the same change.
+1. **Every library Initialization paste** under `source/python-in-excel/init/` **must** define a public `contents()` function.
+2. **Whenever you add a public `def` to an init file**, you **must** add a matching row to **that same file’s** `contents()` in the **same change**. Shipping a new `def` without a `contents()` row is incomplete.
+3. **A new library init file** (anything other than `DefaultInitialization.py`) **must** include `contents()` from the first commit — do not land the file and “add the catalog later.”
 
 ```python
-# ❌ BAD — new def in PaulPythonLibrary.py, contents() unchanged
-# ✅ GOOD — same change adds ("new_name", "Brief explanation", "new_name(data, arg=default)") to contents()
+# ❌ BAD — init file with public defs but no contents()
+# ❌ BAD — new def copied into an init file, contents() unchanged
+# ❌ BAD — contents() row missing the call signature
+# ✅ GOOD — init file has contents(); every public def has a row
+# ✅ GOOD — same change adds the def and ("name", "Brief note", "name(data, arg=default)")
 ```
 
-- List every public function: no leading underscore, and either a quoted call line or an alias (`qq_norm`).
+## Which files (no duplication)
+
+Init pastes are **partitioned**. A public function lives in **exactly one** library init file.
+
+| Init file | Holds | `contents()` required? |
+|-----------|--------|------------------------|
+| @source/python-in-excel/init/PaulPythonLibrary.py | **General** functions that are **not** in another collection init | **Yes** |
+| @source/python-in-excel/init/Sampling.py | Sampling functions only | **Yes** |
+| @source/python-in-excel/init/TimeSeries.py | Time series functions only | **Yes** |
+| Any **new** collection init under `init/` | That collection only | **Yes** |
+| @source/python-in-excel/init/DefaultInitialization.py | Excel defaults only | **No** — do **not** add `contents()` or library functions |
+
+```python
+# ❌ BAD — same def in PaulPythonLibrary.py and TimeSeries.py / Sampling.py
+# ❌ BAD — new collection init created, but matching defs left in PaulPythonLibrary.py
+# ✅ GOOD — general → PaulPythonLibrary only; sampler → Sampling only; series → TimeSeries only
+```
+
+When you create a **new collection** init file, **review** `PaulPythonLibrary.py` and **move** any functions that belong in that collection out of Paul (defs + `contents()` rows) into the new init.
+
+`contents()` is init-only. Do **not** add `functions/contents.py`. Each init file lists only what that paste installs.
+
+## Shape of `contents()`
+
+Spills a table with columns `function`, `description`, `call`:
+
+- `function` — public name
+- `description` — one short phrase (a readable name is enough when it already describes the function, e.g. `"Stratified sample"`)
+- `call` — same text as the quoted signature after the `def`, without the surrounding quotes (e.g. `describe(data, headers=True)`). Keep single quotes inside defaults (`method='pearson'`).
+
+Also:
+
 - List `contents` itself (`call` is `contents()`).
+- List every public function: no leading underscore, and either a quoted call line or an alias (`qq_norm`).
 - Do **not** list private helpers (`_norm_values`) or internal helpers with no quoted call (`stl_fit`).
-- Description: one short phrase. If the readable name is enough, use that (`"Stratified sample"`, `"Systematic sample"`).
-- Call: copy the quoted signature after the `def` (without the surrounding quotes). Keep single quotes inside defaults (`method='pearson'`).
-- Samplers go in **both** init files, so add a `contents()` row in **both** (see @.cursor/rules/python-in-excel-sampling.mdc).
+
+## Where to put a new function
+
+- Sampler → @source/python-in-excel/init/Sampling.py only (see @.cursor/rules/python-in-excel-sampling.mdc)
+- Time series → @source/python-in-excel/init/TimeSeries.py only (see @.cursor/rules/python-in-excel-timeseries.mdc)
+- Otherwise general → @source/python-in-excel/init/PaulPythonLibrary.py only
+- Always update **that file’s** `contents()` in the same change
 
 Then follow @.cursor/rules/python-in-excel.mdc for the function file, PythonMap, README, CHANGELOG, tests, and docs.

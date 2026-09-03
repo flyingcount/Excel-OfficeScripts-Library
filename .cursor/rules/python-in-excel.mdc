@@ -41,10 +41,10 @@ Initialization already imports `numpy as np`, `pandas as pd`, `matplotlib.pyplot
 
 - Extra libraries (for example `statsmodels.tsa`, `scipy`) — `import` **inside** the function, as in @source/python-in-excel/functions/resid_analysis.py.
 - No `import` from this repo. Copy helpers into the function file.
-- New shared fragments go in `source/python-in-excel/shared/` **and** into every function file that needs them **and** once into @source/python-in-excel/init/PaulPythonLibrary.py. Time series helpers also go once into @source/python-in-excel/init/TimeSeries.py. See `stl_fit` in @source/python-in-excel/shared/stl_fit.py (used by `stl` and `stl_plot`).
+- New shared fragments go in `source/python-in-excel/shared/` **and** into every function file that needs them **and** into the **one** init file that owns that collection (for example `stl_fit` → @source/python-in-excel/init/TimeSeries.py only). See `stl_fit` in @source/python-in-excel/shared/stl_fit.py (used by `stl` and `stl_plot`).
 - Nested `def` helpers are fine when only one function uses them.
 - Do not add functions to @source/python-in-excel/init/DefaultInitialization.py (Excel defaults only).
-
+- Init pastes are partitioned: do not duplicate a public `def` across Paul / Sampling / TimeSeries. See @.cursor/rules/python-in-excel-init-contents.mdc.
 ## Inputs
 
 Accept a range string, `xl()` result, DataFrame, Series, or Python list — not only an Excel ref.
@@ -68,11 +68,15 @@ if isinstance(data, str):
 
 ## Ship checklist
 
-Copy the same `def` and quoted call into @source/python-in-excel/init/PaulPythonLibrary.py (after the default imports, with the other functions). Add a row to that file's `contents()` in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
+**Init `contents()` is mandatory.** Every library init file must have `contents()`. When you add a public `def` to an init file, add a `contents()` row in that same file in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
 
-If the function is a **sampler** (draws a subset of rows or items from a population; names often end in `_sample`), also copy that `def` into @source/python-in-excel/init/Sampling.py and add a `contents()` row there. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
+Put the `def` and quoted call in **exactly one** library init file:
 
-If the function is a **time series** function (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series), also copy that `def` into @source/python-in-excel/init/TimeSeries.py. See @.cursor/rules/python-in-excel-timeseries.mdc. `describe`, `corr`, `normality_check`, and `cluster_prep` are not time series.
+- **Sampler** (names often end in `_sample`) → @source/python-in-excel/init/Sampling.py only. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
+- **Time series** (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series, lags/forecast features) → @source/python-in-excel/init/TimeSeries.py only. See @.cursor/rules/python-in-excel-timeseries.mdc. `describe`, `corr`, `normality_check`, and `cluster_prep` are not time series.
+- **Otherwise general** → @source/python-in-excel/init/PaulPythonLibrary.py only. Paul is the general init for functions that do not belong in another collection. If you later create a new collection init, move matching functions out of Paul into that file.
+
+Do **not** copy the same public `def` into Paul and a specialized init.
 
 Then:
 

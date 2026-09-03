@@ -6,8 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
+
 ### Added
-- `contents()` in `init/PaulPythonLibrary.py` and `init/Sampling.py` — spill a table of public function names, a brief explanation, and the call signature (same as the quoted line after each `def`). Cursor rule `.cursor/rules/python-in-excel-init-contents.mdc` requires a `contents()` row for every public function added to those init files.
+- Cursor rule `.cursor/rules/python-in-excel-init-contents.mdc` — hard rule: every library init file must have `contents()`; update `contents()` in the same change whenever a public function is added; Paul is general-only; `DefaultInitialization.py` stays defaults-only (no `contents()`).
+- `contents()` in `init/PaulPythonLibrary.py`, `init/Sampling.py`, and `init/TimeSeries.py` — spill a table of public function names, a brief explanation, and the call signature (same as the quoted line after each `def`).
 - Repository scaffold for an Excel Office Scripts library (`source/scripts`, shared helpers, script map).
 - `ListWorksheets` — write a **Worksheets** sheet with name, visibility, and used range for each worksheet.
 - `PaulsFormat` (**Paul's format**) — apply a named custom number format to the selected range.
@@ -37,7 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `reservoir_sample` — Algorithm R reservoir sample of rows from a table or stream. Docs: `docs/python/reservoir_sample.md`.
 - `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
 - `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`).
-- Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — copy new sampling functions into both `init/Sampling.py` and `init/PaulPythonLibrary.py`.
+- Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — sampling functions go in `init/Sampling.py` only (not Paul).
 - `lag_features` — lag columns, rolling-window statistics (mean, std, min, max, median, sum), and EMA from a value series; rolling and EMA use past values only. Docs: `docs/python/lag_features.md`.
 - `forecast_metrics` — MAE, RMSE, MAPE, MASE, and related accuracy scores from user-named actual and forecast columns. Docs: `docs/python/forecast_metrics.md`.
 - `fft_spectrum` — real FFT periodogram (cycles, frequency, period, power) as a table or two-panel chart. Docs: `docs/python/fft_spectrum.md`.
@@ -47,10 +51,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `baseline_forecast` — naive, seasonal naive, or drift baseline forecast with configurable horizon. Docs: `docs/python/baseline_forecast.md`.
 - `arima_estimate` — estimate ARIMA(p,d,q) using ADF-based differencing and AIC/BIC grid search. Returns p, d, q, aic, bic, adf_pvalue; `full=True` spills the entire grid. Docs: `docs/python/arima_estimate.md`.
 - `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `fft_spectrum`, `arima_order`, `arima_estimate`, `baseline_forecast`, `forecast_metrics`, `zscore_replace`, `date_features`, `lag_features`).
-- Cursor rule `.cursor/rules/python-in-excel-timeseries.mdc` — copy new time series functions into both `init/TimeSeries.py` and `init/PaulPythonLibrary.py`.
+- Cursor rule `.cursor/rules/python-in-excel-timeseries.mdc` — time series functions go in `init/TimeSeries.py` only (not Paul).
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.
-- Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.
+- Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). Library init pastes include those imports so a full paste restores defaults and that collection.
 
 ### Changed
 - `baseline_forecast` — reads `date_col` and `value_col` from a table, spills actual rows then forecast rows with `date`, `value`, and `label` (`Actual`, `Forecast Naive`, `Forecast Seasonal Naive`, `Forecast Drift`). Forecast dates extend from the last observed date.

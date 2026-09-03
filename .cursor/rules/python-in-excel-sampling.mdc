@@ -1,5 +1,5 @@
 ---
-description: When adding a Python in Excel sampling function, copy it into init/Sampling.py and init/PaulPythonLibrary.py.
+description: When adding a Python in Excel sampling function, copy it into init/Sampling.py only (not PaulPythonLibrary).
 globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
 alwaysApply: false
 ---
@@ -10,21 +10,20 @@ Sampling functions draw a subset of rows or items from a population (`stratified
 
 ## Init files
 
-Copy the same `def` and quoted call into **both**:
+Copy the `def` and quoted call into **only**:
 
-1. @source/python-in-excel/init/PaulPythonLibrary.py (full library)
-2. @source/python-in-excel/init/Sampling.py (sampling-only Initialization)
+1. @source/python-in-excel/init/Sampling.py (sampling-only Initialization)
 
-Do not add sampling functions to @source/python-in-excel/init/DefaultInitialization.py.
+Do **not** also add sampling functions to @source/python-in-excel/init/PaulPythonLibrary.py. Paul is the **general** init for functions that do not belong in a specialized collection. Do not add sampling functions to @source/python-in-excel/init/DefaultInitialization.py.
 
-Keep the two copies identical. `Sampling.py` is a complete Initialization: Excel default imports, then sampling `def`s only.
+`Sampling.py` is a complete Initialization: Excel default imports, then sampling `def`s only.
 
-Add a `contents()` row in **both** init files. See @.cursor/rules/python-in-excel-init-contents.mdc.
+Add a `contents()` row in `Sampling.py` in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
 
 ```python
-# ❌ BAD — sampling function only in PaulPythonLibrary.py
-# ❌ BAD — def copied, contents() not updated
-# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and Sampling.py; contents() row with call signature in both init files
+# ❌ BAD — sampling function also copied into PaulPythonLibrary.py
+# ❌ BAD — def added, contents() not updated
+# ✅ GOOD — same def in functions/name.py and Sampling.py only; contents() row with call signature
 ```
 
 Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

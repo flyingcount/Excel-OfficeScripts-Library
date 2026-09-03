@@ -1,5 +1,5 @@
 ---
-description: When adding a Python in Excel time series function, copy it into init/TimeSeries.py and init/PaulPythonLibrary.py.
+description: When adding a Python in Excel time series function, copy it into init/TimeSeries.py only (not PaulPythonLibrary).
 globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
 alwaysApply: false
 ---
@@ -10,18 +10,20 @@ Time series functions operate on an ordered series (`expsmooth`, `stl`, `stl_plo
 
 ## Init files
 
-Copy the same `def` and quoted call into **both**:
+Copy the `def` and quoted call into **only**:
 
-1. @source/python-in-excel/init/PaulPythonLibrary.py (full library)
-2. @source/python-in-excel/init/TimeSeries.py (time-series-only Initialization)
+1. @source/python-in-excel/init/TimeSeries.py (time-series-only Initialization)
 
-Do not add time series functions to @source/python-in-excel/init/DefaultInitialization.py.
+Do **not** also add time series functions to @source/python-in-excel/init/PaulPythonLibrary.py. Paul is the **general** init for functions that do not belong in a specialized collection. Do not add time series functions to @source/python-in-excel/init/DefaultInitialization.py.
 
-Keep the two copies identical. `TimeSeries.py` is a complete Initialization: Excel default imports, then time series `def`s only (including shared helpers such as `stl_fit`).
+Keep function bodies in `functions/name.py` and `TimeSeries.py` identical. `TimeSeries.py` is a complete Initialization: Excel default imports, then time series `def`s only (including shared helpers such as `stl_fit`).
+
+Add a `contents()` row in `TimeSeries.py` in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
 
 ```python
-# ❌ BAD — time series function only in PaulPythonLibrary.py
-# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and TimeSeries.py
+# ❌ BAD — time series function also copied into PaulPythonLibrary.py
+# ❌ BAD — def added, contents() not updated
+# ✅ GOOD — same def in functions/name.py and TimeSeries.py only; contents() row with call signature
 ```
 
 Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

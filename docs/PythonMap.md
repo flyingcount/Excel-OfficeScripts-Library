@@ -1,6 +1,6 @@
 # Python in Excel map
 
-Inventory of reusable Python functions. Add a row when you add a file under `source/python-in-excel/functions/`. After pasting `init/PaulPythonLibrary.py` or `init/Sampling.py`, call `contents()` in a PY cell to spill the public names, a brief explanation, and the call signature for that Initialization. New public functions in those init files must get a `contents()` row (see `.cursor/rules/python-in-excel-init-contents.mdc`).
+Inventory of reusable Python functions. Add a row when you add a file under `source/python-in-excel/functions/`. Paste the matching init (`PaulPythonLibrary` for general, `Sampling` for samplers, `TimeSeries` for series), then call `contents()` for that paste’s public names, descriptions, and call signatures. New public functions get a `contents()` row in **exactly one** init file (see `.cursor/rules/python-in-excel-init-contents.mdc`).
 
 | Name | File | Call | Notes |
 |------|------|------|--------|

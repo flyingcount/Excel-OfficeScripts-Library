@@ -4,7 +4,8 @@
 # This file is a complete Initialization: Excel defaults, then sampling functions only.
 # After Save, call contents() in a PY cell for the public function list.
 #
-# Full library (all functions): paste init/PaulPythonLibrary.py instead.
+# Full library of general (non-series, non-sampling) functions: paste init/PaulPythonLibrary.py instead.
+# Time series functions only: paste init/TimeSeries.py instead.
 # Restore defaults only: paste init/DefaultInitialization.py instead.
 #
 # Requires Microsoft 365 Python in Excel. Functions use Excel's xl() helper.
