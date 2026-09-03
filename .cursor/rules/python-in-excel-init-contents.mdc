@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Python in Excel init `contents()`
 
-`contents()` is the catalog of public functions in an Initialization paste. It spills a `function` / `description` table so a PY cell can show what that init file installed.
+`contents()` is the catalog of public functions in an Initialization paste. It spills a `function` / `description` / `call` table so a PY cell can show what that init file installed. `call` is the same quoted signature that follows each `def` (for example `describe(data, headers=True)`).
 
 ## Where it lives
 
@@ -23,13 +23,14 @@ When you add a public `def` to an init file, add a row to **that same file's** `
 
 ```python
 # ❌ BAD — new def in PaulPythonLibrary.py, contents() unchanged
-# ✅ GOOD — same change adds ("new_name", "Brief explanation") to contents()
+# ✅ GOOD — same change adds ("new_name", "Brief explanation", "new_name(data, arg=default)") to contents()
 ```
 
 - List every public function: no leading underscore, and either a quoted call line or an alias (`qq_norm`).
-- List `contents` itself.
+- List `contents` itself (`call` is `contents()`).
 - Do **not** list private helpers (`_norm_values`) or internal helpers with no quoted call (`stl_fit`).
 - Description: one short phrase. If the readable name is enough, use that (`"Stratified sample"`, `"Systematic sample"`).
+- Call: copy the quoted signature after the `def` (without the surrounding quotes). Keep single quotes inside defaults (`method='pearson'`).
 - Samplers go in **both** init files, so add a `contents()` row in **both** (see @.cursor/rules/python-in-excel-sampling.mdc).
 
 Then follow @.cursor/rules/python-in-excel.mdc for the function file, PythonMap, README, CHANGELOG, tests, and docs.

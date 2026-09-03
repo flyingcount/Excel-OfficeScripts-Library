@@ -24,7 +24,7 @@ Add a `contents()` row in **both** init files. See @.cursor/rules/python-in-exce
 ```python
 # ❌ BAD — sampling function only in PaulPythonLibrary.py
 # ❌ BAD — def copied, contents() not updated
-# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and Sampling.py; contents() row in both init files
+# ✅ GOOD — same def in functions/name.py, PaulPythonLibrary.py, and Sampling.py; contents() row with call signature in both init files
 ```
 
 Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

@@ -26,18 +26,19 @@ excel.set_xl_array_conversion(excel.convert_to_dataframe)
 def contents():
     """List sampling functions in this Initialization.
 
-    Result spills as function / description. A readable name is enough when
-    that already says what the function does (for example Stratified sample).
+    Result spills as function / description / call. A readable description is
+    enough when it already says what the function does (for example Stratified
+    sample). call matches the quoted signature after each def.
     """
     return pd.DataFrame(
         [
-            ("contents", "List library functions"),
-            ("stratified_sample", "Stratified sample"),
-            ("systematic_sample", "Systematic sample"),
-            ("two_stage_cluster_sample", "Two-stage cluster sample"),
-            ("reservoir_sample", "Reservoir sample"),
+            ("contents", "List library functions", "contents()"),
+            ("stratified_sample", "Stratified sample", "stratified_sample(data, strata_col, total_n, random_state=42, headers=True)"),
+            ("systematic_sample", "Systematic sample", "systematic_sample(data, sample_size, random_state=42, headers=True)"),
+            ("two_stage_cluster_sample", "Two-stage cluster sample", "two_stage_cluster_sample(data, cluster_col, n_clusters, sample_per_cluster, random_state=42, headers=True)"),
+            ("reservoir_sample", "Reservoir sample", "reservoir_sample(data, k, random_state=42, headers=True)"),
         ],
-        columns=["function", "description"],
+        columns=["function", "description", "call"],
     )
 
 "contents()"
