@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `forecast_plot` — chart of actuals, point forecast, and optional lower/upper interval. Docs: `docs/python/forecast_plot.md`.
 - `fourier_features` — sine/cosine Fourier terms for a seasonal period. Docs: `docs/python/fourier_features.md`.
 - `difference` — regular or seasonal differencing. Docs: `docs/python/difference.md`.
 - `impute` — fill blanks (linear, ffill, bfill, mean, median, seasonal). Docs: `docs/python/impute.md`.
@@ -58,7 +59,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `acf_ljungbox` — sample ACF and Ljung-Box Q at each lag (default 20), with Bartlett bands and significance flags. Docs: `docs/python/acf_ljungbox.md`.
 - `baseline_forecast` — naive, seasonal naive, or drift baseline forecast with configurable horizon. Docs: `docs/python/baseline_forecast.md`.
 - `arima_estimate` — estimate ARIMA(p,d,q) using ADF-based differencing and AIC/BIC grid search. Returns p, d, q, aic, bic, adf_pvalue; `full=True` spills the entire grid. Docs: `docs/python/arima_estimate.md`.
-- `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `fft_spectrum`, `arima_order`, `arima_estimate`, `baseline_forecast`, `forecast_metrics`, `zscore_replace`, `date_features`, `lag_features`, `fourier_features`, `difference`, `impute`, `seasonal_indices`, `seasonally_adjust`, `kpss_test`, `ets_forecast`, `arima_forecast`, `sarima_forecast`, `rolling_cv`, `detect_anomalies`).
+- `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `fft_spectrum`, `arima_order`, `arima_estimate`, `baseline_forecast`, `forecast_metrics`, `zscore_replace`, `date_features`, `lag_features`, `fourier_features`, `difference`, `impute`, `seasonal_indices`, `seasonally_adjust`, `kpss_test`, `ets_forecast`, `arima_forecast`, `sarima_forecast`, `rolling_cv`, `detect_anomalies`, `forecast_plot`).
 - Cursor rule `.cursor/rules/python-in-excel-timeseries.mdc` — time series functions go in `init/TimeSeries.py` only (not Paul).
 - Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
 - Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.

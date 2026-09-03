@@ -57,9 +57,10 @@ In a PY cell, set output to **Excel value**.
 | `"lag_features" in set(contents()["function"])` | `True` |
 | `"fourier_features" in set(contents()["function"])` | `True` |
 | `"detect_anomalies" in set(contents()["function"])` | `True` |
+| `"forecast_plot" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `True` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "stl", "call"].iloc[0]` | `stl(data, period, dates=None, robust=False, headers=False)` |
-| `len(contents())` | `27` |
+| `len(contents())` | `28` |
