@@ -49,6 +49,7 @@ def contents():
             ("zscore_replace", "Replace |z| outliers by interpolation", "zscore_replace(data, z=3, dates=None, headers=False)"),
             ("date_features", "Calendar parts, cycles, holidays", "date_features(data, cyclical=True, calendar=True, fourier=1, country_holiday='UK', headers=False)"),
             ("lag_features", "Lags, rolling stats, and EMA", "lag_features(data, value_col=None, date_col=None, lags=1, windows=7, stats='mean', ema=0, headers=True)"),
+            ("lead_features", "Lead columns", "lead_features(data, leads=1, value_col=None, date_col=None, headers=True)"),
             ("fourier_features", "Sine/cosine Fourier terms", "fourier_features(data, period=365, order=3, headers=False)"),
             ("difference", "Regular or seasonal difference", "difference(data, lag=1, order=1, headers=False)"),
             ("impute", "Fill blanks in a series", "impute(data, method='linear', period=12, headers=False)"),
@@ -60,6 +61,7 @@ def contents():
             ("sarima_forecast", "SARIMA forecast with interval", "sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, level=0.95, plot=False, headers=False)"),
             ("rolling_cv", "Rolling-origin CV metrics", "rolling_cv(data, h=1, min_train=None, step=1, method='naive', period=12, full=False, headers=False)"),
             ("detect_anomalies", "Flag series anomalies", "detect_anomalies(data, method='stl', period=12, z=3, headers=False)"),
+            ("breakpoints", "Chow, CUSUM, or Bai-Perron breaks", "breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True)"),
             ("forecast_plot", "Actual + forecast chart", "forecast_plot(actual, forecast, lower=None, upper=None, headers=False)"),
         ],
         columns=["function", "description", "call"],
@@ -1570,6 +1572,103 @@ def lag_features(data, value_col=None, date_col=None, lags=1, windows=7,
 
 "lag_features(data, value_col=None, date_col=None, lags=1, windows=7, stats='mean', ema=0, headers=True)"
 
+def lead_features(data, leads=1, value_col=None, date_col=None, headers=True):
+    """Lead columns for a time series. Leads are y.shift(-k).
+
+    data: table/range, DataFrame, Series, or ref string.
+    leads: int n gives lead_1 .. lead_n; a list or '1,7,12' gives those leads.
+    value_col: header of the value column. First numeric if omitted.
+    date_col: header of the date column. Auto-detected if omitted.
+    headers: first row is headers when data is a ref string. Default True.
+
+    Sorted by date when a date column is present. Trailing rows are blank.
+    """
+    def to_frame(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def pick_col(frame, name, kind):
+        if name is not None:
+            key = str(pd.Series(name).iloc[0]).strip()
+            cols = {str(c).strip().lower(): c for c in frame.columns}
+            if key.lower() in cols:
+                return frame[cols[key.lower()]]
+            if key in frame.columns:
+                return frame[key]
+            raise ValueError("Column '%s' not found in data." % key)
+        if kind == "date":
+            for col in frame.columns:
+                s = frame[col]
+                if pd.api.types.is_datetime64_any_dtype(s):
+                    return pd.to_datetime(s)
+                if pd.api.types.is_numeric_dtype(s):
+                    continue
+                parsed = pd.to_datetime(s, errors="coerce")
+                if parsed.notna().mean() > 0.8:
+                    return parsed
+            return None
+        numeric = frame.select_dtypes(include="number")
+        if numeric.shape[1]:
+            return numeric.iloc[:, 0]
+        return pd.to_numeric(frame.iloc[:, 0], errors="coerce")
+
+    def to_ints(value):
+        if value is None or value is False:
+            return []
+        if isinstance(value, str):
+            raw = [p.strip() for p in value.replace(";", ",").split(",") if p.strip()]
+        else:
+            raw = list(pd.Series(np.ravel(
+                value.to_numpy() if isinstance(value, pd.DataFrame) else value
+            )).dropna())
+        nums = []
+        for x in raw:
+            try:
+                n = int(float(x))
+            except (TypeError, ValueError):
+                continue
+            if n > 0:
+                nums.append(n)
+        if len(nums) == 1:
+            nums = list(range(1, nums[0] + 1))
+        out, seen = [], set()
+        for n in nums:
+            if n not in seen:
+                seen.add(n)
+                out.append(n)
+        return out
+
+    frame = to_frame(data)
+    y = pd.to_numeric(pick_col(frame, value_col, "value"), errors="coerce")
+    val_name = y.name
+    if not isinstance(val_name, str) or not val_name.strip() or val_name.lower() in (
+            "none", "nan", "date"):
+        val_name = "value"
+    dates = pick_col(frame, date_col, "date") if (
+        date_col is not None or frame.shape[1] > 1) else None
+    y = pd.Series(y).reset_index(drop=True)
+    if int(y.size) < 1:
+        raise ValueError("Need at least 1 value row.")
+    lead_list = to_ints(leads)
+    if not lead_list:
+        raise ValueError("Provide at least one lead.")
+    out = pd.DataFrame({val_name: y})
+    if dates is not None:
+        dates = pd.Series(dates).reset_index(drop=True)
+        out.insert(0, "date", dates)
+        out = out.sort_values("date", kind="mergesort", na_position="last").reset_index(drop=True)
+        y = out[val_name]
+    for k in lead_list:
+        out["lead_%d" % k] = y.shift(-k)
+    return out
+
+"lead_features(data, leads=1, value_col=None, date_col=None, headers=True)"
+
 def fourier_features(data, period=365, order=3, headers=False):
     """Sine and cosine Fourier terms for seasonal regression.
 
@@ -2301,6 +2400,177 @@ def detect_anomalies(data, method="stl", period=12, z=3, headers=False):
     return out
 
 "detect_anomalies(data, method='stl', period=12, z=3, headers=False)"
+
+
+def breakpoints(data, method="cusum", alpha=0.05, at=None, nbreaks=None,
+                plot=False, headers=True):
+    """CUSUM, Chow, or Bai-Perron breaks. plot=True is a chart (Python object).
+
+    cusum: OLS residual CUSUM (intercept+trend). chow: F at `at` (1-based t
+    or fraction); omitted = sup-F, 15% trim. baiperron: mean-shift; nbreaks
+    omitted uses BIC (max 5). data: first numeric col. alpha default 0.05.
+    """
+    from scipy.stats import f as fdist
+    from statsmodels.stats.diagnostic import breaks_cusumolsresid
+    from statsmodels.regression.linear_model import OLS
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        num = data.select_dtypes(include="number")
+        values = num.iloc[:, 0] if num.shape[1] else data.iloc[:, 0]
+    else:
+        values = data
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna()
+    y = y.to_numpy(dtype="float64")
+    n = int(y.size)
+    if n < 10:
+        raise ValueError("Need at least 10 observations.")
+    alpha = float(pd.Series(alpha).iloc[0])
+    if not 0 < alpha < 1:
+        raise ValueError("alpha must be between 0 and 1.")
+    m = str(pd.Series(method).iloc[0]).strip().lower().replace("_", "-")
+    if m in ("qlr", "supf", "sup-f"):
+        m = "chow"
+    if m in ("bp", "bai-perron", "bai perron"):
+        m = "baiperron"
+    if m not in ("cusum", "chow", "baiperron"):
+        raise ValueError("method must be 'cusum', 'chow', or 'baiperron'.")
+    t = np.arange(1, n + 1, dtype="float64")
+    X = np.column_stack([np.ones(n), t])
+
+    def ssr(a, b):
+        ya, Xa = y[a:b], X[a:b]
+        if ya.size < 3:
+            return np.nan
+        bh = np.linalg.lstsq(Xa, ya, rcond=None)[0]
+        e = ya - Xa.dot(bh)
+        return float(e.dot(e))
+
+    def chow_f(k):
+        sp, s1, s2 = ssr(0, n), ssr(0, k), ssr(k, n)
+        dfd = n - 4
+        if dfd < 1 or not np.isfinite(s1 + s2) or s1 + s2 <= 0:
+            return np.nan, np.nan
+        fv = ((sp - s1 - s2) / 2.0) / ((s1 + s2) / dfd)
+        return float(fv), float(fdist.sf(fv, 2, dfd))
+
+    breaks, path, bound = [], None, np.nan
+    if m == "cusum":
+        resid = np.asarray(OLS(y, X).fit().resid, dtype="float64")
+        stat, pval, crit = breaks_cusumolsresid(resid, ddof=2)
+        stat, pval = float(stat), float(pval)
+        c5 = float(np.asarray(crit).reshape(-1)[1]) if np.size(crit) > 1 else 1.36
+        path = np.cumsum(resid) / np.sqrt(float(resid.dot(resid)))
+        bound, flag = c5, 1.0 if pval < alpha else 0.0
+        rows = [
+            ("method", "cusum", "Ploberger-Kramer CUSUM, intercept+trend OLS."),
+            ("n", n, "Count after dropping blanks."),
+            ("statistic", stat, "Sup |CUSUM|/sqrt(n). Larger: break."),
+            ("pvalue", pval, "p < alpha: reject stability."),
+            ("crit_5", c5, "5% critical value."),
+            ("alpha", alpha, "Cutoff for is_break."),
+            ("is_break", flag, "1 if pvalue < alpha."),
+        ]
+    elif m == "chow":
+        lo, hi = max(int(0.15 * n), 3), min(int(np.ceil(0.85 * n)), n - 3)
+        if at is None or at is False:
+            best, bk = -np.inf, lo
+            for k in range(lo, hi + 1):
+                fv, _pv = chow_f(k)
+                if np.isfinite(fv) and fv > best:
+                    best, bk = fv, k
+        else:
+            av = float(pd.Series(at).iloc[0])
+            bk = int(round(av * n)) if 0 < av < 1 else int(av)
+            bk = max(bk, 1)
+        fv, pval = chow_f(bk)
+        flag = 1.0 if np.isfinite(pval) and pval < alpha else 0.0
+        breaks = [bk] if flag else []
+        rows = [
+            ("method", "chow", "Chow F, intercept+trend, split after t."),
+            ("n", n, "Count after dropping blanks."),
+            ("t", bk, "1-based last t of regime 1."),
+            ("statistic", fv, "Chow F. Larger: break at t."),
+            ("pvalue", pval, "p < alpha: regimes differ."),
+            ("alpha", alpha, "Cutoff for is_break."),
+            ("is_break", flag, "1 if pvalue < alpha."),
+        ]
+    else:
+        max_m = 5 if nbreaks is None or nbreaks is False else max(
+            1, int(pd.Series(nbreaks).iloc[0]))
+        hlen = max(3, int(0.1 * n))
+        max_m = min(max_m, max(0, n // (2 * hlen) - 1))
+        if max_m < 1:
+            raise ValueError("Series too short for Bai-Perron.")
+        cs = np.concatenate([[0.0], np.cumsum(y)])
+        cs2 = np.concatenate([[0.0], np.cumsum(y * y)])
+
+        def rss(i, j):
+            k = j - i
+            if k < 1:
+                return 0.0
+            s = cs[j] - cs[i]
+            return float(cs2[j] - cs2[i] - s * s / k)
+
+        inf = 1e300
+        F = np.full((max_m + 1, n + 1), inf)
+        brk = np.full((max_m + 1, n + 1), -1, dtype=int)
+        for j in range(hlen, n + 1):
+            F[0, j] = rss(0, j)
+        for mm in range(1, max_m + 1):
+            for j in range((mm + 1) * hlen, n + 1):
+                best, arg = inf, -1
+                for i in range(mm * hlen, j - hlen + 1):
+                    c = F[mm - 1, i] + rss(i, j)
+                    if c < best:
+                        best, arg = c, i
+                F[mm, j], brk[mm, j] = best, arg
+        bic = [inf if F[mm, n] <= 0 else n * np.log(F[mm, n] / n) + (mm + 1) * np.log(n)
+               for mm in range(max_m + 1)]
+        mhat = int(np.argmin(bic)) if nbreaks is None or nbreaks is False else max_m
+        cur_m, cur_t = mhat, n
+        while cur_m > 0:
+            i = int(brk[cur_m, cur_t])
+            if i < 1:
+                break
+            breaks.append(i)
+            cur_t, cur_m = i, cur_m - 1
+        breaks = sorted(set(int(b) for b in breaks if 1 <= b < n))
+        rows = [
+            ("method", "baiperron", "Bai-Perron mean-shift; BIC if nbreaks omitted."),
+            ("n", n, "Count after dropping blanks."),
+            ("n_breaks", len(breaks), "Estimated mean-shift dates."),
+            ("ssr_none", F[0, n], "SSR, one mean."),
+            ("ssr_m", F[mhat, n], "SSR with chosen breaks."),
+            ("is_break", 1.0 if breaks else 0.0, "1 if any break date."),
+        ]
+        for i, b in enumerate(breaks, 1):
+            rows.append(("break_%d" % i, b, "1-based last t of regime %d." % i))
+
+    if plot:
+        if m == "cusum" and path is not None:
+            fig, axes = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+            axes[0].plot(t, y, color="C0")
+            axes[0].set_title("Series")
+            axes[1].plot(t, path, color="C1")
+            axes[1].axhline(bound, color="0.4", ls="--")
+            axes[1].axhline(-bound, color="0.4", ls="--")
+            axes[1].set_title("CUSUM")
+            axes[1].set_xlabel("t")
+            ax0 = axes[0]
+        else:
+            fig, ax0 = plt.subplots(figsize=(8, 4))
+            ax0.plot(t, y, color="C0")
+            ax0.set_xlabel("t")
+            ax0.set_title("Breakpoints")
+        for b in breaks:
+            ax0.axvline(b, color="C3", ls="--", lw=1)
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame(rows, columns=["metric", "value", "guidance"])
+
+"breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True)"
 
 
 def forecast_plot(actual, forecast, lower=None, upper=None, headers=False):

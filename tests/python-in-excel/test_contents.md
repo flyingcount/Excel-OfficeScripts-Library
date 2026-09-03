@@ -19,6 +19,8 @@ In a PY cell, set output to **Excel value**.
 | `"contents" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
 | `"lag_features" in set(contents()["function"])` | `False` |
+| `"lead_features" in set(contents()["function"])` | `False` |
+| `"breakpoints" in set(contents()["function"])` | `False` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `"_norm_values" in set(contents()["function"])` | `False` |
@@ -55,8 +57,10 @@ In a PY cell, set output to **Excel value**.
 |--------|----------|
 | `list(contents().columns)` | `['function', 'description', 'call']` |
 | `"lag_features" in set(contents()["function"])` | `True` |
+| `"lead_features" in set(contents()["function"])` | `True` |
 | `"fourier_features" in set(contents()["function"])` | `True` |
 | `"detect_anomalies" in set(contents()["function"])` | `True` |
+| `"breakpoints" in set(contents()["function"])` | `True` |
 | `"forecast_plot" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `True` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
@@ -65,5 +69,7 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "expsmooth", "call"].iloc[0]` | `expsmooth(data, alpha=0.2, h=12, level=0.95, plot=False, headers=False)` |
 | `contents().loc[contents()["function"] == "ets_forecast", "call"].iloc[0]` | `ets_forecast(data, h=12, trend='add', seasonal='add', period=12, level=0.95, plot=False, headers=False)` |
 | `contents().loc[contents()["function"] == "sarima_forecast", "call"].iloc[0]` | `sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, level=0.95, plot=False, headers=False)` |
+| `contents().loc[contents()["function"] == "lead_features", "call"].iloc[0]` | `lead_features(data, leads=1, value_col=None, date_col=None, headers=True)` |
+| `contents().loc[contents()["function"] == "breakpoints", "call"].iloc[0]` | `breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True)` |
 | `contents().loc[contents()["function"] == "stl", "call"].iloc[0]` | `stl(data, period, dates=None, robust=False, headers=False)` |
-| `len(contents())` | `28` |
+| `len(contents())` | `30` |
