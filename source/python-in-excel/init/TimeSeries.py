@@ -61,7 +61,7 @@ def contents():
             ("sarima_forecast", "SARIMA forecast with interval", "sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, level=0.95, plot=False, headers=False)"),
             ("rolling_cv", "Rolling-origin CV metrics", "rolling_cv(data, h=1, min_train=None, step=1, method='naive', period=12, full=False, headers=False)"),
             ("detect_anomalies", "Flag series anomalies", "detect_anomalies(data, method='stl', period=12, z=3, headers=False)"),
-            ("breakpoints", "Chow, CUSUM, or Bai-Perron breaks", "breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True)"),
+            ("breakpoints", "Break dates, confidence, and type", "breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True, date_col=None)"),
             ("forecast_plot", "Actual + forecast chart", "forecast_plot(actual, forecast, lower=None, upper=None, headers=False)"),
         ],
         columns=["function", "description", "call"],
@@ -2403,29 +2403,47 @@ def detect_anomalies(data, method="stl", period=12, z=3, headers=False):
 
 
 def breakpoints(data, method="cusum", alpha=0.05, at=None, nbreaks=None,
-                plot=False, headers=True):
-    """CUSUM, Chow, or Bai-Perron breaks. plot=True is a chart (Python object).
+                plot=False, headers=True, date_col=None):
+    """break_date, confidence (1-p), type (Level shift / Trend shift).
 
-    cusum: OLS residual CUSUM (intercept+trend). chow: F at `at` (1-based t
-    or fraction); omitted = sup-F, 15% trim. baiperron: mean-shift; nbreaks
-    omitted uses BIC (max 5). data: first numeric col. alpha default 0.05.
+    Monthly YYYY-MM; else YYYY-MM-DD or 1-based t. plot=True is a chart.
     """
     from scipy.stats import f as fdist
     from statsmodels.stats.diagnostic import breaks_cusumolsresid
     from statsmodels.regression.linear_model import OLS
 
+    dates = None
     if isinstance(data, str):
         data = xl(data, headers=headers)
     if isinstance(data, pd.DataFrame):
+        if date_col is not None:
+            key = str(pd.Series(date_col).iloc[0]).strip().lower()
+            cmap = {str(c).strip().lower(): c for c in data.columns}
+            dates = pd.to_datetime(data[cmap.get(key, date_col)], errors="coerce")
+        else:
+            for col in data.columns:
+                s = data[col]
+                if pd.api.types.is_numeric_dtype(s):
+                    continue
+                p = pd.to_datetime(s, errors="coerce")
+                if pd.api.types.is_datetime64_any_dtype(s) or float(p.notna().mean()) > 0.8:
+                    dates = p
+                    break
         num = data.select_dtypes(include="number")
         values = num.iloc[:, 0] if num.shape[1] else data.iloc[:, 0]
     else:
         values = data
-    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna()
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").reset_index(drop=True)
+    if dates is not None:
+        dates = pd.to_datetime(pd.Series(dates).reset_index(drop=True), errors="coerce")
+        ok = y.notna()
+        dates, y = dates[ok].reset_index(drop=True), y[ok].reset_index(drop=True)
+    else:
+        y = y.dropna().reset_index(drop=True)
     y = y.to_numpy(dtype="float64")
     n = int(y.size)
     if n < 10:
-        raise ValueError("Need at least 10 observations.")
+        raise ValueError("Need 10+ observations.")
     alpha = float(pd.Series(alpha).iloc[0])
     if not 0 < alpha < 1:
         raise ValueError("alpha must be between 0 and 1.")
@@ -2435,9 +2453,11 @@ def breakpoints(data, method="cusum", alpha=0.05, at=None, nbreaks=None,
     if m in ("bp", "bai-perron", "bai perron"):
         m = "baiperron"
     if m not in ("cusum", "chow", "baiperron"):
-        raise ValueError("method must be 'cusum', 'chow', or 'baiperron'.")
+        raise ValueError("method must be cusum, chow, or baiperron.")
     t = np.arange(1, n + 1, dtype="float64")
     X = np.column_stack([np.ones(n), t])
+    monthly = dates is not None and int(dates.notna().sum()) >= 2 and (
+        int(dates.dt.to_period("M").nunique()) >= n)
 
     def ssr(a, b):
         ya, Xa = y[a:b], X[a:b]
@@ -2455,23 +2475,42 @@ def breakpoints(data, method="cusum", alpha=0.05, at=None, nbreaks=None,
         fv = ((sp - s1 - s2) / 2.0) / ((s1 + s2) / dfd)
         return float(fv), float(fdist.sf(fv, 2, dfd))
 
-    breaks, path, bound = [], None, np.nan
+    def rss_x(Xa):
+        if y.size < Xa.shape[1] + 1:
+            return np.nan
+        bh = np.linalg.lstsq(Xa, y, rcond=None)[0]
+        e = y - Xa.dot(bh)
+        return float(e.dot(e))
+
+    def kind(k):
+        I = (t > k).astype("float64")
+        sr, sl = rss_x(X), rss_x(np.c_[X, I])
+        st = rss_x(np.c_[X, t * I])
+        fl = (sr - sl) * (n - 3) / sl if sl > 0 else np.nan
+        ft = (sr - st) * (n - 3) / st if st > 0 else np.nan
+        return "Trend shift" if np.isfinite(ft) and (
+            not np.isfinite(fl) or ft > fl) else "Level shift"
+
+    def conf(p):
+        return "" if not np.isfinite(p) else "%d%%" % int(
+            round(100.0 * (1.0 - min(max(float(p), 0.0), 1.0))))
+
+    def label(i):
+        if dates is None or not (1 <= i <= n) or pd.isna(dates.iloc[i - 1]):
+            return i
+        ts = pd.Timestamp(dates.iloc[i - 1])
+        return ts.strftime("%Y-%m" if monthly else "%Y-%m-%d")
+
+    breaks, pmap, path, bound = [], {}, None, np.nan
     if m == "cusum":
         resid = np.asarray(OLS(y, X).fit().resid, dtype="float64")
-        stat, pval, crit = breaks_cusumolsresid(resid, ddof=2)
-        stat, pval = float(stat), float(pval)
-        c5 = float(np.asarray(crit).reshape(-1)[1]) if np.size(crit) > 1 else 1.36
+        _st, pval, crit = breaks_cusumolsresid(resid, ddof=2)
+        pval = float(pval)
         path = np.cumsum(resid) / np.sqrt(float(resid.dot(resid)))
-        bound, flag = c5, 1.0 if pval < alpha else 0.0
-        rows = [
-            ("method", "cusum", "Ploberger-Kramer CUSUM, intercept+trend OLS."),
-            ("n", n, "Count after dropping blanks."),
-            ("statistic", stat, "Sup |CUSUM|/sqrt(n). Larger: break."),
-            ("pvalue", pval, "p < alpha: reject stability."),
-            ("crit_5", c5, "5% critical value."),
-            ("alpha", alpha, "Cutoff for is_break."),
-            ("is_break", flag, "1 if pvalue < alpha."),
-        ]
+        bound = float(np.asarray(crit).reshape(-1)[1]) if np.size(crit) > 1 else 1.36
+        if pval < alpha:
+            k = min(max(int(np.argmax(np.abs(path)) + 1), 3), n - 3)
+            breaks, pmap = [k], {k: pval}
     elif m == "chow":
         lo, hi = max(int(0.15 * n), 3), min(int(np.ceil(0.85 * n)), n - 3)
         if at is None or at is False:
@@ -2484,25 +2523,16 @@ def breakpoints(data, method="cusum", alpha=0.05, at=None, nbreaks=None,
             av = float(pd.Series(at).iloc[0])
             bk = int(round(av * n)) if 0 < av < 1 else int(av)
             bk = max(bk, 1)
-        fv, pval = chow_f(bk)
-        flag = 1.0 if np.isfinite(pval) and pval < alpha else 0.0
-        breaks = [bk] if flag else []
-        rows = [
-            ("method", "chow", "Chow F, intercept+trend, split after t."),
-            ("n", n, "Count after dropping blanks."),
-            ("t", bk, "1-based last t of regime 1."),
-            ("statistic", fv, "Chow F. Larger: break at t."),
-            ("pvalue", pval, "p < alpha: regimes differ."),
-            ("alpha", alpha, "Cutoff for is_break."),
-            ("is_break", flag, "1 if pvalue < alpha."),
-        ]
+        _fv, pval = chow_f(bk)
+        if np.isfinite(pval) and pval < alpha:
+            breaks, pmap = [bk], {bk: pval}
     else:
         max_m = 5 if nbreaks is None or nbreaks is False else max(
             1, int(pd.Series(nbreaks).iloc[0]))
         hlen = max(3, int(0.1 * n))
         max_m = min(max_m, max(0, n // (2 * hlen) - 1))
         if max_m < 1:
-            raise ValueError("Series too short for Bai-Perron.")
+            raise ValueError("Too short for Bai-Perron.")
         cs = np.concatenate([[0.0], np.cumsum(y)])
         cs2 = np.concatenate([[0.0], np.cumsum(y * y)])
 
@@ -2537,40 +2567,34 @@ def breakpoints(data, method="cusum", alpha=0.05, at=None, nbreaks=None,
             breaks.append(i)
             cur_t, cur_m = i, cur_m - 1
         breaks = sorted(set(int(b) for b in breaks if 1 <= b < n))
-        rows = [
-            ("method", "baiperron", "Bai-Perron mean-shift; BIC if nbreaks omitted."),
-            ("n", n, "Count after dropping blanks."),
-            ("n_breaks", len(breaks), "Estimated mean-shift dates."),
-            ("ssr_none", F[0, n], "SSR, one mean."),
-            ("ssr_m", F[mhat, n], "SSR with chosen breaks."),
-            ("is_break", 1.0 if breaks else 0.0, "1 if any break date."),
-        ]
-        for i, b in enumerate(breaks, 1):
-            rows.append(("break_%d" % i, b, "1-based last t of regime %d." % i))
+        pmap = {b: chow_f(b)[1] for b in breaks}
 
     if plot:
         if m == "cusum" and path is not None:
             fig, axes = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
-            axes[0].plot(t, y, color="C0")
+            axes[0].plot(t, y)
             axes[0].set_title("Series")
             axes[1].plot(t, path, color="C1")
             axes[1].axhline(bound, color="0.4", ls="--")
             axes[1].axhline(-bound, color="0.4", ls="--")
             axes[1].set_title("CUSUM")
-            axes[1].set_xlabel("t")
             ax0 = axes[0]
         else:
             fig, ax0 = plt.subplots(figsize=(8, 4))
-            ax0.plot(t, y, color="C0")
-            ax0.set_xlabel("t")
+            ax0.plot(t, y)
             ax0.set_title("Breakpoints")
         for b in breaks:
             ax0.axvline(b, color="C3", ls="--", lw=1)
         fig.tight_layout()
         return fig
-    return pd.DataFrame(rows, columns=["metric", "value", "guidance"])
+    cols = ["break_date", "confidence", "type"]
+    if not breaks:
+        return pd.DataFrame(columns=cols)
+    return pd.DataFrame(
+        [(label(k), conf(pmap.get(k, np.nan)), kind(k)) for k in breaks],
+        columns=cols)
 
-"breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True)"
+"breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True, date_col=None)"
 
 
 def forecast_plot(actual, forecast, lower=None, upper=None, headers=False):

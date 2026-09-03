@@ -7,17 +7,18 @@
 
 ## Cases (table)
 
-In a PY cell, set output to **Excel value**. `y = [1]*20 + [10]*20` has a mean break after t=20.
+In a PY cell, set output to **Excel value**. `y = [1]*20 + [10]*20` has a mean break after t=20. No dates → `break_date` is that 1-based t. Only detected breaks are rows (empty table if none).
 
 | Python | Expected |
 |--------|----------|
-| `list(breakpoints([1]*20 + [10]*20).columns)` | `['metric', 'value', 'guidance']` |
-| `str(breakpoints([1]*20 + [10]*20).loc[0, "value"])` | `cusum` |
-| `str(breakpoints([1]*20 + [10]*20, method="chow", at=20).loc[0, "value"])` | `chow` |
-| `float(breakpoints([1]*20 + [10]*20, method="chow", at=20).loc[breakpoints([1]*20 + [10]*20, method="chow", at=20)["metric"]=="pvalue", "value"].iloc[0]) < 0.05` | `True` |
-| `str(breakpoints([1]*20 + [10]*20, method="baiperron").loc[0, "value"])` | `baiperron` |
-| `float(breakpoints([1]*20 + [10]*20, method="baiperron").loc[breakpoints([1]*20 + [10]*20, method="baiperron")["metric"]=="n_breaks", "value"].iloc[0]) >= 1` | `True` |
-| `breakpoints(list(range(9)), method="cusum")` | `#PYTHON!` — `Need at least 10 observations.` |
+| `list(breakpoints([1]*20 + [10]*20).columns)` | `['break_date', 'confidence', 'type']` |
+| `list(breakpoints([1]*20 + [10]*20, method="chow", at=20).columns)` | `['break_date', 'confidence', 'type']` |
+| `int(breakpoints([1]*20 + [10]*20, method="chow", at=20)["break_date"].iloc[0])` | `20` |
+| `str(breakpoints([1]*20 + [10]*20, method="chow", at=20)["type"].iloc[0])` | `Level shift` |
+| `"%" in str(breakpoints([1]*20 + [10]*20, method="chow", at=20)["confidence"].iloc[0])` | `True` |
+| `len(breakpoints([1]*20 + [10]*20, method="baiperron")) >= 1` | `True` |
+| `str(breakpoints(pd.DataFrame({"Date": pd.date_range("2020-01-01", periods=40, freq="MS"), "y": [1]*20 + [10]*20}), method="chow", at=20)["break_date"].iloc[0])` | `2020-08` |
+| `breakpoints(list(range(9)), method="cusum")` | `#PYTHON!` — `Need 10+ observations.` |
 
 ## Cases (plot)
 

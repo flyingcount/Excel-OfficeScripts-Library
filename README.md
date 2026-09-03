@@ -151,7 +151,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | Seasonal ARIMA forecast with prediction interval, or `plot=True` for a chart |
 | `rolling_cv` | `source/python-in-excel/functions/rolling_cv.py` | Walk-forward CV for baseline methods |
 | `detect_anomalies` | `source/python-in-excel/functions/detect_anomalies.py` | Flag series anomalies (STL, IQR, z-score) |
-| `breakpoints` | `source/python-in-excel/functions/breakpoints.py` | Chow, CUSUM, or Bai-Perron structural breaks, or `plot=True` for a chart |
+| `breakpoints` | `source/python-in-excel/functions/breakpoints.py` | Structural breaks as date, confidence, and Level/Trend type, or `plot=True` for a chart |
 | `forecast_plot` | `source/python-in-excel/functions/forecast_plot.py` | Chart of actuals, forecast, and optional interval |
 | `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
 | `outlier_flag` | `source/python-in-excel/functions/outlier_flag.py` | Flag outliers by IQR, MAD, z-score, STL residuals, or Isolation Forest |

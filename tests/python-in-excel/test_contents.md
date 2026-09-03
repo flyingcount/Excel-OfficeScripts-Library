@@ -71,6 +71,6 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "ets_forecast", "call"].iloc[0]` | `ets_forecast(data, h=12, trend='add', seasonal='add', period=12, level=0.95, plot=False, headers=False)` |
 | `contents().loc[contents()["function"] == "sarima_forecast", "call"].iloc[0]` | `sarima_forecast(data, h=12, p=1, d=1, q=1, P=1, D=1, Q=1, s=12, level=0.95, plot=False, headers=False)` |
 | `contents().loc[contents()["function"] == "lead_features", "call"].iloc[0]` | `lead_features(data, leads=1, value_col=None, date_col=None, headers=True)` |
-| `contents().loc[contents()["function"] == "breakpoints", "call"].iloc[0]` | `breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True)` |
+| `contents().loc[contents()["function"] == "breakpoints", "call"].iloc[0]` | `breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True, date_col=None)` |
 | `contents().loc[contents()["function"] == "stl", "call"].iloc[0]` | `stl(data, period, dates=None, robust=False, headers=False)` |
 | `len(contents())` | `30` |
