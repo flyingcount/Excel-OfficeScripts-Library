@@ -41,7 +41,7 @@ Python in Excel is Microsoft 365 only.
 
 **Sampling only:** paste `source/python-in-excel/init/Sampling.py` instead. That file is Excel defaults plus sampling functions (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`, and any later samplers). It does not include the rest of the library.
 
-**Time series only:** paste `source/python-in-excel/init/TimeSeries.py` instead. That file is Excel defaults plus time series functions (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `arima_estimate`, `zscore_replace`, `date_features`, and any later series tools). It does not include the rest of the library.
+**Time series only:** paste `source/python-in-excel/init/TimeSeries.py` instead. That file is Excel defaults plus time series functions (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `arima_estimate`, `baseline_forecast`, `zscore_replace`, `date_features`, and any later series tools). It does not include the rest of the library.
 
 **One function:** paste that file’s `def` into Initialization after the default imports, or into a Python cell above and to the left of the cells that call it.
 
