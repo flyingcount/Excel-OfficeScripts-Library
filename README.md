@@ -128,6 +128,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `stl_plot` | `source/python-in-excel/functions/stl_plot.py` | STL four-panel chart (`DecomposeResult.plot`) |
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | Residual diagnostics (table, or `plot=True` for charts) |
 | `acf_ljungbox` | `source/python-in-excel/functions/acf_ljungbox.py` | ACF and Ljung-Box Q at each lag (default 20) |
+| `acf_pacf` | `source/python-in-excel/functions/acf_pacf.py` | ACF and PACF table, or `plot=True` for charts |
 | `normality_check` | `source/python-in-excel/functions/normality_check.py` | Q-Q plot plus Shapiro-Wilk and Anderson-Darling (one paste) |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
 | `arima_estimate` | `source/python-in-excel/functions/arima_estimate.py` | ADF + AIC/BIC grid search for ARIMA(p, d, q) |
