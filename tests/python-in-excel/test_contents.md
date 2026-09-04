@@ -32,6 +32,7 @@ In a PY cell, set output to **Excel value**.
 | `"cusum" in set(contents()["function"])` | `False` |
 | `"capability_report" in set(contents()["function"])` | `False` |
 | `"process_shift_detection" in set(contents()["function"])` | `False` |
+| `"nelson_rules" in set(contents()["function"])` | `False` |
 | `"lag_features" in set(contents()["function"])` | `False` |
 | `"lead_features" in set(contents()["function"])` | `False` |
 | `"breakpoints" in set(contents()["function"])` | `False` |
@@ -91,6 +92,7 @@ In a PY cell, set output to **Excel value**.
 | `"cusum" in set(contents()["function"])` | `False` |
 | `"capability_report" in set(contents()["function"])` | `False` |
 | `"process_shift_detection" in set(contents()["function"])` | `False` |
+| `"nelson_rules" in set(contents()["function"])` | `False` |
 | `"rank_feature_importance" in set(contents()["function"])` | `False` |
 | `"check_collinearity" in set(contents()["function"])` | `False` |
 | `"classification_metrics" in set(contents()["function"])` | `False` |
@@ -117,7 +119,7 @@ In a PY cell, set output to **Excel value**.
 | Python | Expected |
 |--------|----------|
 | `list(contents().columns)` | `['function', 'description', 'call']` |
-| `list(contents()["function"])` | `['contents', 'xmr', 'xbar_r', 'xbar_s', 'ewma', 'cusum', 'capability_report', 'process_shift_detection']` |
+| `list(contents()["function"])` | `['contents', 'xmr', 'xbar_r', 'xbar_s', 'ewma', 'cusum', 'capability_report', 'process_shift_detection', 'nelson_rules']` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
@@ -133,4 +135,5 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "cusum", "call"].iloc[0]` | `cusum(data, k=0.5, h=5, plot=False, title='CUSUM chart', headers=False)` |
 | `contents().loc[contents()["function"] == "capability_report", "call"].iloc[0]` | `capability_report(data, usl, lsl, headers=False)` |
 | `contents().loc[contents()["function"] == "process_shift_detection", "call"].iloc[0]` | `process_shift_detection(data, method='cusum', headers=False)` |
-| `len(contents())` | `8` |
+| `contents().loc[contents()["function"] == "nelson_rules", "call"].iloc[0]` | `nelson_rules(data, headers=False)` |
+| `len(contents())` | `9` |

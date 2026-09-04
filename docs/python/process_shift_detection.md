@@ -2,7 +2,7 @@
 
 Flag **mean shifts** on individuals. Default method is tabular CUSUM (same rules as `cusum`). Result is one row per point.
 
-For the full CUSUM/EWMA/XmR chart or statistic columns use `cusum`, `ewma`, or `xmr`. For structural-break dates on a series, use TimeSeries `breakpoints`.
+For the full CUSUM/EWMA/XmR chart or statistic columns use `cusum`, `ewma`, or `xmr`. For Nelson's eight tests use `nelson_rules`. For structural-break dates on a series, use TimeSeries `breakpoints`.
 
 Formula: `source/python-in-excel/functions/process_shift_detection.py`
 

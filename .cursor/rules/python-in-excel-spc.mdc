@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Python in Excel SPC functions
 
-SPC (statistical process control) functions are control charts and process-limit tools (`xmr`, `xbar_r`, `xbar_s`, `ewma`, `cusum`, `capability_report`, `process_shift_detection`, and later Shewhart / CUSUM / EWMA / capability tools). They are not time-series forecasting and not sampling.
+SPC (statistical process control) functions are control charts and process-limit tools (`xmr`, `xbar_r`, `xbar_s`, `ewma`, `cusum`, `capability_report`, `process_shift_detection`, `nelson_rules`, and later Shewhart / CUSUM / EWMA / capability tools). They are not time-series forecasting and not sampling.
 
 ## Init files
 

@@ -173,6 +173,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `cusum` | `source/python-in-excel/functions/cusum.py` | Two-sided tabular CUSUM (`plot=True`) or spill table |
 | `capability_report` | `source/python-in-excel/functions/capability_report.py` | Cp, Cpk, Pp, Ppk and expected overall PPM for individuals |
 | `process_shift_detection` | `source/python-in-excel/functions/process_shift_detection.py` | Flag mean shifts via CUSUM (default), EWMA, or XmR |
+| `nelson_rules` | `source/python-in-excel/functions/nelson_rules.py` | Nelson's eight tests; explanations are in the `rule_N: …` headers |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 

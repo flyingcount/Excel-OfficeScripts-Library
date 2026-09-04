@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `nelson_rules` — rule explanations sit in the column headers (`rule_N: …`); data rows are 0/1 only. Docs: `docs/python/nelson_rules.md`.
 - `xmr_spc` renamed to `xmr`. Docs: `docs/python/xmr.md`.
 - `get_confusion_matrix_summary` renamed to `confusion_matrix`. `plot=True` returns a 2×2 heatmap. Docs: `docs/python/confusion_matrix.md`.
 - `get_classification_metrics` renamed to `classification_metrics`. The spill now includes TPR/FPR/TNR/FNR, prevalence, LR+/LR−, diagnostic odds ratio, F-beta, MCC, informedness, markedness, and threat score. Docs: `docs/python/classification_metrics.md`.
@@ -24,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `nelson_rules` — Nelson's eight tests on individuals (σ from MR̄/1.128). Docs: `docs/python/nelson_rules.md`.
 - `process_shift_detection` — flag mean shifts on individuals via CUSUM (default), EWMA, or XmR. Docs: `docs/python/process_shift_detection.md`.
 - `capability_report` — Cp, Cpk, Pp, Ppk and expected overall PPM for individuals (σ_within from MR̄/1.128). Docs: `docs/python/capability_report.md`.
 - `ewma` — EWMA chart for individuals (default λ=0.2, L=3); `plot=True` for a chart. Docs: `docs/python/ewma.md`.
