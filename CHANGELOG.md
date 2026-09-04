@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `detect_mixed_data_anomalies` — flag mixed numeric/categorical table rows using Mahalanobis distance and Isolation Forest. Docs: `docs/python/detect_mixed_data_anomalies.md`.
 - `lead_features` — lead columns (`y.shift(-k)`) from a value series. Docs: `docs/python/lead_features.md`.
 - `breakpoints` — Chow, CUSUM, or Bai-Perron structural breaks; `plot=True` for a chart. Docs: `docs/python/breakpoints.md`.
 - `forecast_plot` — chart of actuals, point forecast, and optional lower/upper interval. Docs: `docs/python/forecast_plot.md`.

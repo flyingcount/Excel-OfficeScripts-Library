@@ -1,0 +1,93 @@
+# detect_mixed_data_anomalies
+
+Flag anomalous **rows** in a mixed table (numeric + categorical). Combines **Mahalanobis distance** on the numeric columns with **Isolation Forest** on the full mixed feature matrix (scaled numbers + one-hot categories).
+
+This is for cross-sectional tables. For an ordered series use `detect_anomalies`. For a single numeric column use `outlier_flag`.
+
+Formula: `source/python-in-excel/functions/detect_mixed_data_anomalies.py`
+
+## Install
+
+Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste `init/PaulPythonLibrary.py`.
+
+In a PY cell (output **Excel value**):
+
+```python
+detect_mixed_data_anomalies("A1:G100")
+detect_mixed_data_anomalies("Table1[#All]", contamination=0.05)
+detect_mixed_data_anomalies("A1:G100", max_categories=10)
+```
+
+scipy and scikit-learn are in the Python in Excel runtime; they are imported inside the function.
+
+## Arguments
+
+| Argument | Required | Meaning |
+|----------|----------|---------|
+| `data` | Yes | Range, table, DataFrame, Series, or `xl()` result. |
+| `contamination` | No | Expected anomaly share in `(0, 0.5]`. Default `0.05` (5%). Used as the chi-square cutoff for Mahalanobis and as Isolation Forest `contamination`. |
+| `max_categories` | No | Skip text columns with more unique values than this (IDs / free text). Default `15`. |
+| `headers` | No | First row is headers when `data` is a ref string. Default `True`. |
+
+Excel may pass a 1×1 array for a scalar; those values are unwrapped.
+
+## How columns are used
+
+| Input | Treatment |
+|-------|-----------|
+| Numeric (int/float) | Mahalanobis (if 2+ numeric columns) and scaled for Isolation Forest. Blanks filled with the column median. |
+| Text that is mostly numbers | Coerced to numeric (same 80% rule as `cluster_prep`). |
+| Text with repeated values | One-hot encoded for Isolation Forest if unique count is between 2 and `max_categories`, and not all-unique (IDs). Blanks become `"Missing"`. |
+| Constant text, all-unique text, or high-cardinality text | Skipped. |
+
+Mahalanobis runs only when there are **two or more** numeric columns. With fewer, `md_distance` is 0, `md_p_value` is 1, and `flag_md` is 0. Isolation Forest still runs on whatever numeric and categorical features remain.
+
+Need at least two rows. `contamination` outside `(0, 0.5]` raises an error.
+
+## Methods
+
+### Mahalanobis distance (numeric)
+
+Distance of each row from the numeric mean, using the pseudoinverse of the covariance matrix (so collinear columns still work). Squared distance is compared to the chi-square quantile at `1 - contamination` with degrees of freedom = number of numeric columns.
+
+The original snippet passed `row - mean` into `mahalanobis` as the first argument and `mean` as the second, which measures distance from `row - 2×mean`. This version uses `(row − mean)` against the inverse covariance, which is the usual Mahalanobis distance.
+
+### Isolation Forest (mixed)
+
+`StandardScaler` on numeric columns and `OneHotEncoder` on valid categoricals, then sklearn `IsolationForest` (`random_state=42`). `if_score` is `decision_function`: **lower** (more negative) is more anomalous. `flag_if` is 1 when `predict` returns −1.
+
+## Result
+
+The input columns plus:
+
+| Column | Notes |
+|--------|-------|
+| `md_distance` | Mahalanobis distance (0 when fewer than 2 numeric columns). |
+| `md_p_value` | Chi-square tail probability of the squared distance (1 when MD is skipped). |
+| `if_score` | Isolation Forest decision score. Lower = more anomalous. |
+| `flag_md` | `1` if MD flags the row, else `0`. |
+| `flag_if` | `1` if Isolation Forest flags the row, else `0`. |
+| `anomaly_class` | See below. |
+
+| `anomaly_class` | Meaning |
+|-----------------|---------|
+| `Consensus anomaly` | Both methods flag the row. |
+| `Numeric outlier (MD)` | Mahalanobis only (unusual numeric combination). |
+| `Structural outlier (IF)` | Isolation Forest only (often a rare category or mixed pattern). |
+| `Normal` | Neither method flags the row. |
+
+Set the PY cell to **Excel value** to spill.
+
+## Example
+
+19 rows at `(x=10, y=20, grp=A)` and one row at `(x=100, y=200, grp=Z)`:
+
+```python
+detect_mixed_data_anomalies(pd.DataFrame({
+    "x": [10] * 19 + [100],
+    "y": [20] * 19 + [200],
+    "grp": ["A"] * 19 + ["Z"],
+}))
+```
+
+The last row is a consensus anomaly. Inliers have Mahalanobis distance ≈ 0.22; the outlier is ≈ 4.25 (chi-square cutoff for 5% and 2 features ≈ 5.99 on the **squared** distance).

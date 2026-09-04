@@ -73,7 +73,7 @@ if isinstance(data, str):
 Put the `def` and quoted call in **exactly one** library init file:
 
 - **Sampler** (names often end in `_sample`) → @source/python-in-excel/init/Sampling.py only. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
-- **Time series** (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series, lags/forecast features) → @source/python-in-excel/init/TimeSeries.py only. See @.cursor/rules/python-in-excel-timeseries.mdc. `describe`, `corr`, `normality_check`, and `cluster_prep` are not time series.
+- **Time series** (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series, lags/forecast features) → @source/python-in-excel/init/TimeSeries.py only. See @.cursor/rules/python-in-excel-timeseries.mdc. `describe`, `corr`, `normality_check`, `cluster_prep`, and `detect_mixed_data_anomalies` are not time series.
 - **Otherwise general** → @source/python-in-excel/init/PaulPythonLibrary.py only. Paul is the general init for functions that do not belong in another collection. If you later create a new collection init, move matching functions out of Paul into that file.
 
 Do **not** copy the same public `def` into Paul and a specialized init.
