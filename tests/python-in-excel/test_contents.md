@@ -33,6 +33,10 @@ In a PY cell, set output to **Excel value**.
 | `"capability_report" in set(contents()["function"])` | `False` |
 | `"process_shift_detection" in set(contents()["function"])` | `False` |
 | `"nelson_rules" in set(contents()["function"])` | `False` |
+| `"c_chart" in set(contents()["function"])` | `False` |
+| `"u_chart" in set(contents()["function"])` | `False` |
+| `"p_chart" in set(contents()["function"])` | `False` |
+| `"np_chart" in set(contents()["function"])` | `False` |
 | `"lag_features" in set(contents()["function"])` | `False` |
 | `"lead_features" in set(contents()["function"])` | `False` |
 | `"breakpoints" in set(contents()["function"])` | `False` |
@@ -93,6 +97,10 @@ In a PY cell, set output to **Excel value**.
 | `"capability_report" in set(contents()["function"])` | `False` |
 | `"process_shift_detection" in set(contents()["function"])` | `False` |
 | `"nelson_rules" in set(contents()["function"])` | `False` |
+| `"c_chart" in set(contents()["function"])` | `False` |
+| `"u_chart" in set(contents()["function"])` | `False` |
+| `"p_chart" in set(contents()["function"])` | `False` |
+| `"np_chart" in set(contents()["function"])` | `False` |
 | `"rank_feature_importance" in set(contents()["function"])` | `False` |
 | `"check_collinearity" in set(contents()["function"])` | `False` |
 | `"classification_metrics" in set(contents()["function"])` | `False` |
@@ -119,7 +127,7 @@ In a PY cell, set output to **Excel value**.
 | Python | Expected |
 |--------|----------|
 | `list(contents().columns)` | `['function', 'description', 'call']` |
-| `list(contents()["function"])` | `['contents', 'xmr', 'xbar_r', 'xbar_s', 'ewma', 'cusum', 'capability_report', 'process_shift_detection', 'nelson_rules']` |
+| `list(contents()["function"])` | `['contents', 'xmr', 'xbar_r', 'xbar_s', 'ewma', 'cusum', 'capability_report', 'process_shift_detection', 'nelson_rules', 'c_chart', 'u_chart', 'p_chart', 'np_chart']` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
@@ -136,4 +144,8 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "capability_report", "call"].iloc[0]` | `capability_report(data, usl, lsl, headers=False)` |
 | `contents().loc[contents()["function"] == "process_shift_detection", "call"].iloc[0]` | `process_shift_detection(data, method='cusum', headers=False)` |
 | `contents().loc[contents()["function"] == "nelson_rules", "call"].iloc[0]` | `nelson_rules(data, headers=False)` |
-| `len(contents())` | `9` |
+| `contents().loc[contents()["function"] == "c_chart", "call"].iloc[0]` | `c_chart(defects, plot=False, title='c chart', headers=False)` |
+| `contents().loc[contents()["function"] == "u_chart", "call"].iloc[0]` | `u_chart(defects, units, plot=False, title='u chart', headers=False)` |
+| `contents().loc[contents()["function"] == "p_chart", "call"].iloc[0]` | `p_chart(defectives, sample_size, plot=False, title='p chart', headers=False)` |
+| `contents().loc[contents()["function"] == "np_chart", "call"].iloc[0]` | `np_chart(defectives, sample_size, plot=False, title='np chart', headers=False)` |
+| `len(contents())` | `13` |

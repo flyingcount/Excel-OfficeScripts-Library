@@ -174,6 +174,10 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `capability_report` | `source/python-in-excel/functions/capability_report.py` | Cp, Cpk, Pp, Ppk and expected overall PPM for individuals |
 | `process_shift_detection` | `source/python-in-excel/functions/process_shift_detection.py` | Flag mean shifts via CUSUM (default), EWMA, or XmR |
 | `nelson_rules` | `source/python-in-excel/functions/nelson_rules.py` | Nelson's eight tests; explanations are in the `rule_N: …` headers |
+| `c_chart` | `source/python-in-excel/functions/c_chart.py` | c chart (`plot=True`) or spill table for defect counts |
+| `u_chart` | `source/python-in-excel/functions/u_chart.py` | u chart (`plot=True`) or spill table for defects per unit |
+| `p_chart` | `source/python-in-excel/functions/p_chart.py` | p chart (`plot=True`) or spill table for fraction defective |
+| `np_chart` | `source/python-in-excel/functions/np_chart.py` | np chart (`plot=True`) or spill table for number of defectives |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 

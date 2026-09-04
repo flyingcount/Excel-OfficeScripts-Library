@@ -45,7 +45,7 @@ Python in Excel is Microsoft 365 only.
 
 **Time series only:** paste `source/python-in-excel/init/TimeSeries.py` instead. That file is Excel defaults plus time series functions (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `fft_spectrum`, `arima_order`, `arima_estimate`, `baseline_forecast`, `forecast_metrics`, `zscore_replace`, `date_features`, `lag_features`, `lead_features`, `fourier_features`, `difference`, `impute`, `seasonal_indices`, `seasonally_adjust`, `kpss_test`, `ets_forecast`, `arima_forecast`, `sarima_forecast`, `rolling_cv`, `detect_anomalies`, `breakpoints`, `forecast_plot`, and any later series tools). `contents()` lists only the time series functions.
 
-**SPC only:** paste `source/python-in-excel/init/SPC.py` instead. That file is Excel defaults plus SPC functions (`xmr`, `xbar_r`, `xbar_s`, `ewma`, `cusum`, `capability_report`, `process_shift_detection`, `nelson_rules`, and any later control-chart tools). `contents()` lists only the SPC functions.
+**SPC only:** paste `source/python-in-excel/init/SPC.py` instead. That file is Excel defaults plus SPC functions (`xmr`, `xbar_r`, `xbar_s`, `ewma`, `cusum`, `capability_report`, `process_shift_detection`, `nelson_rules`, `c_chart`, `u_chart`, `p_chart`, `np_chart`, and any later control-chart tools). `contents()` lists only the SPC functions.
 
 Init pastes are partitioned: a function lives in one of Paul, Sampling, TimeSeries, or SPC — not in Paul and a specialized file. For series work use `TimeSeries.py`; for sampling use `Sampling.py`; for control charts use `SPC.py`.
 **One function:** paste that file’s `def` into Initialization after the default imports, or into a Python cell above and to the left of the cells that call it.

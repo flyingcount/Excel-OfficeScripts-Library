@@ -25,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `p_chart` — p chart for fraction defective (n may vary or be a scalar); `plot=True` for a chart. Docs: `docs/python/p_chart.md`.
+- `np_chart` — np chart for number of defectives (constant n usual); `plot=True` for a chart. Docs: `docs/python/np_chart.md`.
+- `c_chart` — c chart for defect counts with equal opportunity; `plot=True` for a chart. Docs: `docs/python/c_chart.md`.
+- `u_chart` — u chart for defects per unit (n may vary or be a scalar); `plot=True` for a chart. Docs: `docs/python/u_chart.md`.
 - `nelson_rules` — Nelson's eight tests on individuals (σ from MR̄/1.128). Docs: `docs/python/nelson_rules.md`.
 - `process_shift_detection` — flag mean shifts on individuals via CUSUM (default), EWMA, or XmR. Docs: `docs/python/process_shift_detection.md`.
 - `capability_report` — Cp, Cpk, Pp, Ppk and expected overall PPM for individuals (σ_within from MR̄/1.128). Docs: `docs/python/capability_report.md`.

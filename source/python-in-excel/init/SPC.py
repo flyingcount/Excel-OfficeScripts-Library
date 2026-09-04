@@ -43,6 +43,10 @@ def contents():
             ("capability_report", "Cp, Cpk, Pp, Ppk and expected PPM", "capability_report(data, usl, lsl, headers=False)"),
             ("process_shift_detection", "Flag mean shifts (CUSUM, EWMA, or XmR)", "process_shift_detection(data, method='cusum', headers=False)"),
             ("nelson_rules", "Nelson's eight tests for individuals", "nelson_rules(data, headers=False)"),
+            ("c_chart", "c chart for defect counts", "c_chart(defects, plot=False, title='c chart', headers=False)"),
+            ("u_chart", "u chart for defects per unit", "u_chart(defects, units, plot=False, title='u chart', headers=False)"),
+            ("p_chart", "p chart for fraction defective", "p_chart(defectives, sample_size, plot=False, title='p chart', headers=False)"),
+            ("np_chart", "np chart for number of defectives", "np_chart(defectives, sample_size, plot=False, title='np chart', headers=False)"),
         ],
         columns=["function", "description", "call"],
     )
@@ -810,3 +814,325 @@ def nelson_rules(data, headers=False):
     return out
 
 "nelson_rules(data, headers=False)"
+
+
+def c_chart(defects, plot=False, title="c chart", headers=False):
+    """c chart for the count of defects per inspection unit.
+
+    CL = c-bar, UCL/LCL = c-bar ± 3√c-bar. LCL is floored at 0.
+    Equal area of opportunity. plot=True is a chart (Python object).
+
+    defects: count column, ref string, Series, DataFrame, or list.
+    headers: first row is headers when defects is a ref string.
+    """
+    if isinstance(defects, str):
+        defects = xl(defects, headers=headers)
+    if isinstance(defects, pd.DataFrame):
+        numeric = defects.select_dtypes(include="number")
+        values = (numeric.iloc[:, 0] if numeric.shape[1]
+                  else defects.iloc[:, 0])
+    elif isinstance(defects, pd.Series):
+        values = defects
+    else:
+        values = pd.Series(defects)
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce")
+    y = y.replace("", np.nan).dropna().reset_index(drop=True)
+    k = int(y.size)
+    if k < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    yv = y.to_numpy(dtype="float64")
+    if np.any(yv < 0):
+        raise ValueError("defects must be >= 0.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    cb = float(np.mean(yv))
+    se = 0.0 if cb == 0 else float(np.sqrt(cb))
+    cl = cb
+    ucl = cb + 3.0 * se
+    lcl = max(0.0, cb - 3.0 * se)
+    out = (yv > ucl) | (yv < lcl)
+    t = np.arange(1, k + 1, dtype="float64")
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.plot(t, yv, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out.any():
+            ax.scatter(t[out], yv[out], c="#d9534f", s=70, zorder=5,
+                       edgecolors="k", label="Beyond limits")
+            ax.legend(loc="best", fontsize=8)
+        ax.axhline(cl, color="#1f77b4", lw=1.5)
+        ax.axhline(ucl, color="#d9534f", ls="--", lw=1.2)
+        ax.axhline(lcl, color="#d9534f", ls="--", lw=1.2)
+        ax.set_ylabel("c")
+        ax.set_xlabel("t")
+        ax.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "t": t,
+        "defects": yv,
+        "cl": np.full(k, cl),
+        "ucl": np.full(k, ucl),
+        "lcl": np.full(k, lcl),
+        "is_outlier": out.astype("float64"),
+    })
+
+"c_chart(defects, plot=False, title='c chart', headers=False)"
+
+
+def u_chart(defects, units, plot=False, title="u chart", headers=False):
+    """u chart for defects per unit.
+
+    u_i = c_i / n_i, CL = Σc / Σn,
+    UCL/LCL_i = ū ± 3√(ū / n_i). LCL is floored at 0.
+    units may be a column or a scalar (constant n).
+    plot=True is a chart (Python object).
+
+    defects, units: columns, ref strings, Series, DataFrame, or lists.
+    headers: first row is headers when a ref string is used.
+    """
+    def vec(x):
+        if isinstance(x, str):
+            x = xl(x, headers=headers)
+        if isinstance(x, pd.DataFrame):
+            num = x.select_dtypes(include="number")
+            x = num.iloc[:, 0] if num.shape[1] else x.iloc[:, 0]
+        elif not isinstance(x, pd.Series):
+            x = pd.Series(x)
+        s = pd.to_numeric(pd.Series(x).squeeze(), errors="coerce")
+        return pd.Series(s).replace("", np.nan).reset_index(drop=True)
+
+    c = vec(defects)
+    u = vec(units)
+    if int(u.size) == 1:
+        c = c.dropna().reset_index(drop=True)
+        nv = np.full(int(c.size), float(u.iloc[0]))
+        cv = c.to_numpy(dtype="float64")
+    else:
+        k0 = min(int(c.size), int(u.size))
+        c, u = c.iloc[:k0], u.iloc[:k0]
+        keep = c.notna() & u.notna()
+        c, u = c[keep].reset_index(drop=True), u[keep].reset_index(drop=True)
+        cv = c.to_numpy(dtype="float64")
+        nv = u.to_numpy(dtype="float64")
+    k = int(cv.size)
+    if k < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    if np.any(cv < 0):
+        raise ValueError("defects must be >= 0.")
+    if np.any(nv <= 0):
+        raise ValueError("units must be > 0.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    ub = float(cv.sum() / nv.sum())
+    se = np.sqrt(ub / nv) if ub > 0 else np.zeros(k)
+    cl = np.full(k, ub)
+    ucl = cl + 3.0 * se
+    lcl = np.maximum(0.0, cl - 3.0 * se)
+    uv = cv / nv
+    out = (uv > ucl) | (uv < lcl)
+    t = np.arange(1, k + 1, dtype="float64")
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.plot(t, uv, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out.any():
+            ax.scatter(t[out], uv[out], c="#d9534f", s=70, zorder=5,
+                       edgecolors="k", label="Beyond limits")
+            ax.legend(loc="best", fontsize=8)
+        ax.plot(t, cl, color="#1f77b4", lw=1.5)
+        ax.plot(t, ucl, color="#d9534f", ls="--", lw=1.2)
+        ax.plot(t, lcl, color="#d9534f", ls="--", lw=1.2)
+        ax.set_ylabel("u")
+        ax.set_xlabel("t")
+        ax.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "t": t,
+        "defects": cv,
+        "units": nv,
+        "u": uv,
+        "cl": cl,
+        "ucl": ucl,
+        "lcl": lcl,
+        "is_outlier": out.astype("float64"),
+    })
+
+"u_chart(defects, units, plot=False, title='u chart', headers=False)"
+
+
+def p_chart(defectives, sample_size, plot=False, title="p chart",
+            headers=False):
+    """p chart for the fraction of defective items.
+
+    p_i = d_i / n_i, p-bar = Σd / Σn,
+    UCL/LCL_i = p-bar ± 3√(p-bar(1-p-bar)/n_i).
+    LCL is floored at 0; UCL is capped at 1.
+    sample_size may be a column or a scalar (constant n).
+    plot=True is a chart (Python object).
+
+    defectives, sample_size: columns, ref strings, Series, or lists.
+    headers: first row is headers when a ref string is used.
+    """
+    def vec(x):
+        if isinstance(x, str):
+            x = xl(x, headers=headers)
+        if isinstance(x, pd.DataFrame):
+            num = x.select_dtypes(include="number")
+            x = num.iloc[:, 0] if num.shape[1] else x.iloc[:, 0]
+        elif not isinstance(x, pd.Series):
+            x = pd.Series(x)
+        s = pd.to_numeric(pd.Series(x).squeeze(), errors="coerce")
+        return pd.Series(s).replace("", np.nan).reset_index(drop=True)
+
+    d = vec(defectives)
+    n = vec(sample_size)
+    if int(n.size) == 1:
+        d = d.dropna().reset_index(drop=True)
+        nv = np.full(int(d.size), float(n.iloc[0]))
+        dv = d.to_numpy(dtype="float64")
+    else:
+        k0 = min(int(d.size), int(n.size))
+        d, n = d.iloc[:k0], n.iloc[:k0]
+        keep = d.notna() & n.notna()
+        d, n = d[keep].reset_index(drop=True), n[keep].reset_index(drop=True)
+        dv = d.to_numpy(dtype="float64")
+        nv = n.to_numpy(dtype="float64")
+    k = int(dv.size)
+    if k < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    if np.any(dv < 0):
+        raise ValueError("defectives must be >= 0.")
+    if np.any(nv <= 0):
+        raise ValueError("sample_size must be > 0.")
+    if np.any(dv > nv):
+        raise ValueError("defectives cannot exceed sample_size.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    pb = float(dv.sum() / nv.sum())
+    se = (np.sqrt(pb * (1.0 - pb) / nv) if 0 < pb < 1
+          else np.zeros(k))
+    cl = np.full(k, pb)
+    ucl = np.minimum(1.0, cl + 3.0 * se)
+    lcl = np.maximum(0.0, cl - 3.0 * se)
+    pv = dv / nv
+    out = (pv > ucl) | (pv < lcl)
+    t = np.arange(1, k + 1, dtype="float64")
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.plot(t, pv, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out.any():
+            ax.scatter(t[out], pv[out], c="#d9534f", s=70, zorder=5,
+                       edgecolors="k", label="Beyond limits")
+            ax.legend(loc="best", fontsize=8)
+        ax.plot(t, cl, color="#1f77b4", lw=1.5)
+        ax.plot(t, ucl, color="#d9534f", ls="--", lw=1.2)
+        ax.plot(t, lcl, color="#d9534f", ls="--", lw=1.2)
+        ax.set_ylabel("p")
+        ax.set_xlabel("t")
+        ax.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "t": t,
+        "defectives": dv,
+        "sample_size": nv,
+        "p": pv,
+        "cl": cl,
+        "ucl": ucl,
+        "lcl": lcl,
+        "is_outlier": out.astype("float64"),
+    })
+
+"p_chart(defectives, sample_size, plot=False, title='p chart', headers=False)"
+
+
+def np_chart(defectives, sample_size, plot=False, title="np chart",
+             headers=False):
+    """np chart for the count of defective items.
+
+    p-bar = Σd / Σn, CL_i = n_i * p-bar,
+    UCL/LCL_i = n_i p-bar ± 3√(n_i p-bar(1-p-bar)).
+    LCL is floored at 0; UCL is capped at n_i. Constant n is usual.
+    sample_size may be a column or a scalar. plot=True is a chart
+    (Python object).
+
+    defectives, sample_size: columns, ref strings, Series, or lists.
+    headers: first row is headers when a ref string is used.
+    """
+    def vec(x):
+        if isinstance(x, str):
+            x = xl(x, headers=headers)
+        if isinstance(x, pd.DataFrame):
+            num = x.select_dtypes(include="number")
+            x = num.iloc[:, 0] if num.shape[1] else x.iloc[:, 0]
+        elif not isinstance(x, pd.Series):
+            x = pd.Series(x)
+        s = pd.to_numeric(pd.Series(x).squeeze(), errors="coerce")
+        return pd.Series(s).replace("", np.nan).reset_index(drop=True)
+
+    d = vec(defectives)
+    n = vec(sample_size)
+    if int(n.size) == 1:
+        d = d.dropna().reset_index(drop=True)
+        nv = np.full(int(d.size), float(n.iloc[0]))
+        dv = d.to_numpy(dtype="float64")
+    else:
+        k0 = min(int(d.size), int(n.size))
+        d, n = d.iloc[:k0], n.iloc[:k0]
+        keep = d.notna() & n.notna()
+        d, n = d[keep].reset_index(drop=True), n[keep].reset_index(drop=True)
+        dv = d.to_numpy(dtype="float64")
+        nv = n.to_numpy(dtype="float64")
+    k = int(dv.size)
+    if k < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    if np.any(dv < 0):
+        raise ValueError("defectives must be >= 0.")
+    if np.any(nv <= 0):
+        raise ValueError("sample_size must be > 0.")
+    if np.any(dv > nv):
+        raise ValueError("defectives cannot exceed sample_size.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    pb = float(dv.sum() / nv.sum())
+    cl = nv * pb
+    se = (np.sqrt(nv * pb * (1.0 - pb)) if 0 < pb < 1
+          else np.zeros(k))
+    ucl = np.minimum(nv, cl + 3.0 * se)
+    lcl = np.maximum(0.0, cl - 3.0 * se)
+    out = (dv > ucl) | (dv < lcl)
+    t = np.arange(1, k + 1, dtype="float64")
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.plot(t, dv, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out.any():
+            ax.scatter(t[out], dv[out], c="#d9534f", s=70, zorder=5,
+                       edgecolors="k", label="Beyond limits")
+            ax.legend(loc="best", fontsize=8)
+        ax.plot(t, cl, color="#1f77b4", lw=1.5)
+        ax.plot(t, ucl, color="#d9534f", ls="--", lw=1.2)
+        ax.plot(t, lcl, color="#d9534f", ls="--", lw=1.2)
+        ax.set_ylabel("np")
+        ax.set_xlabel("t")
+        ax.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "t": t,
+        "defectives": dv,
+        "sample_size": nv,
+        "cl": cl,
+        "ucl": ucl,
+        "lcl": lcl,
+        "is_outlier": out.astype("float64"),
+    })
+
+"np_chart(defectives, sample_size, plot=False, title='np chart', headers=False)"

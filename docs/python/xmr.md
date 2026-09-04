@@ -4,7 +4,7 @@ Individuals and moving-range (**XmR**) statistical process control. Default resu
 
 Formula: `source/python-in-excel/functions/xmr.py`
 
-This is an SPC function. For rational subgroups of size 2–10 use `xbar_r`; for n up to 25 use `xbar_s`. For small sustained shifts use `ewma` or `cusum`. For Nelson's eight tests use `nelson_rules`. For Cp/Cpk/Pp/Ppk use `capability_report`. For an ordered forecast series use TimeSeries tools such as `detect_anomalies`. For a single-column outlier flag without control limits use `outlier_flag`.
+This is an SPC function. For rational subgroups of size 2–10 use `xbar_r`; for n up to 25 use `xbar_s`. For defect counts use `c_chart`; for defects per unit use `u_chart`. For fraction defective use `p_chart` / `np_chart`. For small sustained shifts use `ewma` or `cusum`. For Nelson's eight tests use `nelson_rules`. For Cp/Cpk/Pp/Ppk use `capability_report`. For an ordered forecast series use TimeSeries tools such as `detect_anomalies`. For a single-column outlier flag without control limits use `outlier_flag`.
 
 ## Install
 
