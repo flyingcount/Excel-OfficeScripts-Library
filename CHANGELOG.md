@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `detect_mixed_data_anomalies` — `anomaly_class` now distinguishes Consensus Anomaly, Extreme Value (Numeric), Multivariate Outlier (Numeric), Rare Category (Categorical), Inconsistent Structural Combo, and Normal. Docs: `docs/python/detect_mixed_data_anomalies.md`.
 - `breakpoints` — spills one row per break with `break_date`, `confidence` (`99%`), and `type` (`Level shift` / `Trend shift`). Dates format as `YYYY-MM` when monthly. Docs: `docs/python/breakpoints.md`.
 - `outlier_flag` — adds `stl` (robust STL residual |z|) and `iforest` (sklearn Isolation Forest). `period=12` is used by STL. Docs: `docs/python/outlier_flag.md`.
 - `expsmooth` — spills actuals plus an `h`-step SES forecast (default 12) with `lower`/`upper` prediction intervals (`level=0.95`). `plot=True` returns a chart. Future steps are flat at the last level (same as LAMBDA `EXPSMOOTH`). Docs: `docs/python/expsmooth.md`.

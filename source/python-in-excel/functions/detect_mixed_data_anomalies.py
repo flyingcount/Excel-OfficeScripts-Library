@@ -6,7 +6,8 @@ def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, hea
     """Flag mixed numeric/categorical rows as anomalies.
 
     Mahalanobis on numeric columns (needs 2+); Isolation Forest on scaled
-    numbers plus one-hot categories. Result keeps input columns.
+    numbers plus one-hot categories. Also flags univariate |z|>3, rare
+    categories, and within-group numeric extremes.
 
     data: ref string, DataFrame, Series, or xl() result.
     contamination: expected anomaly share (default 0.05).
@@ -14,8 +15,7 @@ def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, hea
     headers: first row is headers when data is a ref string.
 
     Result: md_distance, md_p_value, if_score, flag_md, flag_if,
-    anomaly_class (Consensus anomaly / Numeric outlier (MD) /
-    Structural outlier (IF) / Normal).
+    flag_extreme, flag_rare, anomaly_class.
     """
     from scipy.stats import chi2
     from sklearn.ensemble import IsolationForest
@@ -74,7 +74,7 @@ def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, hea
 
     md_dist = np.zeros(n_rows, dtype="float64")
     p_val = np.ones(n_rows, dtype="float64")
-    flag_md = np.zeros(n_rows, dtype="float64")
+    flag_md = np.zeros(n_rows, dtype=bool)
     if len(num_cols) >= 2:
         x = work[num_cols].to_numpy(dtype="float64")
         mean = x.mean(axis=0)
@@ -84,7 +84,33 @@ def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, hea
         md_dist = np.sqrt(np.clip(md2, 0, None))
         k = len(num_cols)
         p_val = 1 - chi2.cdf(md2, df=k)
-        flag_md = (md2 > chi2.ppf(1 - contam, df=k)).astype("float64")
+        flag_md = md2 > chi2.ppf(1 - contam, df=k)
+
+    flag_ext = np.zeros(n_rows, dtype=bool)
+    if num_cols:
+        x = work[num_cols].to_numpy(dtype="float64")
+        sd = x.std(axis=0, ddof=0)
+        sd = np.where(sd == 0, np.nan, sd)
+        zmax = np.nanmax(np.abs((x - x.mean(axis=0)) / sd), axis=1)
+        flag_ext = np.where(np.isnan(zmax), False, zmax > 3)
+
+    flag_rare = np.zeros(n_rows, dtype=bool)
+    for c in cat_cols:
+        freq = work[c].map(work[c].value_counts(normalize=True))
+        flag_rare |= (freq <= contam).to_numpy()
+
+    flag_combo = np.zeros(n_rows, dtype=bool)
+    if cat_cols and num_cols:
+        for c in cat_cols:
+            n_g = work.groupby(c)[num_cols[0]].transform("size")
+            for nc in num_cols:
+                g = work.groupby(c)[nc]
+                z = (work[nc] - g.transform("mean")) / g.transform(
+                    lambda s: s.std(ddof=0)).replace(0, np.nan)
+                flag_combo |= (
+                    (n_g >= 4) & (n_g < n_rows) & z.abs().gt(3)
+                ).fillna(False).to_numpy()
+    flag_combo &= ~np.asarray(flag_ext, dtype=bool)
 
     steps = []
     if num_cols:
@@ -101,19 +127,24 @@ def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, hea
     iso = IsolationForest(contamination=contam, random_state=42)
     iso.fit(mat)
     if_score = iso.decision_function(mat)
-    flag_if = (iso.predict(mat) == -1).astype("float64")
+    flag_if = iso.predict(mat) == -1
 
+    num_sig = flag_ext | flag_md
+    cat_sig = flag_rare | flag_combo
     out = orig.copy()
     out["md_distance"] = md_dist
     out["md_p_value"] = p_val
     out["if_score"] = if_score
-    out["flag_md"] = flag_md
-    out["flag_if"] = flag_if
+    out["flag_md"] = flag_md.astype("float64")
+    out["flag_if"] = flag_if.astype("float64")
+    out["flag_extreme"] = np.asarray(flag_ext, dtype="float64")
+    out["flag_rare"] = np.asarray(flag_rare, dtype="float64")
     out["anomaly_class"] = np.select(
-        [(flag_md == 1) & (flag_if == 1),
-         (flag_md == 1) & (flag_if == 0),
-         (flag_md == 0) & (flag_if == 1)],
-        ["Consensus anomaly", "Numeric outlier (MD)", "Structural outlier (IF)"],
+        [num_sig & cat_sig, flag_ext, flag_md, flag_rare,
+         flag_combo | flag_if],
+        ["Consensus Anomaly", "Extreme Value (Numeric)",
+         "Multivariate Outlier (Numeric)", "Rare Category (Categorical)",
+         "Inconsistent Structural Combo"],
         default="Normal",
     )
     return out

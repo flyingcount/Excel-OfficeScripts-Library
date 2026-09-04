@@ -1,6 +1,6 @@
 # detect_mixed_data_anomalies
 
-Flag anomalous **rows** in a mixed table (numeric + categorical). Combines **Mahalanobis distance** on the numeric columns with **Isolation Forest** on the full mixed feature matrix (scaled numbers + one-hot categories).
+Flag anomalous **rows** in a mixed table (numeric + categorical). Combines **Mahalanobis distance**, **univariate |z| > 3**, **rare categories**, **within-group numeric extremes**, and **Isolation Forest**.
 
 This is for cross-sectional tables. For an ordered series use `detect_anomalies`. For a single numeric column use `outlier_flag`.
 
@@ -25,7 +25,7 @@ scipy and scikit-learn are in the Python in Excel runtime; they are imported ins
 | Argument | Required | Meaning |
 |----------|----------|---------|
 | `data` | Yes | Range, table, DataFrame, Series, or `xl()` result. |
-| `contamination` | No | Expected anomaly share in `(0, 0.5]`. Default `0.05` (5%). Used as the chi-square cutoff for Mahalanobis and as Isolation Forest `contamination`. |
+| `contamination` | No | Expected anomaly share in `(0, 0.5]`. Default `0.05` (5%). Chi-square cutoff for Mahalanobis, Isolation Forest `contamination`, and the rare-category frequency cap. |
 | `max_categories` | No | Skip text columns with more unique values than this (IDs / free text). Default `15`. |
 | `headers` | No | First row is headers when `data` is a ref string. Default `True`. |
 
@@ -35,9 +35,9 @@ Excel may pass a 1×1 array for a scalar; those values are unwrapped.
 
 | Input | Treatment |
 |-------|-----------|
-| Numeric (int/float) | Mahalanobis (if 2+ numeric columns) and scaled for Isolation Forest. Blanks filled with the column median. |
+| Numeric (int/float) | Univariate z-score, Mahalanobis (if 2+ numeric columns), scaled for Isolation Forest. Blanks filled with the column median. |
 | Text that is mostly numbers | Coerced to numeric (same 80% rule as `cluster_prep`). |
-| Text with repeated values | One-hot encoded for Isolation Forest if unique count is between 2 and `max_categories`, and not all-unique (IDs). Blanks become `"Missing"`. |
+| Text with repeated values | One-hot encoded for Isolation Forest if unique count is between 2 and `max_categories`, and not all-unique (IDs). Blanks become `"Missing"`. Rare if that value’s share ≤ `contamination`. |
 | Constant text, all-unique text, or high-cardinality text | Skipped. |
 
 Mahalanobis runs only when there are **two or more** numeric columns. With fewer, `md_distance` is 0, `md_p_value` is 1, and `flag_md` is 0. Isolation Forest still runs on whatever numeric and categorical features remain.
@@ -46,11 +46,21 @@ Need at least two rows. `contamination` outside `(0, 0.5]` raises an error.
 
 ## Methods
 
-### Mahalanobis distance (numeric)
+### Extreme value (univariate)
 
-Distance of each row from the numeric mean, using the pseudoinverse of the covariance matrix (so collinear columns still work). Squared distance is compared to the chi-square quantile at `1 - contamination` with degrees of freedom = number of numeric columns.
+Population |z-score| > 3 on any numeric column (`ddof=0`).
 
-The original snippet passed `row - mean` into `mahalanobis` as the first argument and `mean` as the second, which measures distance from `row - 2×mean`. This version uses `(row − mean)` against the inverse covariance, which is the usual Mahalanobis distance.
+### Mahalanobis distance (multivariate numeric)
+
+Distance of each row from the numeric mean, using the pseudoinverse of the covariance matrix. Squared distance is compared to the chi-square quantile at `1 - contamination` with degrees of freedom = number of numeric columns.
+
+### Rare category
+
+A categorical value whose share of rows is ≤ `contamination` (for example one `Z` among 20 rows at 5%).
+
+### Inconsistent structural combo
+
+A numeric value that is extreme **within its category** (|z| > 3, group size at least 4, group smaller than the whole table) but not a global extreme. Isolation Forest leftovers (flagged by IF only) use this label too.
 
 ### Isolation Forest (mixed)
 
@@ -67,14 +77,18 @@ The input columns plus:
 | `if_score` | Isolation Forest decision score. Lower = more anomalous. |
 | `flag_md` | `1` if MD flags the row, else `0`. |
 | `flag_if` | `1` if Isolation Forest flags the row, else `0`. |
-| `anomaly_class` | See below. |
+| `flag_extreme` | `1` if any numeric |z| > 3, else `0`. |
+| `flag_rare` | `1` if any used category is rare, else `0`. |
+| `anomaly_class` | See below. First matching rule wins. |
 
-| `anomaly_class` | Meaning |
-|-----------------|---------|
-| `Consensus anomaly` | Both methods flag the row. |
-| `Numeric outlier (MD)` | Mahalanobis only (unusual numeric combination). |
-| `Structural outlier (IF)` | Isolation Forest only (often a rare category or mixed pattern). |
-| `Normal` | Neither method flags the row. |
+| `anomaly_class` | When |
+|-----------------|------|
+| `Consensus Anomaly` | Numeric signal (extreme or MD) **and** categorical signal (rare or within-group combo). |
+| `Extreme Value (Numeric)` | Global \|z\| > 3, no categorical signal. |
+| `Multivariate Outlier (Numeric)` | Mahalanobis only (unusual numeric combination, no univariate extreme). |
+| `Rare Category (Categorical)` | Rare label, no numeric signal. |
+| `Inconsistent Structural Combo` | Within-group numeric extreme, or Isolation Forest only. |
+| `Normal` | None of the above. |
 
 Set the PY cell to **Excel value** to spill.
 
@@ -90,4 +104,4 @@ detect_mixed_data_anomalies(pd.DataFrame({
 }))
 ```
 
-The last row is a consensus anomaly. Inliers have Mahalanobis distance ≈ 0.22; the outlier is ≈ 4.25 (chi-square cutoff for 5% and 2 features ≈ 5.99 on the **squared** distance).
+The last row is a **Consensus Anomaly** (extreme numbers and a rare category). Same numbers with `grp=A` on every row is **Extreme Value (Numeric)**.
