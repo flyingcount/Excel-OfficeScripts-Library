@@ -44,7 +44,11 @@ def contents():
             ("cluster_prep", "Scale and one-hot encode for clustering", "cluster_prep(data, headers=True)"),
             ("outlier_flag", "Flag outliers by IQR, MAD, z-score, STL, or Isolation Forest", "outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)"),
             ("detect_mixed_data_anomalies", "Flag mixed-table anomaly types (extreme, rare, multivariate, structural, consensus)", "detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, headers=True)"),
-            ("rank_feature_importance_simple", "Rank predictors vs a target (correlation, chi-square, IV)", "rank_feature_importance_simple(data, target, top=10, headers=True)"),
+            ("rank_feature_importance", "Rank predictors vs a target (correlation, chi-square, IV)", "rank_feature_importance(data, target, top=10, headers=True)"),
+            ("check_collinearity", "Flag highly correlated numeric columns (r and VIF)", "check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True)"),
+            ("confusion_matrix", "TP/FP/TN/FN counts, or a heatmap", "confusion_matrix(data, actual=None, predicted=None, positive=1, pos_name='Positive', neg_name='Negative', plot=False, headers=True)"),
+            ("classification_metrics", "Accuracy, F1, MCC, and related class metrics", "classification_metrics(data, actual=None, predicted=None, positive=1, beta=1, headers=True)"),
+            ("find_optimal_threshold", "Sweep probability cutoffs for F1 or P/R balance", "find_optimal_threshold(data, actual=None, proba=None, metric='f1', low=0.1, high=0.9, step=0.1, positive=1, headers=True)"),
         ],
         columns=["function", "description", "call"],
     )
@@ -591,7 +595,7 @@ def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, hea
 "detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, headers=True)"
 
 
-def rank_feature_importance_simple(data, target, top=10, headers=True):
+def rank_feature_importance(data, target, top=10, headers=True):
     """Rank table columns as drivers of a target.
 
     Numeric vs binary: |point-biserial r|. Categorical: Cramer's V (chi-square).
@@ -796,4 +800,412 @@ def rank_feature_importance_simple(data, target, top=10, headers=True):
     out.insert(0, "rank", np.arange(1, len(out) + 1, dtype="float64"))
     return out.reset_index(drop=True)
 
-"rank_feature_importance_simple(data, target, top=10, headers=True)"
+"rank_feature_importance(data, target, top=10, headers=True)"
+
+
+def check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True):
+    """Highlight redundant numeric columns via Pearson r and VIF.
+
+    One row per numeric feature: strongest partner (|r|), count of pairs
+    above threshold, and variance inflation factor. flag is 1 if |r| >
+    threshold or VIF > vif_threshold. Not a regression model.
+
+    data: ref string, DataFrame, Series, or xl() result.
+    threshold: |r| cutoff (default 0.8). Pair must be strictly greater.
+    vif_threshold: VIF cutoff (default 5).
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        df = data.copy()
+    elif isinstance(data, pd.Series):
+        df = data.to_frame()
+    else:
+        df = pd.DataFrame(data)
+    df = df.dropna(how="all").dropna(axis=1, how="all")
+    if df.empty:
+        raise ValueError("No data.")
+    thr = float(pd.Series(threshold).iloc[0])
+    vif_thr = float(pd.Series(vif_threshold).iloc[0])
+    if not 0 < thr <= 1:
+        raise ValueError("threshold must be in (0, 1].")
+    if vif_thr <= 0:
+        raise ValueError("vif_threshold must be > 0.")
+
+    keep = []
+    for c in list(df.columns):
+        s = df[c].replace("", np.nan)
+        if pd.api.types.is_datetime64_any_dtype(s):
+            continue
+        if pd.api.types.is_bool_dtype(s):
+            df[c] = s.astype("float64")
+            keep.append(c)
+            continue
+        if pd.api.types.is_numeric_dtype(s):
+            df[c] = pd.to_numeric(s, errors="coerce")
+            keep.append(c)
+            continue
+        conv = pd.to_numeric(s, errors="coerce")
+        if s.notna().any() and float(conv.notna().mean()) >= 0.8:
+            df[c] = conv
+            keep.append(c)
+    num = df[keep].copy() if keep else df.iloc[:, 0:0]
+    drop = [c for c in num.columns if float(num[c].std(ddof=0) or 0) == 0]
+    num = num.drop(columns=drop)
+    if num.shape[1] < 2:
+        raise ValueError("Need at least 2 numeric columns.")
+    complete = num.dropna()
+    if len(complete) < 3:
+        raise ValueError("Need at least 3 complete numeric rows.")
+
+    cmat = num.corr()
+    x = complete.to_numpy(dtype="float64")
+    n, p = x.shape
+    vifs = np.empty(p)
+    for j in range(p):
+        y = x[:, j]
+        z = np.column_stack([np.ones(n), np.delete(x, j, axis=1)])
+        beta, *_ = np.linalg.lstsq(z, y, rcond=None)
+        yhat = z @ beta
+        ss_res = float(np.sum((y - yhat) ** 2))
+        ss_tot = float(np.sum((y - y.mean()) ** 2))
+        if ss_tot == 0:
+            vifs[j] = np.nan
+        elif ss_res <= 1e-12 * ss_tot:
+            vifs[j] = np.inf
+        else:
+            vifs[j] = 1.0 / (1.0 - ss_res / ss_tot)
+
+    names = list(complete.columns)
+    rows = []
+    for i, col in enumerate(names):
+        others = cmat[col].drop(labels=[col])
+        k = others.abs().idxmax()
+        r = float(others.loc[k])
+        n_high = float((others.abs() > thr).sum())
+        vif = float(vifs[i])
+        hi_r = bool(np.isfinite(r) and abs(r) > thr)
+        hi_v = bool(np.isfinite(vif) and vif > vif_thr) or (
+            not np.isfinite(vif) and not np.isnan(vif))
+        rows.append((col, vif, r, str(k), n_high,
+                     1.0 if hi_r else 0.0,
+                     1.0 if hi_v else 0.0,
+                     1.0 if (hi_r or hi_v) else 0.0))
+    out = pd.DataFrame(rows, columns=["feature", "vif", "max_r", "with",
+                                      "n_high", "flag_corr", "flag_vif",
+                                      "flag"])
+    return out.sort_values(["flag", "vif"], ascending=[False, False]).reset_index(
+        drop=True)
+
+"check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True)"
+
+
+def confusion_matrix(data, actual=None, predicted=None, positive=1,
+                     pos_name="Positive", neg_name="Negative",
+                     plot=False, headers=True):
+    """Confusion-matrix counts with business labels.
+
+    data: table/range, or actual labels if predicted is a Series/range.
+    actual, predicted: column names, ranges, or Series. Default: first two
+        columns of data.
+    positive: value treated as the positive class (default 1).
+    pos_name, neg_name: words in the meaning column (e.g. 'Churn').
+    plot: False (default) spills a table. True returns a 2x2 heatmap.
+        Keep that PY cell as a Python object.
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and predicted columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    p = pd.Series(col(frame, predicted, 1)).reset_index(drop=True)
+    n0 = min(len(a), len(p))
+    a, p = a.iloc[:n0], p.iloc[:n0]
+    a = a.replace("", np.nan)
+    p = p.replace("", np.nan)
+    keep = a.notna() & p.notna()
+    a, p = a[keep], p[keep]
+    if len(a) < 1:
+        raise ValueError("Need at least 1 row with actual and predicted.")
+    pos = pd.Series(positive).iloc[0]
+    pos_name = str(pd.Series(pos_name).iloc[0])
+    neg_name = str(pd.Series(neg_name).iloc[0])
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    yt, yp = is_pos(a, pos), is_pos(p, pos)
+    tp = float((yt & yp).sum())
+    fp = float((~yt & yp).sum())
+    fn = float((yt & ~yp).sum())
+    tn = float((~yt & ~yp).sum())
+    if plot:
+        mat = np.array([[tp, fn], [fp, tn]])
+        labs = [pos_name, neg_name]
+        fig, ax = plt.subplots()
+        sns.heatmap(
+            mat, annot=True, fmt=".0f", cmap="Blues", cbar=False,
+            xticklabels=labs, yticklabels=labs, ax=ax, square=True,
+        )
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+        ax.set_title("Confusion matrix")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame(
+        [
+            ("true_positive", tp,
+             "Actual %s and Predicted %s" % (pos_name, pos_name)),
+            ("false_positive", fp,
+             "Actual %s and Predicted %s" % (neg_name, pos_name)),
+            ("false_negative", fn,
+             "Actual %s and Predicted %s" % (pos_name, neg_name)),
+            ("true_negative", tn,
+             "Actual %s and Predicted %s" % (neg_name, neg_name)),
+        ],
+        columns=["metric", "count", "meaning"],
+    )
+
+"confusion_matrix(data, actual=None, predicted=None, positive=1, pos_name='Positive', neg_name='Negative', plot=False, headers=True)"
+
+
+def classification_metrics(data, actual=None, predicted=None, positive=1,
+                           beta=1, headers=True):
+    """Accuracy, rates, F1/F-beta, MCC, and related binary metrics.
+
+    data: table/range, or actual labels if predicted is a Series/range.
+    actual, predicted: column names, ranges, or Series. Default: first two
+        columns of data (hard labels, not probabilities).
+    positive: value treated as the positive class (default 1).
+    beta: weight on recall in F-beta (default 1, same as F1).
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and predicted columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    def div(num, den):
+        return float(num / den) if den else np.nan
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    p = pd.Series(col(frame, predicted, 1)).reset_index(drop=True)
+    n0 = min(len(a), len(p))
+    a, p = a.iloc[:n0], p.iloc[:n0]
+    a = a.replace("", np.nan)
+    p = p.replace("", np.nan)
+    keep = a.notna() & p.notna()
+    a, p = a[keep], p[keep]
+    n = int(len(a))
+    if n < 1:
+        raise ValueError("Need at least 1 row with actual and predicted.")
+    pos = pd.Series(positive).iloc[0]
+    b = float(pd.Series(beta).iloc[0])
+    if b <= 0:
+        raise ValueError("beta must be > 0.")
+    yt, yp = is_pos(a, pos), is_pos(p, pos)
+    tp = float((yt & yp).sum())
+    fp = float((~yt & yp).sum())
+    fn = float((yt & ~yp).sum())
+    tn = float((~yt & ~yp).sum())
+    tpr = tp / (tp + fn) if (tp + fn) else 0.0
+    fpr = fp / (fp + tn) if (fp + tn) else 0.0
+    tnr = tn / (tn + fp) if (tn + fp) else 0.0
+    fnr = fn / (tp + fn) if (tp + fn) else 0.0
+    prec = tp / (tp + fp) if (tp + fp) else 0.0
+    npv = tn / (tn + fn) if (tn + fn) else 0.0
+    acc = (tp + tn) / n
+    f1 = (2 * prec * tpr / (prec + tpr)) if (prec + tpr) else 0.0
+    bb = b * b
+    fbeta = ((1 + bb) * prec * tpr / (bb * prec + tpr)
+             if (bb * prec + tpr) else 0.0)
+    lr_p = div(tpr, fpr)
+    lr_n = div(fnr, tnr)
+    mcc_d = float(np.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)))
+    return pd.DataFrame(
+        [
+            ("n", float(n)),
+            ("accuracy", acc),
+            ("misclassification_rate", (fp + fn) / n),
+            ("true_positive_rate", tpr),
+            ("false_positive_rate", fpr),
+            ("true_negative_rate", tnr),
+            ("false_negative_rate", fnr),
+            ("precision", prec),
+            ("prevalence", (tp + fn) / n),
+            ("lr_positive", lr_p),
+            ("lr_negative", lr_n),
+            ("diagnostic_odds_ratio", div(lr_p, lr_n)),
+            ("f1", f1),
+            ("beta", b),
+            ("f_beta", fbeta),
+            ("mcc", div(tp * tn - fp * fn, mcc_d)),
+            ("informedness", tpr + tnr - 1.0),
+            ("markedness", prec + npv - 1.0),
+            ("threat_score", div(tp, tp + fp + fn)),
+        ],
+        columns=["metric", "value"],
+    )
+
+"classification_metrics(data, actual=None, predicted=None, positive=1, beta=1, headers=True)"
+
+
+def find_optimal_threshold(data, actual=None, proba=None, metric="f1",
+                           low=0.1, high=0.9, step=0.1, positive=1,
+                           headers=True):
+    """Choose a probability cutoff by F1 or precision/recall balance.
+
+    Sweeps thresholds from low to high (default 0.1 to 0.9). metric='f1'
+    maximises F1. metric='balanced' minimises |precision - recall|
+    (F1 breaks ties). Default 0.5 is often weak on imbalanced data.
+
+    data: table/range, or actual labels if proba is a Series/range.
+    actual, proba: column names, ranges, or Series. Default: first two
+        columns of data (labels, then scores).
+    positive: value treated as the positive class (default 1).
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and probability columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    pr = pd.to_numeric(col(frame, proba, 1), errors="coerce")
+    pr = pd.Series(pr).reset_index(drop=True)
+    n0 = min(len(a), len(pr))
+    a, pr = a.iloc[:n0], pr.iloc[:n0]
+    a = a.replace("", np.nan)
+    keep = a.notna() & pr.notna()
+    a, pr = a[keep], pr[keep]
+    n = int(len(a))
+    if n < 1:
+        raise ValueError("Need at least 1 row with actual and probability.")
+    pos = pd.Series(positive).iloc[0]
+    metric = str(pd.Series(metric).iloc[0]).strip().lower()
+    if metric not in ("f1", "balanced"):
+        raise ValueError("metric must be 'f1' or 'balanced'.")
+    low = float(pd.Series(low).iloc[0])
+    high = float(pd.Series(high).iloc[0])
+    step = float(pd.Series(step).iloc[0])
+    if step <= 0 or high < low:
+        raise ValueError("Need low <= high and step > 0.")
+    nstep = int(round((high - low) / step))
+    ts = low + np.arange(nstep + 1, dtype="float64") * step
+    yt = is_pos(a, pos).to_numpy()
+    scores = pr.to_numpy(dtype="float64")
+    rows = []
+    best_i, best_key = 0, None
+    for t in ts:
+        yp = scores >= t
+        tp = float((yt & yp).sum())
+        fp = float((~yt & yp).sum())
+        fn = float((yt & ~yp).sum())
+        tn = float((~yt & ~yp).sum())
+        acc = (tp + tn) / n
+        prec = tp / (tp + fp) if (tp + fp) else 0.0
+        rec = tp / (tp + fn) if (tp + fn) else 0.0
+        f1 = (2 * prec * rec / (prec + rec)) if (prec + rec) else 0.0
+        key = (f1, -abs(prec - rec)) if metric == "f1" else (
+            -abs(prec - rec), f1)
+        rows.append((float(t), acc, prec, rec, f1, 0.0))
+        if best_key is None or key > best_key:
+            best_key = key
+            best_i = len(rows) - 1
+    out = pd.DataFrame(rows, columns=["threshold", "accuracy", "precision",
+                                      "recall", "f1", "is_best"])
+    out.loc[best_i, "is_best"] = 1.0
+    return out
+
+"find_optimal_threshold(data, actual=None, proba=None, metric='f1', low=0.1, high=0.9, step=0.1, positive=1, headers=True)"

@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `get_confusion_matrix_summary` renamed to `confusion_matrix`. `plot=True` returns a 2×2 heatmap. Docs: `docs/python/confusion_matrix.md`.
+- `get_classification_metrics` renamed to `classification_metrics`. The spill now includes TPR/FPR/TNR/FNR, prevalence, LR+/LR−, diagnostic odds ratio, F-beta, MCC, informedness, markedness, and threat score. Docs: `docs/python/classification_metrics.md`.
+- `rank_feature_importance_simple` renamed to `rank_feature_importance`.
 - `xmr_spc` — after an 8-point shift, CL/UCL/LCL and MR limits are recomputed on each regime (spill columns and chart lines step). Docs: `docs/python/xmr_spc.md`.
 - `detect_mixed_data_anomalies` — `anomaly_class` now distinguishes Consensus Anomaly, Extreme Value (Numeric), Multivariate Outlier (Numeric), Rare Category (Categorical), Inconsistent Structural Combo, and Normal. Docs: `docs/python/detect_mixed_data_anomalies.md`.
 - `breakpoints` — spills one row per break with `break_date`, `confidence` (`99%`), and `type` (`Level shift` / `Trend shift`). Dates format as `YYYY-MM` when monthly. Docs: `docs/python/breakpoints.md`.
@@ -20,7 +23,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
-- `rank_feature_importance_simple` — rank table columns as drivers of a target using point-biserial / Pearson / eta, chi-square (Cramer's V), and Information Value for binary targets. Docs: `docs/python/rank_feature_importance_simple.md`.
+- `confusion_matrix` — TP/FP/TN/FN counts with custom actual/predicted wording, or `plot=True` for a heatmap. Docs: `docs/python/confusion_matrix.md`.
+- `classification_metrics` — accuracy, rates, F1/F-beta, MCC, likelihood ratios, and related binary metrics from hard labels. Docs: `docs/python/classification_metrics.md`.
+- `find_optimal_threshold` — sweep probability cutoffs (default 0.1 to 0.9) and pick F1 or precision/recall balance. Docs: `docs/python/find_optimal_threshold.md`.
+- `check_collinearity` — flag numeric columns with pairwise Pearson \|r\| above a cutoff (default 0.8) or VIF above a cutoff (default 5). Docs: `docs/python/check_collinearity.md`.
+- `rank_feature_importance` — rank table columns as drivers of a target using point-biserial / Pearson / eta, chi-square (Cramer's V), and Information Value for binary targets. Docs: `docs/python/rank_feature_importance.md`.
 - `xmr_spc` — individuals and moving-range (XmR) SPC limits as a spill table, or `plot=True` for a two-panel X/MR chart. Docs: `docs/python/xmr_spc.md`.
 - `init/SPC.py` — Initialization paste with Excel defaults plus SPC functions only (`xmr_spc`).
 - Cursor rule `.cursor/rules/python-in-excel-spc.mdc` — SPC functions go in `init/SPC.py` only (not Paul or TimeSeries).

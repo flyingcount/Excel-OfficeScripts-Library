@@ -1,8 +1,8 @@
-# Name: rank_feature_importance_simple
+# Name: rank_feature_importance
 # Description: Rank predictors vs a target with correlation, chi-square, and IV.
 # Parameters: data, target, top=10, headers=True
 
-def rank_feature_importance_simple(data, target, top=10, headers=True):
+def rank_feature_importance(data, target, top=10, headers=True):
     """Rank table columns as drivers of a target.
 
     Numeric vs binary: |point-biserial r|. Categorical: Cramer's V (chi-square).
@@ -207,4 +207,4 @@ def rank_feature_importance_simple(data, target, top=10, headers=True):
     out.insert(0, "rank", np.arange(1, len(out) + 1, dtype="float64"))
     return out.reset_index(drop=True)
 
-"rank_feature_importance_simple(data, target, top=10, headers=True)"
+"rank_feature_importance(data, target, top=10, headers=True)"

@@ -1,10 +1,10 @@
-# rank_feature_importance_simple
+# rank_feature_importance
 
 Rank table columns as **drivers of a target** without fitting a machine-learning model. Uses **point-biserial correlation** (numeric vs binary), **chi-square / Cramer's V** (categorical), and **Information Value** when the target is binary.
 
 This is a cross-sectional table tool. For pairwise numeric correlation only, use `corr`. For mixed-table row flags, use `detect_mixed_data_anomalies`.
 
-Formula: `source/python-in-excel/functions/rank_feature_importance_simple.py`
+Formula: `source/python-in-excel/functions/rank_feature_importance.py`
 
 ## Install
 
@@ -13,9 +13,9 @@ Formulas → **Initialization** → paste the `def` after the default imports �
 In a PY cell (output **Excel value**):
 
 ```python
-rank_feature_importance_simple("A1:E100", "churn")
-rank_feature_importance_simple("Table1[#All]", "churn", top=5)
-rank_feature_importance_simple(data, data["churn"])
+rank_feature_importance("A1:E100", "churn")
+rank_feature_importance("Table1[#All]", "churn", top=5)
+rank_feature_importance(data, data["churn"])
 ```
 
 scipy is in the Python in Excel runtime; it is imported inside the function.
@@ -75,7 +75,7 @@ Set the PY cell to **Excel value**.
 ## Example
 
 ```python
-rank_feature_importance_simple(pd.DataFrame({
+rank_feature_importance(pd.DataFrame({
     "id": [1, 2, 3, 4, 5, 6, 7, 8],
     "amount": [10, 11, 12, 13, 40, 42, 41, 43],
     "segment": list("AAAABBBB"),

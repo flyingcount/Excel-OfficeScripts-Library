@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Python in Excel time series functions
 
-Time series functions operate on an ordered series (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `zscore_replace`, forecasting, seasonal decomposition, and similar). `describe`, `corr`, `normality_check`, `cluster_prep`, `detect_mixed_data_anomalies`, `rank_feature_importance_simple`, sampling functions, and SPC functions (`xmr_spc`) are not time series.
+Time series functions operate on an ordered series (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `zscore_replace`, forecasting, seasonal decomposition, and similar). `describe`, `corr`, `normality_check`, `cluster_prep`, `detect_mixed_data_anomalies`, `rank_feature_importance`, `check_collinearity`, `confusion_matrix`, `classification_metrics`, `find_optimal_threshold`, sampling functions, and SPC functions (`xmr_spc`) are not time series.
 
 ## Init files
 

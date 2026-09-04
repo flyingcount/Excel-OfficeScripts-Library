@@ -156,7 +156,11 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
 | `outlier_flag` | `source/python-in-excel/functions/outlier_flag.py` | Flag outliers by IQR, MAD, z-score, STL residuals, or Isolation Forest |
 | `detect_mixed_data_anomalies` | `source/python-in-excel/functions/detect_mixed_data_anomalies.py` | Flag mixed-table rows as extreme, rare-category, multivariate, structural, or consensus anomalies |
-| `rank_feature_importance_simple` | `source/python-in-excel/functions/rank_feature_importance_simple.py` | Rank predictors vs a target (point-biserial, chi-square, IV) |
+| `rank_feature_importance` | `source/python-in-excel/functions/rank_feature_importance.py` | Rank predictors vs a target (point-biserial, chi-square, IV) |
+| `check_collinearity` | `source/python-in-excel/functions/check_collinearity.py` | Flag numeric columns with high pairwise \|r\| or VIF |
+| `confusion_matrix` | `source/python-in-excel/functions/confusion_matrix.py` | TP/FP/TN/FN counts, or `plot=True` for a heatmap |
+| `classification_metrics` | `source/python-in-excel/functions/classification_metrics.py` | Accuracy, F1, MCC, and related class metrics |
+| `find_optimal_threshold` | `source/python-in-excel/functions/find_optimal_threshold.py` | Sweep probability cutoffs for F1 or precision/recall balance |
 | `stratified_sample` | `source/python-in-excel/functions/stratified_sample.py` | Proportional stratified sample from a table |
 | `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | Systematic sample of rows at a regular interval |
 | `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | Two-stage cluster sample: pick clusters, then rows |
