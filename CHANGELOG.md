@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `rank_feature_importance_simple` — rank table columns as drivers of a target using point-biserial / Pearson / eta, chi-square (Cramer's V), and Information Value for binary targets. Docs: `docs/python/rank_feature_importance_simple.md`.
 - `xmr_spc` — individuals and moving-range (XmR) SPC limits as a spill table, or `plot=True` for a two-panel X/MR chart. Docs: `docs/python/xmr_spc.md`.
 - `init/SPC.py` — Initialization paste with Excel defaults plus SPC functions only (`xmr_spc`).
 - Cursor rule `.cursor/rules/python-in-excel-spc.mdc` — SPC functions go in `init/SPC.py` only (not Paul or TimeSeries).

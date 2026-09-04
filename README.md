@@ -156,6 +156,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
 | `outlier_flag` | `source/python-in-excel/functions/outlier_flag.py` | Flag outliers by IQR, MAD, z-score, STL residuals, or Isolation Forest |
 | `detect_mixed_data_anomalies` | `source/python-in-excel/functions/detect_mixed_data_anomalies.py` | Flag mixed-table rows as extreme, rare-category, multivariate, structural, or consensus anomalies |
+| `rank_feature_importance_simple` | `source/python-in-excel/functions/rank_feature_importance_simple.py` | Rank predictors vs a target (point-biserial, chi-square, IV) |
 | `stratified_sample` | `source/python-in-excel/functions/stratified_sample.py` | Proportional stratified sample from a table |
 | `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | Systematic sample of rows at a regular interval |
 | `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | Two-stage cluster sample: pick clusters, then rows |
