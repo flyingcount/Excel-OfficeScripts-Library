@@ -26,7 +26,7 @@ Cursor Agent: follow `.cursor/rules/python-in-excel.mdc` (same pattern as the ex
 3. The paste target is the `def` (and any helpers it needs). Do not wrap it in `=PY(...)`.
 4. Append the `def` and quoted call to **exactly one** library init file, and add a `contents()` row (`function`, brief `description`, `call`) in that same file in the **same change**. Every library init must have `contents()`. Cursor Agent: follow `.cursor/rules/python-in-excel-init-contents.mdc`.
    - **Sampling** (names often end in `_sample`) → `init/Sampling.py` only. Follow `.cursor/rules/python-in-excel-sampling.mdc`. `cluster_prep` is not a sampler.
-   - **Time series** → `init/TimeSeries.py` only. Follow `.cursor/rules/python-in-excel-timeseries.mdc`. `describe`, `corr`, `normality_check`, `cluster_prep`, `detect_mixed_data_anomalies`, `rank_feature_importance`, `check_collinearity`, `confusion_matrix`, `classification_metrics`, `find_optimal_threshold`, and SPC functions are not time series.
+   - **Time series** → `init/TimeSeries.py` only. Follow `.cursor/rules/python-in-excel-timeseries.mdc`. `describe`, `corr`, `normality_check`, `cluster_prep`, `detect_mixed_data_anomalies`, `rank_feature_importance`, `check_collinearity`, `confusion_matrix`, `classification_metrics`, `find_optimal_threshold`, `lift_table`, and SPC functions are not time series.
    - **SPC** (control charts / process limits) → `init/SPC.py` only. Follow `.cursor/rules/python-in-excel-spc.mdc`.
    - **Otherwise general** → `init/PaulPythonLibrary.py` only. Paul holds functions that do not belong in another collection. If you later create a new collection init, move matching functions out of Paul into that file.
 5. Do **not** duplicate the same public `def` across Paul and a specialized init.

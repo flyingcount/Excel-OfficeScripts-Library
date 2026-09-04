@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `lift_table` — rank by predicted probability into deciles (or `bins`) and spill cumulative gain and lift; `plot=True` for a two-panel chart. Docs: `docs/python/lift_table.md`.
 - `confusion_matrix` — TP/FP/TN/FN counts with custom actual/predicted wording, or `plot=True` for a heatmap. Docs: `docs/python/confusion_matrix.md`.
 - `classification_metrics` — accuracy, rates, F1/F-beta, MCC, likelihood ratios, and related binary metrics from hard labels. Docs: `docs/python/classification_metrics.md`.
 - `find_optimal_threshold` — sweep probability cutoffs (default 0.1 to 0.9) and pick F1 or precision/recall balance. Docs: `docs/python/find_optimal_threshold.md`.

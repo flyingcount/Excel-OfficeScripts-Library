@@ -161,6 +161,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `confusion_matrix` | `source/python-in-excel/functions/confusion_matrix.py` | TP/FP/TN/FN counts, or `plot=True` for a heatmap |
 | `classification_metrics` | `source/python-in-excel/functions/classification_metrics.py` | Accuracy, F1, MCC, and related class metrics |
 | `find_optimal_threshold` | `source/python-in-excel/functions/find_optimal_threshold.py` | Sweep probability cutoffs for F1 or precision/recall balance |
+| `lift_table` | `source/python-in-excel/functions/lift_table.py` | Decile cumulative gain and lift, or `plot=True` for a chart |
 | `stratified_sample` | `source/python-in-excel/functions/stratified_sample.py` | Proportional stratified sample from a table |
 | `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | Systematic sample of rows at a regular interval |
 | `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | Two-stage cluster sample: pick clusters, then rows |

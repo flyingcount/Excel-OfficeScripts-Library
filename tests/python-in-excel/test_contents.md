@@ -22,6 +22,7 @@ In a PY cell, set output to **Excel value**.
 | `"confusion_matrix" in set(contents()["function"])` | `True` |
 | `"classification_metrics" in set(contents()["function"])` | `True` |
 | `"find_optimal_threshold" in set(contents()["function"])` | `True` |
+| `"lift_table" in set(contents()["function"])` | `True` |
 | `"contents" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
 | `"xmr_spc" in set(contents()["function"])` | `False` |
@@ -36,9 +37,10 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "check_collinearity", "call"].iloc[0]` | `check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True)` |
 | `contents().loc[contents()["function"] == "classification_metrics", "call"].iloc[0]` | `classification_metrics(data, actual=None, predicted=None, positive=1, beta=1, headers=True)` |
 | `contents().loc[contents()["function"] == "confusion_matrix", "call"].iloc[0]` | `confusion_matrix(data, actual=None, predicted=None, positive=1, pos_name='Positive', neg_name='Negative', plot=False, headers=True)` |
+| `contents().loc[contents()["function"] == "lift_table", "call"].iloc[0]` | `lift_table(data, actual=None, proba=None, bins=10, positive=1, plot=False, headers=True)` |
 | `contents().loc[contents()["function"] == "outlier_flag", "call"].iloc[0]` | `outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)` |
 | `contents().loc[contents()["function"] == "contents", "call"].iloc[0]` | `contents()` |
-| `len(contents())` | `16` |
+| `len(contents())` | `17` |
 
 ## Setup (sampling only)
 
@@ -81,6 +83,7 @@ In a PY cell, set output to **Excel value**.
 | `"check_collinearity" in set(contents()["function"])` | `False` |
 | `"classification_metrics" in set(contents()["function"])` | `False` |
 | `"confusion_matrix" in set(contents()["function"])` | `False` |
+| `"lift_table" in set(contents()["function"])` | `False` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "expsmooth", "call"].iloc[0]` | `expsmooth(data, alpha=0.2, h=12, level=0.95, plot=False, headers=False)` |
@@ -110,5 +113,6 @@ In a PY cell, set output to **Excel value**.
 | `"check_collinearity" in set(contents()["function"])` | `False` |
 | `"classification_metrics" in set(contents()["function"])` | `False` |
 | `"confusion_matrix" in set(contents()["function"])` | `False` |
+| `"lift_table" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "xmr_spc", "call"].iloc[0]` | `xmr_spc(data, dates=None, plot=False, title='XmR chart', headers=False)` |
 | `len(contents())` | `2` |

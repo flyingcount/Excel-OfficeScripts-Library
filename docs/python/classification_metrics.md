@@ -2,7 +2,7 @@
 
 Binary classification scores from actual vs predicted **hard labels**: accuracy, error rate, TPR/FPR/TNR/FNR, precision, prevalence, likelihood ratios, diagnostic odds ratio, F1, F-beta, MCC, informedness, markedness, and threat score.
 
-For a labeled confusion matrix use `confusion_matrix`. For probability cutoffs use `find_optimal_threshold`.
+For a labeled confusion matrix use `confusion_matrix`. For probability cutoffs use `find_optimal_threshold`. For ranking leads by score (gain/lift) use `lift_table`.
 
 Formula: `source/python-in-excel/functions/classification_metrics.py`
 

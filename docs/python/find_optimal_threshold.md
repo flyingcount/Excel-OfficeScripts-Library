@@ -2,7 +2,7 @@
 
 Sweep predicted **probabilities** from `low` to `high` and pick a cutoff. Default `metric='f1'` maximises F1. `metric='balanced'` minimises |precision − recall| (F1 breaks ties). A default 0.5 cutoff is often a poor fit for imbalanced business data.
 
-Use the chosen `threshold` to turn scores into labels, then call `classification_metrics` / `confusion_matrix`.
+Use the chosen `threshold` to turn scores into labels, then call `classification_metrics` / `confusion_matrix`. For ranking by score (top 20% of leads) use `lift_table`.
 
 Formula: `source/python-in-excel/functions/find_optimal_threshold.py`
 
