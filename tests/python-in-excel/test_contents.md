@@ -16,8 +16,10 @@ In a PY cell, set output to **Excel value**.
 | `"qq_norm" in set(contents()["function"])` | `True` |
 | `"outlier_flag" in set(contents()["function"])` | `True` |
 | `"cluster_prep" in set(contents()["function"])` | `True` |
+| `"detect_mixed_data_anomalies" in set(contents()["function"])` | `True` |
 | `"contents" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
+| `"xmr_spc" in set(contents()["function"])` | `False` |
 | `"lag_features" in set(contents()["function"])` | `False` |
 | `"lead_features" in set(contents()["function"])` | `False` |
 | `"breakpoints" in set(contents()["function"])` | `False` |
@@ -27,7 +29,7 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "describe", "call"].iloc[0]` | `describe(data, headers=True)` |
 | `contents().loc[contents()["function"] == "outlier_flag", "call"].iloc[0]` | `outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)` |
 | `contents().loc[contents()["function"] == "contents", "call"].iloc[0]` | `contents()` |
-| `len(contents())` | `10` |
+| `len(contents())` | `11` |
 
 ## Setup (sampling only)
 
@@ -65,6 +67,7 @@ In a PY cell, set output to **Excel value**.
 | `"forecast_plot" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `True` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
+| `"xmr_spc" in set(contents()["function"])` | `False` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "expsmooth", "call"].iloc[0]` | `expsmooth(data, alpha=0.2, h=12, level=0.95, plot=False, headers=False)` |
@@ -74,3 +77,21 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "breakpoints", "call"].iloc[0]` | `breakpoints(data, method='cusum', alpha=0.05, at=None, nbreaks=None, plot=False, headers=True, date_col=None)` |
 | `contents().loc[contents()["function"] == "stl", "call"].iloc[0]` | `stl(data, period, dates=None, robust=False, headers=False)` |
 | `len(contents())` | `30` |
+
+## Setup (SPC only)
+
+1. Formulas → **Initialization** → paste `source/python-in-excel/init/SPC.py` → Save.
+
+## Cases (SPC only)
+
+In a PY cell, set output to **Excel value**.
+
+| Python | Expected |
+|--------|----------|
+| `list(contents().columns)` | `['function', 'description', 'call']` |
+| `list(contents()["function"])` | `['contents', 'xmr_spc']` |
+| `"describe" in set(contents()["function"])` | `False` |
+| `"expsmooth" in set(contents()["function"])` | `False` |
+| `"stratified_sample" in set(contents()["function"])` | `False` |
+| `contents().loc[contents()["function"] == "xmr_spc", "call"].iloc[0]` | `xmr_spc(data, dates=None, plot=False, title='XmR chart', headers=False)` |
+| `len(contents())` | `2` |

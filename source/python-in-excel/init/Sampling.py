@@ -6,6 +6,7 @@
 #
 # Full library of general (non-series, non-sampling) functions: paste init/PaulPythonLibrary.py instead.
 # Time series functions only: paste init/TimeSeries.py instead.
+# SPC functions only: paste init/SPC.py instead.
 # Restore defaults only: paste init/DefaultInitialization.py instead.
 #
 # Requires Microsoft 365 Python in Excel. Functions use Excel's xl() helper.

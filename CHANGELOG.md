@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `xmr_spc` — after an 8-point shift, CL/UCL/LCL and MR limits are recomputed on each regime (spill columns and chart lines step). Docs: `docs/python/xmr_spc.md`.
 - `detect_mixed_data_anomalies` — `anomaly_class` now distinguishes Consensus Anomaly, Extreme Value (Numeric), Multivariate Outlier (Numeric), Rare Category (Categorical), Inconsistent Structural Combo, and Normal. Docs: `docs/python/detect_mixed_data_anomalies.md`.
 - `breakpoints` — spills one row per break with `break_date`, `confidence` (`99%`), and `type` (`Level shift` / `Trend shift`). Dates format as `YYYY-MM` when monthly. Docs: `docs/python/breakpoints.md`.
 - `outlier_flag` — adds `stl` (robust STL residual |z|) and `iforest` (sklearn Isolation Forest). `period=12` is used by STL. Docs: `docs/python/outlier_flag.md`.
@@ -19,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `xmr_spc` — individuals and moving-range (XmR) SPC limits as a spill table, or `plot=True` for a two-panel X/MR chart. Docs: `docs/python/xmr_spc.md`.
+- `init/SPC.py` — Initialization paste with Excel defaults plus SPC functions only (`xmr_spc`).
+- Cursor rule `.cursor/rules/python-in-excel-spc.mdc` — SPC functions go in `init/SPC.py` only (not Paul or TimeSeries).
 - `detect_mixed_data_anomalies` — flag mixed numeric/categorical table rows using Mahalanobis distance and Isolation Forest. Docs: `docs/python/detect_mixed_data_anomalies.md`.
 - `lead_features` — lead columns (`y.shift(-k)`) from a value series. Docs: `docs/python/lead_features.md`.
 - `breakpoints` — Chow, CUSUM, or Bai-Perron structural breaks; `plot=True` for a chart. Docs: `docs/python/breakpoints.md`.

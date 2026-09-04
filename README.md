@@ -76,10 +76,10 @@ You can still paste a single `=LAMBDA(...)` into Name Manager by hand. Excel Lab
 
 Microsoft 365 with Python in Excel enabled.
 
-1. Formulas → **Initialization** → paste the init for your work: `init/PaulPythonLibrary.py` (general), `init/Sampling.py` (sampling), or `init/TimeSeries.py` (time series) → Save. These pastes do not overlap — series and sampling functions are not in Paul.
+1. Formulas → **Initialization** → paste the init for your work: `init/PaulPythonLibrary.py` (general), `init/Sampling.py` (sampling), `init/TimeSeries.py` (time series), or `init/SPC.py` (control charts) → Save. These pastes do not overlap — series, sampling, and SPC functions are not in Paul.
 2. Insert a Python cell (**Formulas → Insert Python**, or `=PY`).
-3. Call a function from that paste, for example `describe("Table1[#All]")` (Paul) or `stl_plot("A1:A24", 12)` (TimeSeries). Call `contents()` for names, descriptions, and call signatures in that Initialization.
-4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot`.
+3. Call a function from that paste, for example `describe("Table1[#All]")` (Paul), `stl_plot("A1:A24", 12)` (TimeSeries), or `xmr_spc("B2:B50", plot=True)` (SPC). Call `contents()` for names, descriptions, and call signatures in that Initialization.
+4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot` or `xmr_spc(..., plot=True)`.
 
 If the default imports were deleted or edited, paste `source/python-in-excel/init/DefaultInitialization.py` into **Initialization** and Save. Then paste the library init you need (or paste only from the first `def` onward if the defaults are already there).
 
@@ -160,6 +160,7 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | Systematic sample of rows at a regular interval |
 | `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | Two-stage cluster sample: pick clusters, then rows |
 | `reservoir_sample` | `source/python-in-excel/functions/reservoir_sample.py` | Algorithm R reservoir sample of rows |
+| `xmr_spc` | `source/python-in-excel/functions/xmr_spc.py` | XmR chart (`plot=True`) or spill table; limits recompute after an 8-point shift |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 

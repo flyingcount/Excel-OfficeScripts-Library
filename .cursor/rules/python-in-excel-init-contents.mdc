@@ -29,13 +29,14 @@ Init pastes are **partitioned**. A public function lives in **exactly one** libr
 | @source/python-in-excel/init/PaulPythonLibrary.py | **General** functions that are **not** in another collection init | **Yes** |
 | @source/python-in-excel/init/Sampling.py | Sampling functions only | **Yes** |
 | @source/python-in-excel/init/TimeSeries.py | Time series functions only | **Yes** |
+| @source/python-in-excel/init/SPC.py | SPC / control-chart functions only | **Yes** |
 | Any **new** collection init under `init/` | That collection only | **Yes** |
 | @source/python-in-excel/init/DefaultInitialization.py | Excel defaults only | **No** — do **not** add `contents()` or library functions |
 
 ```python
 # ❌ BAD — same def in PaulPythonLibrary.py and TimeSeries.py / Sampling.py
 # ❌ BAD — new collection init created, but matching defs left in PaulPythonLibrary.py
-# ✅ GOOD — general → PaulPythonLibrary only; sampler → Sampling only; series → TimeSeries only
+# ✅ GOOD — general → PaulPythonLibrary only; sampler → Sampling only; series → TimeSeries only; SPC → SPC only
 ```
 
 When you create a **new collection** init file, **review** `PaulPythonLibrary.py` and **move** any functions that belong in that collection out of Paul (defs + `contents()` rows) into the new init.
@@ -60,6 +61,7 @@ Also:
 
 - Sampler → @source/python-in-excel/init/Sampling.py only (see @.cursor/rules/python-in-excel-sampling.mdc)
 - Time series → @source/python-in-excel/init/TimeSeries.py only (see @.cursor/rules/python-in-excel-timeseries.mdc)
+- SPC → @source/python-in-excel/init/SPC.py only (see @.cursor/rules/python-in-excel-spc.mdc)
 - Otherwise general → @source/python-in-excel/init/PaulPythonLibrary.py only
 - Always update **that file’s** `contents()` in the same change
 

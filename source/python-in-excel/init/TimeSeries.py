@@ -6,6 +6,7 @@
 #
 # General (non-series) functions: paste init/PaulPythonLibrary.py instead.
 # Sampling functions only: paste init/Sampling.py instead.
+# SPC functions only: paste init/SPC.py instead.
 # Restore defaults only: paste init/DefaultInitialization.py instead.
 #
 # Requires Microsoft 365 Python in Excel. Functions use Excel's xl() helper.

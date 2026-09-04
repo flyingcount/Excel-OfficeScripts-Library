@@ -1,0 +1,29 @@
+---
+description: When adding a Python in Excel SPC function, copy it into init/SPC.py only (not PaulPythonLibrary).
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Python in Excel SPC functions
+
+SPC (statistical process control) functions are control charts and process-limit tools (`xmr_spc`, and later Shewhart / CUSUM / EWMA charts). They are not time-series forecasting and not sampling.
+
+## Init files
+
+Copy the `def` and quoted call into **only**:
+
+1. @source/python-in-excel/init/SPC.py (SPC-only Initialization)
+
+Do **not** also add SPC functions to @source/python-in-excel/init/PaulPythonLibrary.py. Paul is the **general** init for functions that do not belong in a specialized collection. Do not add SPC functions to @source/python-in-excel/init/TimeSeries.py, @source/python-in-excel/init/Sampling.py, or @source/python-in-excel/init/DefaultInitialization.py.
+
+`SPC.py` is a complete Initialization: Excel default imports, then SPC `def`s only.
+
+Add a `contents()` row in `SPC.py` in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
+
+```python
+# ❌ BAD — SPC function also copied into PaulPythonLibrary.py or TimeSeries.py
+# ❌ BAD — def added, contents() not updated
+# ✅ GOOD — same def in functions/name.py and SPC.py only; contents() row with call signature
+```
+
+Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

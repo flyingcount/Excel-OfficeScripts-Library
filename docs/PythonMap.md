@@ -1,6 +1,6 @@
 # Python in Excel map
 
-Inventory of reusable Python functions. Add a row when you add a file under `source/python-in-excel/functions/`. Paste the matching init (`PaulPythonLibrary` for general, `Sampling` for samplers, `TimeSeries` for series), then call `contents()` for that paste’s public names, descriptions, and call signatures. New public functions get a `contents()` row in **exactly one** init file (see `.cursor/rules/python-in-excel-init-contents.mdc`).
+Inventory of reusable Python functions. Add a row when you add a file under `source/python-in-excel/functions/`. Paste the matching init (`PaulPythonLibrary` for general, `Sampling` for samplers, `TimeSeries` for series, `SPC` for control charts), then call `contents()` for that paste’s public names, descriptions, and call signatures. New public functions get a `contents()` row in **exactly one** init file (see `.cursor/rules/python-in-excel-init-contents.mdc`).
 
 | Name | File | Call | Notes |
 |------|------|------|--------|
@@ -44,3 +44,4 @@ Inventory of reusable Python functions. Add a row when you add a file under `sou
 | `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | `systematic_sample("A1:D200", 50)` | Systematic sample of rows at a regular interval. See [docs/python/systematic_sample.md](python/systematic_sample.md). |
 | `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | `two_stage_cluster_sample("A1:D200", "school", 5, 10)` | Two-stage cluster sample. See [docs/python/two_stage_cluster_sample.md](python/two_stage_cluster_sample.md). |
 | `reservoir_sample` | `source/python-in-excel/functions/reservoir_sample.py` | `reservoir_sample("A1:D2000", 50)` | Algorithm R reservoir sample of rows. See [docs/python/reservoir_sample.md](python/reservoir_sample.md). |
+| `xmr_spc` | `source/python-in-excel/functions/xmr_spc.py` | `xmr_spc("B2:B50")` | XmR limits; recomputes CL/UCL/LCL after an 8-point shift; `plot=True` for a two-panel chart. See [docs/python/xmr_spc.md](python/xmr_spc.md). |

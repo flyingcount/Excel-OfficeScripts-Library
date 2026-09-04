@@ -2,7 +2,7 @@
 #
 # Formulas → Initialization → replace the editor contents with this file → Save.
 # General-purpose functions only. Time series → init/TimeSeries.py.
-# Sampling → init/Sampling.py. Do not duplicate those collections here.
+# Sampling → init/Sampling.py. SPC → init/SPC.py. Do not duplicate those collections here.
 # After Save, call contents() in a PY cell for the public function list.
 #
 # Restore defaults only: paste init/DefaultInitialization.py instead.
