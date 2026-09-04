@@ -25,7 +25,13 @@ In a PY cell, set output to **Excel value**.
 | `"lift_table" in set(contents()["function"])` | `True` |
 | `"contents" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
-| `"xmr_spc" in set(contents()["function"])` | `False` |
+| `"xmr" in set(contents()["function"])` | `False` |
+| `"xbar_r" in set(contents()["function"])` | `False` |
+| `"xbar_s" in set(contents()["function"])` | `False` |
+| `"ewma" in set(contents()["function"])` | `False` |
+| `"cusum" in set(contents()["function"])` | `False` |
+| `"capability_report" in set(contents()["function"])` | `False` |
+| `"process_shift_detection" in set(contents()["function"])` | `False` |
 | `"lag_features" in set(contents()["function"])` | `False` |
 | `"lead_features" in set(contents()["function"])` | `False` |
 | `"breakpoints" in set(contents()["function"])` | `False` |
@@ -78,7 +84,13 @@ In a PY cell, set output to **Excel value**.
 | `"forecast_plot" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `True` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
-| `"xmr_spc" in set(contents()["function"])` | `False` |
+| `"xmr" in set(contents()["function"])` | `False` |
+| `"xbar_r" in set(contents()["function"])` | `False` |
+| `"xbar_s" in set(contents()["function"])` | `False` |
+| `"ewma" in set(contents()["function"])` | `False` |
+| `"cusum" in set(contents()["function"])` | `False` |
+| `"capability_report" in set(contents()["function"])` | `False` |
+| `"process_shift_detection" in set(contents()["function"])` | `False` |
 | `"rank_feature_importance" in set(contents()["function"])` | `False` |
 | `"check_collinearity" in set(contents()["function"])` | `False` |
 | `"classification_metrics" in set(contents()["function"])` | `False` |
@@ -105,7 +117,7 @@ In a PY cell, set output to **Excel value**.
 | Python | Expected |
 |--------|----------|
 | `list(contents().columns)` | `['function', 'description', 'call']` |
-| `list(contents()["function"])` | `['contents', 'xmr_spc']` |
+| `list(contents()["function"])` | `['contents', 'xmr', 'xbar_r', 'xbar_s', 'ewma', 'cusum', 'capability_report', 'process_shift_detection']` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
 | `"stratified_sample" in set(contents()["function"])` | `False` |
@@ -114,5 +126,11 @@ In a PY cell, set output to **Excel value**.
 | `"classification_metrics" in set(contents()["function"])` | `False` |
 | `"confusion_matrix" in set(contents()["function"])` | `False` |
 | `"lift_table" in set(contents()["function"])` | `False` |
-| `contents().loc[contents()["function"] == "xmr_spc", "call"].iloc[0]` | `xmr_spc(data, dates=None, plot=False, title='XmR chart', headers=False)` |
-| `len(contents())` | `2` |
+| `contents().loc[contents()["function"] == "xmr", "call"].iloc[0]` | `xmr(data, dates=None, plot=False, title='XmR chart', headers=False)` |
+| `contents().loc[contents()["function"] == "xbar_r", "call"].iloc[0]` | `xbar_r(data, subgroup_size, plot=False, title='X-bar R chart', headers=False)` |
+| `contents().loc[contents()["function"] == "xbar_s", "call"].iloc[0]` | `xbar_s(data, subgroup_size, plot=False, title='X-bar S chart', headers=False)` |
+| `contents().loc[contents()["function"] == "ewma", "call"].iloc[0]` | `ewma(data, lambda_=0.2, l=3, plot=False, title='EWMA chart', headers=False)` |
+| `contents().loc[contents()["function"] == "cusum", "call"].iloc[0]` | `cusum(data, k=0.5, h=5, plot=False, title='CUSUM chart', headers=False)` |
+| `contents().loc[contents()["function"] == "capability_report", "call"].iloc[0]` | `capability_report(data, usl, lsl, headers=False)` |
+| `contents().loc[contents()["function"] == "process_shift_detection", "call"].iloc[0]` | `process_shift_detection(data, method='cusum', headers=False)` |
+| `len(contents())` | `8` |

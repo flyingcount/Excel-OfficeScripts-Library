@@ -74,7 +74,7 @@ Put the `def` and quoted call in **exactly one** library init file:
 
 - **Sampler** (names often end in `_sample`) → @source/python-in-excel/init/Sampling.py only. See @.cursor/rules/python-in-excel-sampling.mdc. `cluster_prep` is not a sampler.
 - **Time series** (ordered series: smoothing, seasonal decomposition, ARIMA, residual diagnostics, outlier replacement on a series, lags/forecast features) → @source/python-in-excel/init/TimeSeries.py only. See @.cursor/rules/python-in-excel-timeseries.mdc. `describe`, `corr`, `normality_check`, `cluster_prep`, `detect_mixed_data_anomalies`, `rank_feature_importance`, `check_collinearity`, `confusion_matrix`, `classification_metrics`, `find_optimal_threshold`, `lift_table`, and SPC functions are not time series.
-- **SPC** (control charts and process limits: `xmr_spc` and similar) → @source/python-in-excel/init/SPC.py only. See @.cursor/rules/python-in-excel-spc.mdc.
+- **SPC** (control charts and process limits: `xmr`, `xbar_r`, `xbar_s`, `ewma`, `cusum`, `capability_report`, `process_shift_detection`, and similar) → @source/python-in-excel/init/SPC.py only. See @.cursor/rules/python-in-excel-spc.mdc.
 - **Otherwise general** → @source/python-in-excel/init/PaulPythonLibrary.py only. Paul is the general init for functions that do not belong in another collection. If you later create a new collection init, move matching functions out of Paul into that file.
 
 Do **not** copy the same public `def` into Paul and a specialized init.

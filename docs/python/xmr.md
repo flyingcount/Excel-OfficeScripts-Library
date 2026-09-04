@@ -1,10 +1,10 @@
-# xmr_spc
+# xmr
 
 Individuals and moving-range (**XmR**) statistical process control. Default result is a spill table of values, limits, and signals. `plot=True` draws a **two-panel chart** (X on top, MR below).
 
-Formula: `source/python-in-excel/functions/xmr_spc.py`
+Formula: `source/python-in-excel/functions/xmr.py`
 
-This is an SPC function. For an ordered forecast series use TimeSeries tools such as `detect_anomalies`. For a single-column outlier flag without control limits use `outlier_flag`.
+This is an SPC function. For rational subgroups of size 2–10 use `xbar_r`; for n up to 25 use `xbar_s`. For small sustained shifts use `ewma` or `cusum`. For Cp/Cpk/Pp/Ppk use `capability_report`. For an ordered forecast series use TimeSeries tools such as `detect_anomalies`. For a single-column outlier flag without control limits use `outlier_flag`.
 
 ## Install
 
@@ -13,10 +13,10 @@ Formulas → **Initialization** → paste the `def` after the default imports �
 In a PY cell, set output to **Excel value** for the table. Leave a **Python object** for the chart:
 
 ```python
-xmr_spc("B2:B50")
-xmr_spc("B2:B50", dates="A2:A50")
-xmr_spc(data["Monthly_Expenses"], dates=data["Date"])
-xmr_spc("B2:B50", plot=True, title="Expense claims")
+xmr("B2:B50")
+xmr("B2:B50", dates="A2:A50")
+xmr(data["Monthly_Expenses"], dates=data["Date"])
+xmr("B2:B50", plot=True, title="Expense claims")
 ```
 
 matplotlib is in the default Initialization (`plt`); it is not re-imported.
@@ -77,7 +77,7 @@ Set the PY cell to **Excel value**.
 ## Example
 
 ```python
-xmr_spc([10, 11, 9, 12, 10, 11, 10, 30])
+xmr([10, 11, 9, 12, 10, 11, 10, 30])
 ```
 
 x̄ = 12.875, MR̄ = 30/7 ≈ 4.286. The last point (30) is beyond the X UCL and its moving range is beyond the MR UCL.
@@ -85,7 +85,7 @@ x̄ = 12.875, MR̄ = 30/7 ≈ 4.286. The last point (30) is beyond the X UCL and
 Two opposite 8-point runs recompute limits on each half:
 
 ```python
-xmr_spc([10, 11, 10, 11, 10, 11, 10, 11, 12, 13, 12, 13, 12, 13, 12, 13])
+xmr([10, 11, 10, 11, 10, 11, 10, 11, 12, 13, 12, 13, 12, 13, 12, 13])
 ```
 
 Overall x̄ = 11.5, so `is_shift` is 1 on every row. CL is 10.5 on the first eight rows and 12.5 on the last eight.

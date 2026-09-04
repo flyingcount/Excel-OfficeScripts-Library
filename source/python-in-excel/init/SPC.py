@@ -35,7 +35,13 @@ def contents():
     return pd.DataFrame(
         [
             ("contents", "List library functions", "contents()"),
-            ("xmr_spc", "XmR individuals and moving-range chart", "xmr_spc(data, dates=None, plot=False, title='XmR chart', headers=False)"),
+            ("xmr", "XmR individuals and moving-range chart", "xmr(data, dates=None, plot=False, title='XmR chart', headers=False)"),
+            ("xbar_r", "X-bar and R chart for rational subgroups", "xbar_r(data, subgroup_size, plot=False, title='X-bar R chart', headers=False)"),
+            ("xbar_s", "X-bar and S chart for rational subgroups", "xbar_s(data, subgroup_size, plot=False, title='X-bar S chart', headers=False)"),
+            ("ewma", "EWMA chart for individuals", "ewma(data, lambda_=0.2, l=3, plot=False, title='EWMA chart', headers=False)"),
+            ("cusum", "Two-sided tabular CUSUM", "cusum(data, k=0.5, h=5, plot=False, title='CUSUM chart', headers=False)"),
+            ("capability_report", "Cp, Cpk, Pp, Ppk and expected PPM", "capability_report(data, usl, lsl, headers=False)"),
+            ("process_shift_detection", "Flag mean shifts (CUSUM, EWMA, or XmR)", "process_shift_detection(data, method='cusum', headers=False)"),
         ],
         columns=["function", "description", "call"],
     )
@@ -43,7 +49,7 @@ def contents():
 "contents()"
 
 
-def xmr_spc(data, dates=None, plot=False, title="XmR chart", headers=False):
+def xmr(data, dates=None, plot=False, title="XmR chart", headers=False):
     """XmR (individuals + moving range) process-control chart.
 
     plot=False spills a table. plot=True returns a two-panel figure
@@ -201,4 +207,517 @@ def xmr_spc(data, dates=None, plot=False, title="XmR chart", headers=False):
         out.insert(1, "date", x_date.to_numpy())
     return out
 
-"xmr_spc(data, dates=None, plot=False, title='XmR chart', headers=False)"
+"xmr(data, dates=None, plot=False, title='XmR chart', headers=False)"
+
+
+def xbar_r(data, subgroup_size, plot=False, title="X-bar R chart",
+           headers=False):
+    """X-bar and R process-control chart for rational subgroups.
+
+    plot=False spills one row per subgroup. plot=True returns a two-panel
+    figure (X-bar on top, R below). Leave that PY cell as a Python object.
+
+    data: value stream (first numeric column, grouped in time order) or a
+        table with at least subgroup_size numeric columns (one subgroup
+        per row). Ref string, DataFrame, Series, or list.
+    subgroup_size: n = 2 to 10 (Shewhart A2/D3/D4). Incomplete last
+        groups are dropped. Need at least 2 complete subgroups.
+    plot: False (default) table; True chart.
+    title: figure title when plot=True.
+    headers: first row is headers when data is a ref string.
+    """
+    ns = int(pd.Series(subgroup_size).iloc[0])
+    if ns < 2 or ns > 10:
+        raise ValueError("subgroup_size must be 2 to 10.")
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        num = data.select_dtypes(include="number")
+        if num.shape[1] == 0:
+            num = data
+    elif isinstance(data, pd.Series):
+        num = data.to_frame()
+    else:
+        num = pd.DataFrame(data)
+    num = num.apply(lambda c: pd.to_numeric(
+        pd.Series(c).replace("", np.nan), errors="coerce"))
+    if num.shape[1] >= ns:
+        mat = num.iloc[:, :ns].dropna(how="any").to_numpy(dtype="float64")
+    else:
+        y = num.iloc[:, 0].dropna().to_numpy(dtype="float64")
+        k0 = int(y.size) // ns
+        mat = y[: k0 * ns].reshape(k0, ns) if k0 else np.empty((0, ns))
+    k = int(mat.shape[0])
+    if k < 2:
+        raise ValueError("Need at least 2 complete subgroups.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    a2 = (0, 0, 1.880, 1.023, 0.729, 0.577, 0.483, 0.419, 0.373, 0.337, 0.308)
+    d3 = (0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.076, 0.136, 0.184, 0.223)
+    d4 = (0, 0, 3.267, 2.574, 2.282, 2.114, 2.004, 1.924, 1.864, 1.816, 1.777)
+    xb = mat.mean(axis=1)
+    rv = mat.max(axis=1) - mat.min(axis=1)
+    xbb = float(xb.mean())
+    rb = float(rv.mean())
+    cl, ucl, lcl = xbb, xbb + a2[ns] * rb, xbb - a2[ns] * rb
+    rcl, ru, rl = rb, d4[ns] * rb, d3[ns] * rb
+    out_x = (xb > ucl) | (xb < lcl)
+    out_r = (rv > ru) | (rv < rl)
+    t = np.arange(1, k + 1, dtype="float64")
+    if plot:
+        fig, (ax0, ax1) = plt.subplots(
+            2, 1, sharex=True, figsize=(10, 6),
+            gridspec_kw={"height_ratios": [2, 1]})
+        ax0.plot(t, xb, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out_x.any():
+            ax0.scatter(t[out_x], xb[out_x], c="#d9534f", s=70, zorder=5,
+                        edgecolors="k", label="X-bar beyond limits")
+            ax0.legend(loc="best", fontsize=8)
+        ax0.axhline(cl, color="#1f77b4", lw=1.5)
+        ax0.axhline(ucl, color="#d9534f", ls="--", lw=1.2)
+        ax0.axhline(lcl, color="#d9534f", ls="--", lw=1.2)
+        ax0.set_ylabel("X-bar")
+        ax0.set_title("X-bar")
+        ax0.grid(True, ls=":", alpha=0.5)
+        ax1.plot(t, rv, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out_r.any():
+            ax1.scatter(t[out_r], rv[out_r], c="#d9534f", s=70, zorder=5,
+                        edgecolors="k", label="R beyond limits")
+            ax1.legend(loc="best", fontsize=8)
+        ax1.axhline(rcl, color="#1f77b4", lw=1.5)
+        ax1.axhline(ru, color="#d9534f", ls="--", lw=1.2)
+        ax1.axhline(rl, color="#d9534f", ls="--", lw=1.2)
+        ax1.set_ylabel("R")
+        ax1.set_title("Range")
+        ax1.set_xlabel("Subgroup")
+        ax1.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "subgroup": t,
+        "n": np.full(k, float(ns)),
+        "xbar": xb,
+        "r": rv,
+        "cl": np.full(k, cl),
+        "ucl": np.full(k, ucl),
+        "lcl": np.full(k, lcl),
+        "r_cl": np.full(k, rcl),
+        "r_ucl": np.full(k, ru),
+        "r_lcl": np.full(k, rl),
+        "is_outlier": out_x.astype("float64"),
+        "is_r_outlier": out_r.astype("float64"),
+    })
+
+"xbar_r(data, subgroup_size, plot=False, title='X-bar R chart', headers=False)"
+
+
+def xbar_s(data, subgroup_size, plot=False, title="X-bar S chart",
+           headers=False):
+    """X-bar and S process-control chart for rational subgroups.
+
+    plot=False spills one row per subgroup. plot=True returns a two-panel
+    figure (X-bar on top, S below). Leave that PY cell as a Python object.
+
+    data: value stream (first numeric column, grouped in time order) or a
+        table with at least subgroup_size numeric columns (one subgroup
+        per row). Ref string, DataFrame, Series, or list.
+    subgroup_size: n = 2 to 25 (Shewhart A3/B3/B4). Prefer n > 10;
+        use xbar_r when n is 2 to 10. Incomplete last groups are
+        dropped. Need at least 2 complete subgroups.
+    plot: False (default) table; True chart.
+    title: figure title when plot=True.
+    headers: first row is headers when data is a ref string.
+    """
+    import math
+    ns = int(pd.Series(subgroup_size).iloc[0])
+    if ns < 2 or ns > 25:
+        raise ValueError("subgroup_size must be 2 to 25.")
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        num = data.select_dtypes(include="number")
+        if num.shape[1] == 0:
+            num = data
+    elif isinstance(data, pd.Series):
+        num = data.to_frame()
+    else:
+        num = pd.DataFrame(data)
+    num = num.apply(lambda c: pd.to_numeric(
+        pd.Series(c).replace("", np.nan), errors="coerce"))
+    if num.shape[1] >= ns:
+        mat = num.iloc[:, :ns].dropna(how="any").to_numpy(dtype="float64")
+    else:
+        y = num.iloc[:, 0].dropna().to_numpy(dtype="float64")
+        k0 = int(y.size) // ns
+        mat = y[: k0 * ns].reshape(k0, ns) if k0 else np.empty((0, ns))
+    k = int(mat.shape[0])
+    if k < 2:
+        raise ValueError("Need at least 2 complete subgroups.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    c4 = (math.sqrt(2.0 / (ns - 1))
+          * math.gamma(ns / 2.0) / math.gamma((ns - 1) / 2.0))
+    a3 = 3.0 / (c4 * math.sqrt(ns))
+    b = 3.0 * math.sqrt(max(0.0, 1.0 - c4 * c4)) / c4
+    b3, b4 = max(0.0, 1.0 - b), 1.0 + b
+    xb = mat.mean(axis=1)
+    sv = mat.std(axis=1, ddof=1)
+    xbb = float(xb.mean())
+    sb = float(sv.mean())
+    cl, ucl, lcl = xbb, xbb + a3 * sb, xbb - a3 * sb
+    scl, su, sl = sb, b4 * sb, b3 * sb
+    out_x = (xb > ucl) | (xb < lcl)
+    out_s = (sv > su) | (sv < sl)
+    t = np.arange(1, k + 1, dtype="float64")
+    if plot:
+        fig, (ax0, ax1) = plt.subplots(
+            2, 1, sharex=True, figsize=(10, 6),
+            gridspec_kw={"height_ratios": [2, 1]})
+        ax0.plot(t, xb, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out_x.any():
+            ax0.scatter(t[out_x], xb[out_x], c="#d9534f", s=70, zorder=5,
+                        edgecolors="k", label="X-bar beyond limits")
+            ax0.legend(loc="best", fontsize=8)
+        ax0.axhline(cl, color="#1f77b4", lw=1.5)
+        ax0.axhline(ucl, color="#d9534f", ls="--", lw=1.2)
+        ax0.axhline(lcl, color="#d9534f", ls="--", lw=1.2)
+        ax0.set_ylabel("X-bar")
+        ax0.set_title("X-bar")
+        ax0.grid(True, ls=":", alpha=0.5)
+        ax1.plot(t, sv, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out_s.any():
+            ax1.scatter(t[out_s], sv[out_s], c="#d9534f", s=70, zorder=5,
+                        edgecolors="k", label="S beyond limits")
+            ax1.legend(loc="best", fontsize=8)
+        ax1.axhline(scl, color="#1f77b4", lw=1.5)
+        ax1.axhline(su, color="#d9534f", ls="--", lw=1.2)
+        ax1.axhline(sl, color="#d9534f", ls="--", lw=1.2)
+        ax1.set_ylabel("S")
+        ax1.set_title("Std dev")
+        ax1.set_xlabel("Subgroup")
+        ax1.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "subgroup": t,
+        "n": np.full(k, float(ns)),
+        "xbar": xb,
+        "s": sv,
+        "cl": np.full(k, cl),
+        "ucl": np.full(k, ucl),
+        "lcl": np.full(k, lcl),
+        "s_cl": np.full(k, scl),
+        "s_ucl": np.full(k, su),
+        "s_lcl": np.full(k, sl),
+        "is_outlier": out_x.astype("float64"),
+        "is_s_outlier": out_s.astype("float64"),
+    })
+
+"xbar_s(data, subgroup_size, plot=False, title='X-bar S chart', headers=False)"
+
+
+def ewma(data, lambda_=0.2, l=3, plot=False, title="EWMA chart",
+         headers=False):
+    """EWMA process-control chart for individuals.
+
+    z_t = lambda_ * x_t + (1-lambda_) * z_{t-1}, starting at x-bar.
+    Limits use L * sigma * sqrt(lambda_/(2-lambda_) * (1-(1-lambda_)^{2t})).
+    sigma is MR-bar / 1.128. plot=True is a chart (Python object).
+
+    data: value column, ref string, Series, DataFrame, or list.
+    lambda_: EWMA weight in (0, 1]. Default 0.2.
+    l: width of the limits in sigma units. Default 3.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    elif isinstance(data, pd.Series):
+        values = data
+    else:
+        values = pd.Series(data)
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce")
+    y = y.replace("", np.nan).dropna().reset_index(drop=True)
+    n = int(y.size)
+    if n < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    lam = float(pd.Series(lambda_).iloc[0])
+    L = float(pd.Series(l).iloc[0])
+    if not 0 < lam <= 1:
+        raise ValueError("lambda_ must be in (0, 1].")
+    if L <= 0:
+        raise ValueError("l must be > 0.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    yv = y.to_numpy(dtype="float64")
+    mu = float(np.mean(yv))
+    mrb = float(np.mean(np.abs(np.diff(yv))))
+    sig = 0.0 if mrb == 0 else mrb / 1.128
+    om = 1.0 - lam
+    fac = lam / (2.0 - lam)
+    z = np.empty(n)
+    ucl = np.empty(n)
+    lcl = np.empty(n)
+    prev = mu
+    for i in range(n):
+        prev = lam * yv[i] + om * prev
+        z[i] = prev
+        w = np.sqrt(fac * (1.0 - om ** (2 * (i + 1))))
+        ucl[i] = mu + L * sig * w
+        lcl[i] = mu - L * sig * w
+    out = (z > ucl) | (z < lcl)
+    t = np.arange(1, n + 1, dtype="float64")
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.plot(t, z, color="#2b5c8f", lw=1.5, marker="o", ms=4, zorder=3)
+        if out.any():
+            ax.scatter(t[out], z[out], c="#d9534f", s=70, zorder=5,
+                       edgecolors="k", label="Beyond limits")
+            ax.legend(loc="best", fontsize=8)
+        ax.plot(t, np.full(n, mu), color="#1f77b4", lw=1.5)
+        ax.plot(t, ucl, color="#d9534f", ls="--", lw=1.2)
+        ax.plot(t, lcl, color="#d9534f", ls="--", lw=1.2)
+        ax.set_ylabel("EWMA")
+        ax.set_xlabel("t")
+        ax.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "t": t,
+        "value": yv,
+        "ewma": z,
+        "cl": np.full(n, mu),
+        "ucl": ucl,
+        "lcl": lcl,
+        "is_outlier": out.astype("float64"),
+    })
+
+"ewma(data, lambda_=0.2, l=3, plot=False, title='EWMA chart', headers=False)"
+
+
+def cusum(data, k=0.5, h=5, plot=False, title="CUSUM chart", headers=False):
+    """Two-sided tabular CUSUM for individuals.
+
+    S+_t = max(0, x_t - mu - k*sigma + S+_{t-1})
+    S-_t = max(0, mu - k*sigma - x_t + S-_{t-1})
+    Signal when S+ or S- exceeds h*sigma. sigma is MR-bar / 1.128.
+    k and h are in sigma units (defaults 0.5 and 5). plot=True is a
+    chart of S+ and -S- with ±h*sigma (Python object).
+
+    data: value column, ref string, Series, DataFrame, or list.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    elif isinstance(data, pd.Series):
+        values = data
+    else:
+        values = pd.Series(data)
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce")
+    y = y.replace("", np.nan).dropna().reset_index(drop=True)
+    n = int(y.size)
+    if n < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    kv = float(pd.Series(k).iloc[0])
+    hv = float(pd.Series(h).iloc[0])
+    if kv <= 0:
+        raise ValueError("k must be > 0.")
+    if hv <= 0:
+        raise ValueError("h must be > 0.")
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    title = str(pd.Series(title).iloc[0])
+    yv = y.to_numpy(dtype="float64")
+    mu = float(np.mean(yv))
+    mrb = float(np.mean(np.abs(np.diff(yv))))
+    sig = 0.0 if mrb == 0 else mrb / 1.128
+    K, H = kv * sig, hv * sig
+    sh = np.empty(n)
+    sl = np.empty(n)
+    ph = pl = 0.0
+    for i in range(n):
+        ph = max(0.0, yv[i] - mu - K + ph)
+        pl = max(0.0, mu - K - yv[i] + pl)
+        sh[i] = ph
+        sl[i] = pl
+    hi = sh > H
+    lo = sl > H
+    t = np.arange(1, n + 1, dtype="float64")
+    if plot:
+        fig, ax = plt.subplots(figsize=(10, 4))
+        ax.plot(t, sh, color="#d9534f", lw=1.5, marker="o", ms=4, label="S+")
+        ax.plot(t, -sl, color="#2b5c8f", lw=1.5, marker="o", ms=4, label="S-")
+        ax.axhline(H, color="#d9534f", ls="--", lw=1.2)
+        ax.axhline(-H, color="#2b5c8f", ls="--", lw=1.2)
+        ax.axhline(0.0, color="#1f77b4", lw=1.0)
+        ax.set_ylabel("CUSUM")
+        ax.set_xlabel("t")
+        ax.legend(loc="best", fontsize=8)
+        ax.grid(True, ls=":", alpha=0.5)
+        fig.suptitle(title, fontsize=12, fontweight="bold")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame({
+        "t": t,
+        "value": yv,
+        "s_high": sh,
+        "s_low": sl,
+        "h_limit": np.full(n, H),
+        "is_high": hi.astype("float64"),
+        "is_low": lo.astype("float64"),
+    })
+
+"cusum(data, k=0.5, h=5, plot=False, title='CUSUM chart', headers=False)"
+
+
+def capability_report(data, usl, lsl, headers=False):
+    """Process capability for individuals (Cp, Cpk, Pp, Ppk, PPM).
+
+    Spills one row: mean, stdev_within (MR-bar / 1.128), stdev_overall
+    (sample s), cp, cpk, pp, ppk, and expected overall ppm (normal).
+    Need at least 2 numeric values. usl must be > lsl.
+
+    data: value column, ref string, Series, DataFrame, or list.
+    headers: first row is headers when data is a ref string.
+    """
+    import math
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    elif isinstance(data, pd.Series):
+        values = data
+    else:
+        values = pd.Series(data)
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce")
+    y = y.replace("", np.nan).dropna().reset_index(drop=True)
+    n = int(y.size)
+    if n < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    u = float(pd.Series(usl).iloc[0])
+    lo = float(pd.Series(lsl).iloc[0])
+    if not np.isfinite(u) or not np.isfinite(lo):
+        raise ValueError("usl and lsl must be numeric.")
+    if u <= lo:
+        raise ValueError("usl must be > lsl.")
+    yv = y.to_numpy(dtype="float64")
+    mu = float(np.mean(yv))
+    so = float(np.std(yv, ddof=1))
+    mrb = float(np.mean(np.abs(np.diff(yv))))
+    sw = 0.0 if mrb == 0 else mrb / 1.128
+    spread = u - lo
+
+    def idx6(sig):
+        if sig == 0:
+            return np.nan
+        return spread / (6.0 * sig)
+
+    def idxk(sig):
+        if sig == 0:
+            return np.nan
+        return min((u - mu) / (3.0 * sig), (mu - lo) / (3.0 * sig))
+
+    if so == 0:
+        ppm = 0.0 if lo <= mu <= u else 1e6
+    else:
+        def ncdf(z):
+            return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+        ppm = 1e6 * (ncdf((lo - mu) / so) + (1.0 - ncdf((u - mu) / so)))
+    return pd.DataFrame({
+        "mean": [mu],
+        "stdev_within": [sw],
+        "stdev_overall": [so],
+        "cp": [idx6(sw)],
+        "cpk": [idxk(sw)],
+        "pp": [idx6(so)],
+        "ppk": [idxk(so)],
+        "ppm": [float(ppm)],
+    })
+
+"capability_report(data, usl, lsl, headers=False)"
+
+
+def process_shift_detection(data, method="cusum", headers=False):
+    """Flag process mean shifts for individuals.
+
+    method='cusum' (default) uses tabular CUSUM (k=0.5, h=5).
+    method='ewma' uses EWMA limits (lambda_=0.2, L=3).
+    method='xmr' uses 3-sigma individuals plus an 8-point run.
+    Sigma is MR-bar / 1.128. Result is one row per point.
+
+    data: value column, ref string, Series, DataFrame, or list.
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        numeric = data.select_dtypes(include="number")
+        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
+    elif isinstance(data, pd.Series):
+        values = data
+    else:
+        values = pd.Series(data)
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce")
+    y = y.replace("", np.nan).dropna().reset_index(drop=True)
+    n = int(y.size)
+    if n < 2:
+        raise ValueError("Need at least 2 numeric values.")
+    m = str(pd.Series(method).iloc[0]).strip().lower()
+    if m in ("shewhart", "individuals"):
+        m = "xmr"
+    if m not in ("cusum", "ewma", "xmr"):
+        raise ValueError("method must be cusum, ewma, or xmr.")
+    yv = y.to_numpy(dtype="float64")
+    mu = float(np.mean(yv))
+    mrb = float(np.mean(np.abs(np.diff(yv))))
+    sig = 0.0 if mrb == 0 else mrb / 1.128
+    hi = np.zeros(n, dtype=bool)
+    lo = np.zeros(n, dtype=bool)
+    if m == "cusum":
+        K, H = 0.5 * sig, 5.0 * sig
+        ph = pl = 0.0
+        for i in range(n):
+            ph = max(0.0, yv[i] - mu - K + ph)
+            pl = max(0.0, mu - K - yv[i] + pl)
+            hi[i] = ph > H
+            lo[i] = pl > H
+    elif m == "ewma":
+        lam, om, L = 0.2, 0.8, 3.0
+        fac = lam / (2.0 - lam)
+        prev = mu
+        for i in range(n):
+            prev = lam * yv[i] + om * prev
+            w = np.sqrt(fac * (1.0 - om ** (2 * (i + 1))))
+            hi[i] = prev > mu + L * sig * w
+            lo[i] = prev < mu - L * sig * w
+    else:
+        ucl, lcl = mu + 3 * sig, mu - 3 * sig
+        side = np.sign(yv - mu)
+        rid = (side != pd.Series(side).shift()).cumsum()
+        rlen = pd.Series(side).groupby(rid).transform("size").to_numpy()
+        run = (rlen >= 8) & (side != 0)
+        hi = (yv > ucl) | (run & (side > 0))
+        lo = (yv < lcl) | (run & (side < 0))
+    t = np.arange(1, n + 1, dtype="float64")
+    return pd.DataFrame({
+        "t": t,
+        "value": yv,
+        "method": np.full(n, m),
+        "is_shift": (hi | lo).astype("float64"),
+        "is_high": hi.astype("float64"),
+        "is_low": lo.astype("float64"),
+    })
+
+"process_shift_detection(data, method='cusum', headers=False)"

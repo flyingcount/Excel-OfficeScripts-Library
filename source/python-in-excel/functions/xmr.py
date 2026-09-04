@@ -1,8 +1,8 @@
-# Name: xmr_spc
+# Name: xmr
 # Description: Individuals and moving-range (XmR) SPC limits; table or two-panel chart.
 # Parameters: data, dates=None, plot=False, title='XmR chart', headers=False
 
-def xmr_spc(data, dates=None, plot=False, title="XmR chart", headers=False):
+def xmr(data, dates=None, plot=False, title="XmR chart", headers=False):
     """XmR (individuals + moving range) process-control chart.
 
     plot=False spills a table. plot=True returns a two-panel figure
@@ -160,4 +160,4 @@ def xmr_spc(data, dates=None, plot=False, title="XmR chart", headers=False):
         out.insert(1, "date", x_date.to_numpy())
     return out
 
-"xmr_spc(data, dates=None, plot=False, title='XmR chart', headers=False)"
+"xmr(data, dates=None, plot=False, title='XmR chart', headers=False)"
