@@ -23,6 +23,7 @@ In a PY cell, set output to **Excel value**.
 | `"classification_metrics" in set(contents()["function"])` | `True` |
 | `"find_optimal_threshold" in set(contents()["function"])` | `True` |
 | `"lift_table" in set(contents()["function"])` | `True` |
+| `"match_transactions" in set(contents()["function"])` | `True` |
 | `"contents" in set(contents()["function"])` | `True` |
 | `"expsmooth" in set(contents()["function"])` | `False` |
 | `"xmr" in set(contents()["function"])` | `False` |
@@ -49,9 +50,10 @@ In a PY cell, set output to **Excel value**.
 | `contents().loc[contents()["function"] == "classification_metrics", "call"].iloc[0]` | `classification_metrics(data, actual=None, predicted=None, positive=1, beta=1, headers=True)` |
 | `contents().loc[contents()["function"] == "confusion_matrix", "call"].iloc[0]` | `confusion_matrix(data, actual=None, predicted=None, positive=1, pos_name='Positive', neg_name='Negative', plot=False, headers=True)` |
 | `contents().loc[contents()["function"] == "lift_table", "call"].iloc[0]` | `lift_table(data, actual=None, proba=None, bins=10, positive=1, plot=False, headers=True)` |
+| `contents().loc[contents()["function"] == "match_transactions", "call"].iloc[0]` | `match_transactions(df1, df2, date_col='Date', description_col='Description', value_col='Value', value_tol=0.01, desc_tol=0.8, summary=False, headers=True)` |
 | `contents().loc[contents()["function"] == "outlier_flag", "call"].iloc[0]` | `outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)` |
 | `contents().loc[contents()["function"] == "contents", "call"].iloc[0]` | `contents()` |
-| `len(contents())` | `17` |
+| `len(contents())` | `18` |
 
 ## Setup (sampling only)
 
@@ -66,6 +68,7 @@ In a PY cell, set output to **Excel value**.
 | `list(contents().columns)` | `['function', 'description', 'call']` |
 | `list(contents()["function"])` | `['contents', 'stratified_sample', 'systematic_sample', 'two_stage_cluster_sample', 'reservoir_sample']` |
 | `"xl_df" in set(contents()["function"])` | `False` |
+| `"match_transactions" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "reservoir_sample", "description"].iloc[0]` | `Reservoir sample` |
 | `contents().loc[contents()["function"] == "reservoir_sample", "call"].iloc[0]` | `reservoir_sample(data, k, random_state=42, headers=True)` |
 | `len(contents())` | `5` |
@@ -106,6 +109,7 @@ In a PY cell, set output to **Excel value**.
 | `"classification_metrics" in set(contents()["function"])` | `False` |
 | `"confusion_matrix" in set(contents()["function"])` | `False` |
 | `"lift_table" in set(contents()["function"])` | `False` |
+| `"match_transactions" in set(contents()["function"])` | `False` |
 | `"describe" in set(contents()["function"])` | `False` |
 | `"stl_fit" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "expsmooth", "call"].iloc[0]` | `expsmooth(data, alpha=0.2, h=12, level=0.95, plot=False, headers=False)` |
@@ -136,6 +140,7 @@ In a PY cell, set output to **Excel value**.
 | `"classification_metrics" in set(contents()["function"])` | `False` |
 | `"confusion_matrix" in set(contents()["function"])` | `False` |
 | `"lift_table" in set(contents()["function"])` | `False` |
+| `"match_transactions" in set(contents()["function"])` | `False` |
 | `contents().loc[contents()["function"] == "xmr", "call"].iloc[0]` | `xmr(data, dates=None, plot=False, title='XmR chart', headers=False)` |
 | `contents().loc[contents()["function"] == "xbar_r", "call"].iloc[0]` | `xbar_r(data, subgroup_size, plot=False, title='X-bar R chart', headers=False)` |
 | `contents().loc[contents()["function"] == "xbar_s", "call"].iloc[0]` | `xbar_s(data, subgroup_size, plot=False, title='X-bar S chart', headers=False)` |

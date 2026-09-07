@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `match_transactions` — `date_col`, `description_col`, and `value_col` (defaults `'Date'`, `'Description'`, `'Value'`; case-insensitive). Approximate `match_details` include description similarity vs `desc_tol`. `Difference` is `df1_value - df2_value` on every row. Docs: `docs/python/match_transactions.md`.
 - `nelson_rules` — rule explanations sit in the column headers (`rule_N: …`); data rows are 0/1 only. Docs: `docs/python/nelson_rules.md`.
 - `xmr_spc` renamed to `xmr`. Docs: `docs/python/xmr.md`.
 - `get_confusion_matrix_summary` renamed to `confusion_matrix`. `plot=True` returns a 2×2 heatmap. Docs: `docs/python/confusion_matrix.md`.
@@ -25,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
 
 ### Added
+- `match_transactions` — match two tables on date/description/value (headers case-insensitive): exact pairs, approximate description and/or value, both-way unmatched rows, a `Difference` column, and grouped matched vs unmatched totals. Docs: `docs/python/match_transactions.md`.
 - `p_chart` — p chart for fraction defective (n may vary or be a scalar); `plot=True` for a chart. Docs: `docs/python/p_chart.md`.
 - `np_chart` — np chart for number of defectives (constant n usual); `plot=True` for a chart. Docs: `docs/python/np_chart.md`.
 - `c_chart` — c chart for defect counts with equal opportunity; `plot=True` for a chart. Docs: `docs/python/c_chart.md`.
