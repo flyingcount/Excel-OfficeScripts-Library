@@ -32,12 +32,13 @@ Related:
 │   │   └── shared/        ← fragments to copy into a LAMBDA
 │   └── python-in-excel/
 │       ├── functions/     ← one Python function per file
-│       ├── init/          ← PaulPythonLibrary.py or DefaultInitialization.py → Formulas → Initialization
+│       ├── init/          ← PaulPythonLibrary.py, Sampling.py, TimeSeries.py, or DefaultInitialization.py → Formulas → Initialization
 │       └── shared/        ← fragments to copy into a function
 ├── tests/
 │   ├── office-scripts/
 │   ├── lambda/
 │   └── python-in-excel/
+├── examples/              ← reference workbooks (not the library)
 ├── workbook/                ← Paul Lambda function library.xlsx
 ├── scripts/
 │   └── Build-LambdaWorkbook.ps1
@@ -75,12 +76,12 @@ You can still paste a single `=LAMBDA(...)` into Name Manager by hand. Excel Lab
 
 Microsoft 365 with Python in Excel enabled.
 
-1. Formulas → **Initialization** → replace the editor with `source/python-in-excel/init/PaulPythonLibrary.py` → Save. That file includes Excel’s default imports and the library functions.
+1. Formulas → **Initialization** → paste the init for your work: `init/PaulPythonLibrary.py` (general), `init/Sampling.py` (sampling), `init/TimeSeries.py` (time series), or `init/SPC.py` (control charts) → Save. These pastes do not overlap — series, sampling, and SPC functions are not in Paul.
 2. Insert a Python cell (**Formulas → Insert Python**, or `=PY`).
-3. Call a function, for example `describe("Table1[#All]")` or `stl_plot("A1:A24", 12)`.
-4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot`.
+3. Call a function from that paste, for example `describe("Table1[#All]")` (Paul), `stl_plot("A1:A24", 12)` (TimeSeries), or `xmr("B2:B50", plot=True)` (SPC). Call `contents()` for names, descriptions, and call signatures in that Initialization.
+4. Set the cell output to **Excel value** if a table should spill into the grid. Leave a **Python object** for charts such as `stl_plot` or `xmr(..., plot=True)`.
 
-If the default imports were deleted or edited, paste `source/python-in-excel/init/DefaultInitialization.py` into **Initialization** and Save. Then paste `PaulPythonLibrary.py` (or paste only from the first `def` onward if the defaults are already there).
+If the default imports were deleted or edited, paste `source/python-in-excel/init/DefaultInitialization.py` into **Initialization** and Save. Then paste the library init you need (or paste only from the first `def` onward if the defaults are already there).
 
 You can paste a single file from `source/python-in-excel/functions/` instead of the whole init module.
 
@@ -122,14 +123,62 @@ See [docs/LambdaMap.md](docs/LambdaMap.md). Add functions with [docs/AddingLambd
 | `xl_df` | `source/python-in-excel/functions/xl_df.py` | Load a range, table, or name as a DataFrame |
 | `describe` | `source/python-in-excel/functions/describe.py` | pandas summary statistics |
 | `corr` | `source/python-in-excel/functions/corr.py` | Numeric correlation matrix |
-| `expsmooth` | `source/python-in-excel/functions/expsmooth.py` | Last simple-exponential-smoothing value (default α 0.2) |
+| `expsmooth` | `source/python-in-excel/functions/expsmooth.py` | SES forecast with prediction interval, or `plot=True` for a chart |
 | `stl` | `source/python-in-excel/functions/stl.py` | STL seasonal-trend-residual decomposition |
 | `stl_plot` | `source/python-in-excel/functions/stl_plot.py` | STL four-panel chart (`DecomposeResult.plot`) |
 | `resid_analysis` | `source/python-in-excel/functions/resid_analysis.py` | Residual diagnostics (table, or `plot=True` for charts) |
+| `acf_ljungbox` | `source/python-in-excel/functions/acf_ljungbox.py` | ACF and Ljung-Box Q at each lag (default 20) |
+| `acf_pacf` | `source/python-in-excel/functions/acf_pacf.py` | ACF and PACF table, or `plot=True` for charts |
+| `adf_test` | `source/python-in-excel/functions/adf_test.py` | Augmented Dickey–Fuller test for stationarity |
+| `fft_spectrum` | `source/python-in-excel/functions/fft_spectrum.py` | FFT periodogram (cycles, frequency, period, power; or plot) |
+| `normality_check` | `source/python-in-excel/functions/normality_check.py` | Q-Q plot plus Shapiro-Wilk and Anderson-Darling (one paste) |
 | `arima_order` | `source/python-in-excel/functions/arima_order.py` | AIC grid search for ARIMA(p, d, q) |
+| `arima_estimate` | `source/python-in-excel/functions/arima_estimate.py` | ADF + AIC/BIC grid search for ARIMA(p, d, q) |
+| `baseline_forecast` | `source/python-in-excel/functions/baseline_forecast.py` | Actuals plus appended forecast with date/value labels |
+| `forecast_metrics` | `source/python-in-excel/functions/forecast_metrics.py` | MAE, RMSE, MAPE, MASE from actual and forecast columns |
 | `zscore_replace` | `source/python-in-excel/functions/zscore_replace.py` | Replace points outside a z-score cutoff by interpolation |
-| `adf` | `source/python-in-excel/functions/adf.py` | Augmented Dickey-Fuller stationarity test |
-| `acf_pacf` | `source/python-in-excel/functions/acf_pacf.py` | ACF and PACF plot (or lag table with `plot=False`) |
+| `date_features` | `source/python-in-excel/functions/date_features.py` | Calendar parts, cyclical sine/cosine encodings, and public-holiday flag |
+| `lag_features` | `source/python-in-excel/functions/lag_features.py` | Lag columns, rolling-window statistics, and EMA from a value series |
+| `lead_features` | `source/python-in-excel/functions/lead_features.py` | Lead columns from a value series |
+| `fourier_features` | `source/python-in-excel/functions/fourier_features.py` | Sine/cosine Fourier terms for a seasonal period |
+| `difference` | `source/python-in-excel/functions/difference.py` | Regular or seasonal differencing |
+| `impute` | `source/python-in-excel/functions/impute.py` | Fill blanks in a series |
+| `seasonal_indices` | `source/python-in-excel/functions/seasonal_indices.py` | Seasonal index per slot |
+| `seasonally_adjust` | `source/python-in-excel/functions/seasonally_adjust.py` | Remove seasonal index from a series |
+| `kpss_test` | `source/python-in-excel/functions/kpss_test.py` | KPSS stationarity test |
+| `ets_forecast` | `source/python-in-excel/functions/ets_forecast.py` | Holt-Winters ETS forecast with prediction interval, or `plot=True` for a chart |
+| `arima_forecast` | `source/python-in-excel/functions/arima_forecast.py` | ARIMA(p,d,q) forecast |
+| `sarima_forecast` | `source/python-in-excel/functions/sarima_forecast.py` | Seasonal ARIMA forecast with prediction interval, or `plot=True` for a chart |
+| `rolling_cv` | `source/python-in-excel/functions/rolling_cv.py` | Walk-forward CV for baseline methods |
+| `detect_anomalies` | `source/python-in-excel/functions/detect_anomalies.py` | Flag series anomalies (STL, IQR, z-score) |
+| `breakpoints` | `source/python-in-excel/functions/breakpoints.py` | Structural breaks as date, confidence, and Level/Trend type, or `plot=True` for a chart |
+| `forecast_plot` | `source/python-in-excel/functions/forecast_plot.py` | Chart of actuals, forecast, and optional interval |
+| `cluster_prep` | `source/python-in-excel/functions/cluster_prep.py` | Scale numbers and one-hot encode categories for clustering |
+| `outlier_flag` | `source/python-in-excel/functions/outlier_flag.py` | Flag outliers by IQR, MAD, z-score, STL residuals, or Isolation Forest |
+| `detect_mixed_data_anomalies` | `source/python-in-excel/functions/detect_mixed_data_anomalies.py` | Flag mixed-table rows as extreme, rare-category, multivariate, structural, or consensus anomalies |
+| `rank_feature_importance` | `source/python-in-excel/functions/rank_feature_importance.py` | Rank predictors vs a target (point-biserial, chi-square, IV) |
+| `check_collinearity` | `source/python-in-excel/functions/check_collinearity.py` | Flag numeric columns with high pairwise \|r\| or VIF |
+| `confusion_matrix` | `source/python-in-excel/functions/confusion_matrix.py` | TP/FP/TN/FN counts, or `plot=True` for a heatmap |
+| `classification_metrics` | `source/python-in-excel/functions/classification_metrics.py` | Accuracy, F1, MCC, and related class metrics |
+| `find_optimal_threshold` | `source/python-in-excel/functions/find_optimal_threshold.py` | Sweep probability cutoffs for F1 or precision/recall balance |
+| `lift_table` | `source/python-in-excel/functions/lift_table.py` | Decile cumulative gain and lift, or `plot=True` for a chart |
+| `match_transactions` | `source/python-in-excel/functions/match_transactions.py` | Match two transaction tables by description and value |
+| `stratified_sample` | `source/python-in-excel/functions/stratified_sample.py` | Proportional stratified sample from a table |
+| `systematic_sample` | `source/python-in-excel/functions/systematic_sample.py` | Systematic sample of rows at a regular interval |
+| `two_stage_cluster_sample` | `source/python-in-excel/functions/two_stage_cluster_sample.py` | Two-stage cluster sample: pick clusters, then rows |
+| `reservoir_sample` | `source/python-in-excel/functions/reservoir_sample.py` | Algorithm R reservoir sample of rows |
+| `xmr` | `source/python-in-excel/functions/xmr.py` | XmR chart (`plot=True`) or spill table; limits recompute after an 8-point shift |
+| `xbar_r` | `source/python-in-excel/functions/xbar_r.py` | X-bar and R chart (`plot=True`) or spill table for subgroups of size 2–10 |
+| `xbar_s` | `source/python-in-excel/functions/xbar_s.py` | X-bar and S chart (`plot=True`) or spill table for subgroups of size 2–25 |
+| `ewma` | `source/python-in-excel/functions/ewma.py` | EWMA chart (`plot=True`) or spill table; time-varying limits |
+| `cusum` | `source/python-in-excel/functions/cusum.py` | Two-sided tabular CUSUM (`plot=True`) or spill table |
+| `capability_report` | `source/python-in-excel/functions/capability_report.py` | Cp, Cpk, Pp, Ppk and expected overall PPM for individuals |
+| `process_shift_detection` | `source/python-in-excel/functions/process_shift_detection.py` | Flag mean shifts via CUSUM (default), EWMA, or XmR |
+| `nelson_rules` | `source/python-in-excel/functions/nelson_rules.py` | Nelson's eight tests; explanations are in the `rule_N: …` headers |
+| `c_chart` | `source/python-in-excel/functions/c_chart.py` | c chart (`plot=True`) or spill table for defect counts |
+| `u_chart` | `source/python-in-excel/functions/u_chart.py` | u chart (`plot=True`) or spill table for defects per unit |
+| `p_chart` | `source/python-in-excel/functions/p_chart.py` | p chart (`plot=True`) or spill table for fraction defective |
+| `np_chart` | `source/python-in-excel/functions/np_chart.py` | np chart (`plot=True`) or spill table for number of defectives |
 
 See [docs/PythonMap.md](docs/PythonMap.md). Add functions with [docs/AddingPython.md](docs/AddingPython.md).
 

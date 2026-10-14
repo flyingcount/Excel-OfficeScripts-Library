@@ -6,7 +6,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- `match_transactions` — `date_col`, `description_col`, and `value_col` (defaults `'Date'`, `'Description'`, `'Value'`; case-insensitive). Approximate `match_details` include description similarity vs `desc_tol`. `Difference` is `df1_value - df2_value` on every row. Docs: `docs/python/match_transactions.md`.
+- `nelson_rules` — rule explanations sit in the column headers (`rule_N: …`); data rows are 0/1 only. Docs: `docs/python/nelson_rules.md`.
+- `xmr_spc` renamed to `xmr`. Docs: `docs/python/xmr.md`.
+- `get_confusion_matrix_summary` renamed to `confusion_matrix`. `plot=True` returns a 2×2 heatmap. Docs: `docs/python/confusion_matrix.md`.
+- `get_classification_metrics` renamed to `classification_metrics`. The spill now includes TPR/FPR/TNR/FNR, prevalence, LR+/LR−, diagnostic odds ratio, F-beta, MCC, informedness, markedness, and threat score. Docs: `docs/python/classification_metrics.md`.
+- `rank_feature_importance_simple` renamed to `rank_feature_importance`.
+- `xmr` — after an 8-point shift, CL/UCL/LCL and MR limits are recomputed on each regime (spill columns and chart lines step). Docs: `docs/python/xmr.md`.
+- `detect_mixed_data_anomalies` — `anomaly_class` now distinguishes Consensus Anomaly, Extreme Value (Numeric), Multivariate Outlier (Numeric), Rare Category (Categorical), Inconsistent Structural Combo, and Normal. Docs: `docs/python/detect_mixed_data_anomalies.md`.
+- `breakpoints` — spills one row per break with `break_date`, `confidence` (`99%`), and `type` (`Level shift` / `Trend shift`). Dates format as `YYYY-MM` when monthly. Docs: `docs/python/breakpoints.md`.
+- `outlier_flag` — adds `stl` (robust STL residual |z|) and `iforest` (sklearn Isolation Forest). `period=12` is used by STL. Docs: `docs/python/outlier_flag.md`.
+- `expsmooth` — spills actuals plus an `h`-step SES forecast (default 12) with `lower`/`upper` prediction intervals (`level=0.95`). `plot=True` returns a chart. Future steps are flat at the last level (same as LAMBDA `EXPSMOOTH`). Docs: `docs/python/expsmooth.md`.
+- `ets_forecast` — same interval columns and `plot=True` chart as `expsmooth`. Interval uses Hyndman additive-error `v_h` around the Holt-Winters point forecast. Docs: `docs/python/ets_forecast.md`.
+- `sarima_forecast` — same interval columns and `plot=True` chart. Interval from statsmodels `get_forecast` at `level=0.95`. Docs: `docs/python/sarima_forecast.md`.
+
+### Fixed
+- `ets_forecast` — `trend="mul"` / `seasonal="mul"` no longer fail with “endog must be strictly positive” when the series has zeros or blank-as-zero Excel cells. Those points are linearly interpolated for the fit. Docs: `docs/python/ets_forecast.md`.
+- `init/PaulPythonLibrary.py` is now the **general** init only. Time series and sampling functions were removed from it (they live only in `init/TimeSeries.py` and `init/Sampling.py`). Init pastes no longer duplicate functions. Cursor rules updated: put each new public `def` in exactly one init file; when creating a new collection init, move matching functions out of Paul.
+
 ### Added
+- `match_transactions` — match two tables on date/description/value (headers case-insensitive): exact pairs, approximate description and/or value, both-way unmatched rows, a `Difference` column, and grouped matched vs unmatched totals. Docs: `docs/python/match_transactions.md`.
+- `p_chart` — p chart for fraction defective (n may vary or be a scalar); `plot=True` for a chart. Docs: `docs/python/p_chart.md`.
+- `np_chart` — np chart for number of defectives (constant n usual); `plot=True` for a chart. Docs: `docs/python/np_chart.md`.
+- `c_chart` — c chart for defect counts with equal opportunity; `plot=True` for a chart. Docs: `docs/python/c_chart.md`.
+- `u_chart` — u chart for defects per unit (n may vary or be a scalar); `plot=True` for a chart. Docs: `docs/python/u_chart.md`.
+- `nelson_rules` — Nelson's eight tests on individuals (σ from MR̄/1.128). Docs: `docs/python/nelson_rules.md`.
+- `process_shift_detection` — flag mean shifts on individuals via CUSUM (default), EWMA, or XmR. Docs: `docs/python/process_shift_detection.md`.
+- `capability_report` — Cp, Cpk, Pp, Ppk and expected overall PPM for individuals (σ_within from MR̄/1.128). Docs: `docs/python/capability_report.md`.
+- `ewma` — EWMA chart for individuals (default λ=0.2, L=3); `plot=True` for a chart. Docs: `docs/python/ewma.md`.
+- `cusum` — two-sided tabular CUSUM for individuals (default k=0.5, h=5 in σ units); `plot=True` for a chart. Docs: `docs/python/cusum.md`.
+- `xbar_s` — X-bar and S limits for rational subgroups (n = 2 to 25); `plot=True` for a two-panel chart. Docs: `docs/python/xbar_s.md`.
+- `xbar_r` — X-bar and R limits for rational subgroups (n = 2 to 10); `plot=True` for a two-panel chart. Docs: `docs/python/xbar_r.md`.
+- `lift_table` — rank by predicted probability into deciles (or `bins`) and spill cumulative gain and lift; `plot=True` for a two-panel chart. Docs: `docs/python/lift_table.md`.
+- `confusion_matrix` — TP/FP/TN/FN counts with custom actual/predicted wording, or `plot=True` for a heatmap. Docs: `docs/python/confusion_matrix.md`.
+- `classification_metrics` — accuracy, rates, F1/F-beta, MCC, likelihood ratios, and related binary metrics from hard labels. Docs: `docs/python/classification_metrics.md`.
+- `find_optimal_threshold` — sweep probability cutoffs (default 0.1 to 0.9) and pick F1 or precision/recall balance. Docs: `docs/python/find_optimal_threshold.md`.
+- `check_collinearity` — flag numeric columns with pairwise Pearson \|r\| above a cutoff (default 0.8) or VIF above a cutoff (default 5). Docs: `docs/python/check_collinearity.md`.
+- `rank_feature_importance` — rank table columns as drivers of a target using point-biserial / Pearson / eta, chi-square (Cramer's V), and Information Value for binary targets. Docs: `docs/python/rank_feature_importance.md`.
+- `xmr` — individuals and moving-range (XmR) SPC limits as a spill table, or `plot=True` for a two-panel X/MR chart. Docs: `docs/python/xmr.md`.
+- `init/SPC.py` — Initialization paste with Excel defaults plus SPC functions only (`xmr`).
+- Cursor rule `.cursor/rules/python-in-excel-spc.mdc` — SPC functions go in `init/SPC.py` only (not Paul or TimeSeries).
+- `detect_mixed_data_anomalies` — flag mixed numeric/categorical table rows using Mahalanobis distance and Isolation Forest. Docs: `docs/python/detect_mixed_data_anomalies.md`.
+- `lead_features` — lead columns (`y.shift(-k)`) from a value series. Docs: `docs/python/lead_features.md`.
+- `breakpoints` — Chow, CUSUM, or Bai-Perron structural breaks; `plot=True` for a chart. Docs: `docs/python/breakpoints.md`.
+- `forecast_plot` — chart of actuals, point forecast, and optional lower/upper interval. Docs: `docs/python/forecast_plot.md`.
+- `fourier_features` — sine/cosine Fourier terms for a seasonal period. Docs: `docs/python/fourier_features.md`.
+- `difference` — regular or seasonal differencing. Docs: `docs/python/difference.md`.
+- `impute` — fill blanks (linear, ffill, bfill, mean, median, seasonal). Docs: `docs/python/impute.md`.
+- `seasonal_indices` / `seasonally_adjust` — seasonal index table and seasonally adjusted series. Docs: `docs/python/seasonal_indices.md`, `docs/python/seasonally_adjust.md`.
+- `kpss_test` — KPSS stationarity test. Docs: `docs/python/kpss_test.md`.
+- `ets_forecast`, `arima_forecast`, `sarima_forecast` — Holt-Winters / ARIMA / SARIMA forecasts with actual + forecast rows. Docs under `docs/python/`.
+- `rolling_cv` — walk-forward CV metrics for naive / seasonal naive / drift. Docs: `docs/python/rolling_cv.md`.
+- `detect_anomalies` — flag anomalies via STL residual z-score, IQR, or z-score. Docs: `docs/python/detect_anomalies.md`.
+- Cursor rule `.cursor/rules/python-in-excel-init-contents.mdc` — hard rule: every library init file must have `contents()`; update `contents()` in the same change whenever a public function is added; Paul is general-only; `DefaultInitialization.py` stays defaults-only (no `contents()`).
+- `contents()` in `init/PaulPythonLibrary.py`, `init/Sampling.py`, and `init/TimeSeries.py` — spill a table of public function names, a brief explanation, and the call signature (same as the quoted line after each `def`).
 - Repository scaffold for an Excel Office Scripts library (`source/scripts`, shared helpers, script map).
 - `ListWorksheets` — write a **Worksheets** sheet with name, visibility, and used range for each worksheet.
 - `PaulsFormat` (**Paul's format**) — apply a named custom number format to the selected range.
@@ -24,14 +78,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Python in Excel library under `source/python-in-excel/functions/`: `xl_df`, `describe`, `corr`, `expsmooth`. Paste `init/PaulPythonLibrary.py` into **Formulas → Initialization**.
 - `stl` — STL seasonal-trend-residual decomposition via statsmodels. Docs: `docs/python/stl.md`.
 - `stl_plot` — same STL fit as a four-panel matplotlib chart (`DecomposeResult.plot`). Docs: `docs/python/stl_plot.md`.
-- `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box and Jarque-Bera; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
+- `resid_analysis` — residual diagnostics (VBA Residuals analysis stats plus Ljung-Box, Durbin–Watson, Jarque-Bera, and Shapiro–Wilk; z-scored residual summaries; `plot=True` for vs-order / hist / QQ / ACF). Docs: `docs/python/resid_analysis.md`.
 - `arima_order` — AIC grid search for ARIMA(p, d, q). Docs: `docs/python/arima_order.md`.
 - `zscore_replace` — replace time-series points outside a z-score cutoff using interpolation. Docs: `docs/python/zscore_replace.md`.
-- `adf` — Augmented Dickey-Fuller stationarity test. Docs: `docs/python/adf.md`.
-- `acf_pacf` — ACF/PACF plot, or lag table with `plot=False`. Docs: `docs/python/acf_pacf.md`.
-- Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). `PaulPythonLibrary.py` includes those imports so a full paste restores defaults and the library.
+- `date_features` — expand a date column into calendar parts, cyclical sine/cosine encodings (month, day, dayofweek, dayofyear), and a public-holiday flag (`country_holiday='UK'` default, or `'US'`; `None` to disable). Holidays are computed algorithmically — no external package needed. Docs: `docs/python/date_features.md`.
+- `outlier_flag` — flag outlier rows using IQR (Tukey fence), MAD, or z-score methods. Returns value, is_outlier, score, lower_bound, upper_bound. Docs: `docs/python/outlier_flag.md`.
+- `cluster_prep` — scale numeric columns and one-hot encode categoricals so mixed tables are ready for clustering. Docs: `docs/python/cluster_prep.md`.
+- `stratified_sample` — proportional stratified sample from a table by a stratum column. Docs: `docs/python/stratified_sample.md`.
+- `systematic_sample` — systematic sample of rows at a regular interval from a random start. Docs: `docs/python/systematic_sample.md`.
+- `two_stage_cluster_sample` — two-stage cluster sample (select clusters, then rows within each). Docs: `docs/python/two_stage_cluster_sample.md`.
+- `reservoir_sample` — Algorithm R reservoir sample of rows from a table or stream. Docs: `docs/python/reservoir_sample.md`.
+- `normality_check` — one pasteable module: Shapiro-Wilk (`shapiro`), Anderson-Darling (`anderson`), and a normal Q-Q plot (`normality_check` / `qq_norm`). Docs: `docs/python/normality_check.md`.
+- `init/Sampling.py` — Initialization paste with Excel defaults plus sampling functions only (`stratified_sample`, `systematic_sample`, `two_stage_cluster_sample`, `reservoir_sample`).
+- Cursor rule `.cursor/rules/python-in-excel-sampling.mdc` — sampling functions go in `init/Sampling.py` only (not Paul).
+- `lag_features` — lag columns, rolling-window statistics (mean, std, min, max, median, sum), and EMA from a value series; rolling and EMA use past values only. Docs: `docs/python/lag_features.md`.
+- `forecast_metrics` — MAE, RMSE, MAPE, MASE, and related accuracy scores from user-named actual and forecast columns. Docs: `docs/python/forecast_metrics.md`.
+- `fft_spectrum` — real FFT periodogram (cycles, frequency, period, power) as a table or two-panel chart. Docs: `docs/python/fft_spectrum.md`.
+- `adf_test` — Augmented Dickey–Fuller unit-root test for stationarity (p-value, critical values, `stationary` flag). Docs: `docs/python/adf_test.md`.
+- `acf_pacf` — sample ACF and PACF as a table (`plot=False`) or a two-panel chart (`plot=True`). Docs: `docs/python/acf_pacf.md`.
+- `acf_ljungbox` — sample ACF and Ljung-Box Q at each lag (default 20), with Bartlett bands and significance flags. Docs: `docs/python/acf_ljungbox.md`.
+- `baseline_forecast` — naive, seasonal naive, or drift baseline forecast with configurable horizon. Docs: `docs/python/baseline_forecast.md`.
+- `arima_estimate` — estimate ARIMA(p,d,q) using ADF-based differencing and AIC/BIC grid search. Returns p, d, q, aic, bic, adf_pvalue; `full=True` spills the entire grid. Docs: `docs/python/arima_estimate.md`.
+- `init/TimeSeries.py` — Initialization paste with Excel defaults plus time series functions only (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `acf_ljungbox`, `acf_pacf`, `adf_test`, `fft_spectrum`, `arima_order`, `arima_estimate`, `baseline_forecast`, `forecast_metrics`, `zscore_replace`, `date_features`, `lag_features`, `lead_features`, `fourier_features`, `difference`, `impute`, `seasonal_indices`, `seasonally_adjust`, `kpss_test`, `ets_forecast`, `arima_forecast`, `sarima_forecast`, `rolling_cv`, `detect_anomalies`, `breakpoints`, `forecast_plot`).
+- Cursor rule `.cursor/rules/python-in-excel-timeseries.mdc` — time series functions go in `init/TimeSeries.py` only (not Paul).
+- Cursor rule `.cursor/rules/python-in-excel.mdc` — pattern for adding Python in Excel PY-cell functions.
+- Cursor rule `.cursor/rules/python-in-excel-limits.mdc` — Excel formula/cell limits (8,192 formula characters, 255 arguments, 64 nest levels, 32,767 characters per cell) for `source/python-in-excel/**/*.py`.
+- Excel default Python Initialization snapshot (`init/DefaultInitialization.py`). Library init pastes include those imports so a full paste restores defaults and that collection.
 
 ### Changed
+- `baseline_forecast` — reads `date_col` and `value_col` from a table, spills actual rows then forecast rows with `date`, `value`, and `label` (`Actual`, `Forecast Naive`, `Forecast Seasonal Naive`, `Forecast Drift`). Forecast dates extend from the last observed date.
+- `resid_analysis` — Durbin–Watson, Shapiro–Wilk, and z-scored residual summaries (`std_resid_max_abs`, `n_std_resid_gt_2`; `.std_resid` on the table and figure). Existing metric rows keep their names and order.
+- `resid_analysis` — metric table spills a third `guidance` column with how to interpret each row. `metric` and `value` are unchanged.
+- `normality_check` / `shapiro` / `anderson` spilled tables include an `interpretation` column. `metric` and `value` are unchanged.
+- Compacted `normality_check.py` and `resid_analysis.py` so each file stays under the 8192-character Python in Excel formula limit.
+- `anderson` interpretation text says whether the data is normal from A^2 vs the critical value, instead of "reject normality".
 - Highlight Differences rules are now `=ROUND(Q11,2)=0` (green) and `=ROUND(Q$11,2)<>0` (red), where Q11 is the top-left of the selection.
 - Split source into `source/office-scripts/` and `source/lambda/`. Office Script tests moved to `tests/office-scripts/`.
 - Python in Excel function files end with a quoted call so a pasted PY cell displays the signature for reuse.

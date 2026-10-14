@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Formulas → **Initialization** → paste `zscore_replace` from `source/python-in-excel/functions/zscore_replace.py` after the default imports → Save.
+1. Formulas → **Initialization** → paste `zscore_replace` from `source/python-in-excel/functions/zscore_replace.py` after the default imports → Save. Or paste `init/TimeSeries.py`.
 2. Put `5, 5, 5, 5, 50, 5, 5, 5, 5` in `A1:A9`.
 3. Optional dates in `B1:B3`: `2020-01-01`, `2020-01-02`, `2020-01-11` with values `0, 100, 10` in `C1:C3`.
 

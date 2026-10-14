@@ -1,49 +1,50 @@
 # acf_pacf
 
-Autocorrelation (ACF) and partial autocorrelation (PACF) of a series. Use the plot to see lag effects and momentum: slow ACF decay suggests persistence; a PACF spike at lag *k* points to an AR(*k*)-style lag.
+Sample **ACF** and **PACF** at lags 1 through `lags` (default 20). Output is a **table** (`plot=False`) or a **two-panel chart** (`plot=True`). Used to identify AR/MA orders; `acf_ljungbox` adds Ljung-Box Q instead of PACF.
 
 Formula: `source/python-in-excel/functions/acf_pacf.py`
 
-`resid_analysis(..., plot=True)` already includes an ACF panel for residuals. Use `acf_pacf` on the raw series (prices, returns, or a spread).
-
 ## Install
 
-Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste the whole `init/PaulPythonLibrary.py`.
-
-Chart (leave as a **Python object**):
-
-```python
-acf_pacf("B2:B50")
-acf_pacf("B2:B50", lags=20)
-```
+Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste `init/TimeSeries.py` or `init/PaulPythonLibrary.py`.
 
 Table (PY cell output **Excel value**):
 
 ```python
-acf_pacf("B2:B50", plot=False)
+acf_pacf("A1:A100")
+acf_pacf("A1:A100", lags=12)
+acf_pacf(stl("B2:B25", 12))
+```
+
+Chart (leave as a **Python object**):
+
+```python
+acf_pacf("A1:A100", plot=True)
+acf_pacf("A1:A100", lags=24, plot=True)
 ```
 
 ## Arguments
 
 | Argument | Required | Meaning |
 |----------|----------|---------|
-| `data` | Yes | Value column, ref string, Series, or DataFrame (first numeric column). |
-| `lags` | No | Number of lags. Default `min(10, n//2 - 1)`. |
-| `plot` | No | `True` (default) returns a two-panel figure. `False` spills `lag`, `acf`, `pacf`. |
+| `data` | Yes | Value column, residual column, `stl()` table, Series, DataFrame, or ref string. Uses `resid` / `residual` / `residuals` when present; otherwise the first numeric column. |
+| `lags` | No | Maximum lag. Default `20`. Capped at `min(n-2, n//2 - 1)` so PACF is defined. |
+| `plot` | No | `False` (default) spills a table. `True` returns ACF (top) and PACF (bottom) charts. |
 | `headers` | No | First row is headers when `data` is a ref string. Default `False`. |
 
-Need at least 4 numeric values. Blanks are dropped.
-
-## Result (plot)
-
-Two panels: **ACF** and **PACF**, with statsmodels confidence bands. Keep the PY cell as a Python object so Excel draws the figure.
+Need at least 4 numeric values. Blanks are dropped. PACF uses the Yule–Walker (`ywm`) method.
 
 ## Result (table)
 
-| Column | Meaning |
-|--------|---------|
-| `lag` | 0 … `lags`. Lag 0 is 1 for both ACF and PACF. |
-| `acf` | Correlation with the series lagged by that many steps. |
-| `pacf` | Partial autocorrelation at that lag. |
+| Column | Notes |
+|--------|-------|
+| `lag` | 1 through the chosen lag count. |
+| `acf` | Sample autocorrelation. |
+| `pacf` | Sample partial autocorrelation. |
+| `se` | White-noise standard error `1 / sqrt(n)`. |
+| `acf_sig` | `1` if \|acf\| > 1.96 × `se`. |
+| `pacf_sig` | `1` if \|pacf\| > 1.96 × `se`. |
 
-Large ACF at short lags is momentum (or leftover trend). ACF that flips sign can show mean-reversion. Read PACF for the lag that remains after earlier lags are removed.
+## Result (plot)
+
+Two panels from `plot_acf` and `plot_pacf`. Leave the cell as a **Python object**, not Excel value.

@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Formulas → **Initialization** → paste `stl` from `source/python-in-excel/functions/stl.py` after the default imports → Save.
+1. Formulas → **Initialization** → paste `stl` from `source/python-in-excel/functions/stl.py` after the default imports → Save. Or paste `init/TimeSeries.py`.
 2. Put two copies of `1` … `12` in `A1:A24` (24 values, period 12).
 3. Optional dates in `B1:B24` (monthly, 24 months).
 

@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Formulas → **Initialization** → paste `stl_fit` and `stl_plot` from `source/python-in-excel/functions/stl_plot.py` after the default imports → Save.
+1. Formulas → **Initialization** → paste `stl_fit` and `stl_plot` from `source/python-in-excel/functions/stl_plot.py` after the default imports → Save. Or paste `init/TimeSeries.py`.
 2. Put two copies of `1` … `12` in `A1:A24` (24 values, period 12).
 
 Keep the PY cell as a **Python object** (not Excel value).
