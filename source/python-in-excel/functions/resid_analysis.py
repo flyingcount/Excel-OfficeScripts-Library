@@ -1,25 +1,19 @@
 # Name: resid_analysis
-# Description: Residual diagnostics (summary table or four-panel plot). Matches VBA Residuals analysis plus Ljung-Box and Jarque-Bera.
+# Description: Residual diagnostics (summary table or four-panel plot). Matches VBA Residuals analysis plus Ljung-Box, Durbin-Watson, Jarque-Bera, and Shapiro-Wilk.
 # Parameters: data, lags=None, plot=False, headers=False
 
 def resid_analysis(data, lags=None, plot=False, headers=False):
-    """Diagnose a residual series.
+    """Diagnose a residual series. plot=False spills metric/value/guidance; True is a 4-panel chart.
 
-    data: residual column, stl() result (uses column resid), DataFrame, Series, or xl() result.
-    lags: Ljung-Box / ACF lag count. Default min(10, n-2).
-    plot: False spills a metric/value table; True returns a matplotlib Figure.
-    headers: first row is headers when data is a ref string.
-
-    Table includes n, mean, std, min, max, sum, slope/intercept/R² vs order
-    (same idea as VBA ResidualsAnalysis), Ljung-Box, and Jarque-Bera.
-    Chart: residuals vs order, histogram, QQ, ACF.
-    Need at least 3 numeric values.
+    data: residual column, stl() result (uses resid), DataFrame, Series, or xl() result.
+    lags: Ljung-Box / ACF lags. Default min(10, n-2). headers: first row is headers for a ref string.
+    Need at least 3 numeric values. Z-scored series is result.std_resid.
     """
-    import matplotlib.pyplot as plt
     from scipy import stats
     from statsmodels.graphics.gofplots import qqplot
     from statsmodels.graphics.tsaplots import plot_acf
     from statsmodels.stats.diagnostic import acorr_ljungbox
+    from statsmodels.stats.stattools import durbin_watson
 
     if isinstance(data, str):
         data = xl(data, headers=headers)
@@ -67,6 +61,32 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
         jb_stat = float("nan")
         jb_p = float("nan")
 
+    try:
+        dw_stat = float(durbin_watson(y))
+    except (ValueError, ZeroDivisionError):
+        dw_stat = float("nan")
+    if not np.isfinite(dw_stat):
+        dw_stat = float("nan")
+
+    try:
+        sh_stat, sh_p = stats.shapiro(y)
+        sh_stat, sh_p = float(sh_stat), float(sh_p)
+    except ValueError:
+        sh_stat, sh_p = float("nan"), float("nan")
+
+    try:
+        std_resid = np.asarray(stats.zscore(y), dtype=float)
+    except ValueError:
+        std_resid = np.full(n, np.nan)
+    finite_z = np.isfinite(std_resid)
+    if finite_z.any():
+        std_resid_max_abs = float(np.max(np.abs(std_resid[finite_z])))
+        n_std_resid_gt_2 = int(np.sum(np.abs(std_resid[finite_z]) > 2.0))
+    else:
+        std_resid_max_abs = float("nan")
+        n_std_resid_gt_2 = 0
+    std_resid_series = pd.Series(std_resid)
+
     if plot:
         fig, axes = plt.subplots(2, 2, figsize=(8, 8))
         axes[0, 0].scatter(order, y, marker="x", s=16, color="black")
@@ -83,43 +103,106 @@ def resid_analysis(data, lags=None, plot=False, headers=False):
         axes[1, 1].set_title("ACF")
         fig.suptitle("Residual analysis")
         fig.tight_layout()
+        fig.std_resid = std_resid_series
         return fig
 
-    return pd.DataFrame(
-        {
-            "metric": [
-                "n",
+    out = pd.DataFrame(
+        [
+            ("n", n, "Count of residual values after dropping blanks."),
+            (
                 "mean",
-                "std",
-                "min",
-                "max",
-                "sum",
-                "slope_vs_order",
-                "intercept_vs_order",
-                "rsq_vs_order",
-                "ljung_box_lags",
-                "ljung_box_stat",
-                "ljung_box_pvalue",
-                "jarque_bera_stat",
-                "jarque_bera_pvalue",
-            ],
-            "value": [
-                n,
                 float(y.mean()),
+                "Ideal residuals center near 0. A large |mean| suggests systematic bias.",
+            ),
+            (
+                "std",
                 float(np.std(y, ddof=1)),
+                "Sample standard deviation (n-1). Larger values mean noisier residuals.",
+            ),
+            (
+                "min",
                 float(y.min()),
+                "Smallest residual. A large negative value can be an outlier.",
+            ),
+            (
+                "max",
                 float(y.max()),
+                "Largest residual. A large positive value can be an outlier.",
+            ),
+            (
+                "sum",
                 float(y.sum()),
+                "Sum of residuals. Near 0 when the mean is near 0.",
+            ),
+            (
+                "slope_vs_order",
                 float(slope),
+                "Linear drift vs observation order. Near 0 means no trend in the residuals.",
+            ),
+            (
+                "intercept_vs_order",
                 float(intercept),
+                "Fitted residual at order 1 of that trend line.",
+            ),
+            (
+                "rsq_vs_order",
                 rsq,
+                "Share of residual variation explained by a straight line vs order. Near 0 is better.",
+            ),
+            (
+                "ljung_box_lags",
                 lag,
+                "Lag count used for Ljung-Box and the ACF plot.",
+            ),
+            (
+                "ljung_box_stat",
                 lb_stat,
+                "Ljung-Box Q statistic. Larger values suggest leftover autocorrelation.",
+            ),
+            (
+                "ljung_box_pvalue",
                 lb_p,
+                "p < 0.05 suggests leftover autocorrelation at the chosen lag.",
+            ),
+            (
+                "jarque_bera_stat",
                 jb_stat,
+                "Jarque-Bera statistic. Larger values suggest residuals are not normal.",
+            ),
+            (
+                "jarque_bera_pvalue",
                 jb_p,
-            ],
-        }
+                "p < 0.05 suggests residuals are not normal.",
+            ),
+            (
+                "durbin_watson",
+                dw_stat,
+                "Near 2: little lag-1 autocorrelation. Toward 0: positive. Toward 4: negative.",
+            ),
+            (
+                "shapiro_stat",
+                sh_stat,
+                "Shapiro-Wilk W. Values near 1 support normality.",
+            ),
+            (
+                "shapiro_pvalue",
+                sh_p,
+                "p > 0.05: normality can be assumed. p < 0.05: residuals are not normal.",
+            ),
+            (
+                "std_resid_max_abs",
+                std_resid_max_abs,
+                "Largest |z-score|. |z| > 2 is unusual; |z| > 3 is extreme. Blank if constant.",
+            ),
+            (
+                "n_std_resid_gt_2",
+                n_std_resid_gt_2,
+                "How many points have |z-score| > 2. Zero is typical; many suggest outliers.",
+            ),
+        ],
+        columns=["metric", "value", "guidance"],
     )
+    object.__setattr__(out, "std_resid", std_resid_series)
+    return out
 
 "resid_analysis(data, lags=None, plot=False, headers=False)"

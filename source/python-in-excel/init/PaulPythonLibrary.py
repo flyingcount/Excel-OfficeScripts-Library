@@ -1,7 +1,9 @@
-# Paul Python in Excel library
+# Paul Python in Excel library (general)
 #
 # Formulas → Initialization → replace the editor contents with this file → Save.
-# This file is a complete Initialization: Excel defaults, then the library functions.
+# General-purpose functions only. Time series → init/TimeSeries.py.
+# Sampling → init/Sampling.py. SPC → init/SPC.py. Do not duplicate those collections here.
+# After Save, call contents() in a PY cell for the public function list.
 #
 # Restore defaults only: paste init/DefaultInitialization.py instead.
 # Add functions to an existing default Initialization: paste from the first def onward.
@@ -20,6 +22,40 @@ warnings.simplefilter('ignore')
 
 excel.set_xl_scalar_conversion(excel.convert_to_scalar)
 excel.set_xl_array_conversion(excel.convert_to_dataframe)
+
+
+def contents():
+    """List general library functions in this Initialization.
+
+    Result spills as function / description / call. A readable description is
+    enough when it already says what the function does. call matches the
+    quoted signature after each def.
+    """
+    return pd.DataFrame(
+        [
+            ("contents", "List library functions", "contents()"),
+            ("xl_df", "Load Excel data, drop empty rows", "xl_df(ref, headers=True)"),
+            ("describe", "Summary statistics", "describe(data, headers=True)"),
+            ("corr", "Pairwise correlation", "corr(data, method='pearson', headers=True)"),
+            ("shapiro", "Shapiro-Wilk", "shapiro(data, metric=None, headers=False)"),
+            ("anderson", "Anderson-Darling", "anderson(data, metric=None, headers=False)"),
+            ("normality_check", "Q-Q plot with Shapiro-Wilk and Anderson-Darling", "normality_check(data, plot=True, headers=False)"),
+            ("qq_norm", "Alias for normality_check", "qq_norm(data, plot=True, headers=False)"),
+            ("cluster_prep", "Scale and one-hot encode for clustering", "cluster_prep(data, headers=True)"),
+            ("outlier_flag", "Flag outliers by IQR, MAD, z-score, STL, or Isolation Forest", "outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)"),
+            ("detect_mixed_data_anomalies", "Flag mixed-table anomaly types (extreme, rare, multivariate, structural, consensus)", "detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, headers=True)"),
+            ("rank_feature_importance", "Rank predictors vs a target (correlation, chi-square, IV)", "rank_feature_importance(data, target, top=10, headers=True)"),
+            ("check_collinearity", "Flag highly correlated numeric columns (r and VIF)", "check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True)"),
+            ("confusion_matrix", "TP/FP/TN/FN counts, or a heatmap", "confusion_matrix(data, actual=None, predicted=None, positive=1, pos_name='Positive', neg_name='Negative', plot=False, headers=True)"),
+            ("classification_metrics", "Accuracy, F1, MCC, and related class metrics", "classification_metrics(data, actual=None, predicted=None, positive=1, beta=1, headers=True)"),
+            ("find_optimal_threshold", "Sweep probability cutoffs for F1 or P/R balance", "find_optimal_threshold(data, actual=None, proba=None, metric='f1', low=0.1, high=0.9, step=0.1, positive=1, headers=True)"),
+            ("lift_table", "Decile cumulative gain and lift from scores", "lift_table(data, actual=None, proba=None, bins=10, positive=1, plot=False, headers=True)"),
+            ("match_transactions", "Exact and approximate transaction matches", "match_transactions(df1, df2, date_col='Date', description_col='Description', value_col='Value', value_tol=0.01, desc_tol=0.8, summary=False, headers=True)"),
+        ],
+        columns=["function", "description", "call"],
+    )
+
+"contents()"
 
 
 def xl_df(ref, headers=True):
@@ -77,276 +113,8 @@ def corr(data, method="pearson", headers=True):
 
 "corr(data, method='pearson', headers=True)"
 
-
-def expsmooth(data, alpha=0.2, headers=False):
-    """Last SES value. Seed is the first numeric observation.
-
-    St = alpha * xt + (1 - alpha) * S(t-1), with S0 = first value.
-    For 10, 12, 14 and alpha 0.2 the result is 11.12 (same as EXPSMOOTH).
-
-    data: column range, ref string, Series, or single-column DataFrame.
-    headers: used only when data is a ref string (default False for a value column).
-    """
-    if isinstance(data, str):
-        data = xl(data, headers=headers)
-    if isinstance(data, pd.DataFrame):
-        numeric = data.select_dtypes(include="number")
-        values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
-    else:
-        values = data
-    series = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna()
-    if series.empty:
-        return float("nan")
-    smooth = float(series.iloc[0])
-    for x in series.iloc[1:]:
-        smooth = alpha * float(x) + (1 - alpha) * smooth
-    return smooth
-
-"expsmooth(data, alpha=0.2, headers=False)"
-
-
-def stl_fit(data, period, dates=None, robust=False, headers=False):
-    """Fit STL. Used by stl (table) and stl_plot (chart)."""
-    from statsmodels.tsa.seasonal import STL
-
-    def to_frame(value):
-        if isinstance(value, str):
-            value = xl(value, headers=headers)
-        if isinstance(value, pd.DataFrame):
-            return value.dropna(how="all")
-        if isinstance(value, pd.Series):
-            return value.to_frame()
-        return pd.DataFrame(value)
-
-    def first_numeric(frame):
-        numeric = frame.select_dtypes(include="number")
-        if numeric.shape[1]:
-            return numeric.iloc[:, 0]
-        return pd.to_numeric(frame.iloc[:, 0], errors="coerce")
-
-    def as_datetime(series):
-        series = pd.Series(series).reset_index(drop=True)
-        if pd.api.types.is_datetime64_any_dtype(series):
-            return pd.to_datetime(series)
-        if pd.api.types.is_numeric_dtype(series):
-            num = pd.to_numeric(series, errors="coerce")
-            if num.notna().mean() > 0.8 and num.dropna().median() > 200:
-                return pd.to_datetime(num, unit="D", origin="1899-12-30")
-            return None
-        parsed = pd.to_datetime(series, errors="coerce")
-        if parsed.notna().mean() > 0.8:
-            return parsed
-        return None
-
-    df = to_frame(data)
-    date_out = None
-    if dates is not None:
-        date_out = to_frame(dates).iloc[:, 0]
-        y = first_numeric(df)
-        parsed = as_datetime(date_out)
-        if parsed is not None:
-            date_out = parsed
-    else:
-        date_col = None
-        for col in df.columns:
-            parsed = as_datetime(df[col])
-            if parsed is not None and (
-                pd.api.types.is_datetime64_any_dtype(df[col])
-                or not pd.api.types.is_numeric_dtype(df[col])
-                or df.select_dtypes(include="number").shape[1] > 1
-            ):
-                date_col = col
-                date_out = parsed
-                break
-        y = first_numeric(df.drop(columns=[date_col])) if date_col is not None else first_numeric(df)
-
-    y = pd.to_numeric(pd.Series(y).reset_index(drop=True), errors="coerce")
-    period = int(pd.Series(period).iloc[0])
-    if date_out is not None:
-        date_out = pd.Series(date_out).reset_index(drop=True)
-        n = min(len(y), len(date_out))
-        y = y.iloc[:n]
-        date_out = date_out.iloc[:n]
-        keep = y.notna() & date_out.notna()
-        y = y[keep]
-        date_out = date_out[keep]
-        series = pd.Series(y.to_numpy(), index=pd.Index(date_out), name="observed")
-    else:
-        y = y.dropna()
-        series = pd.Series(y.to_numpy(), name="observed")
-
-    return STL(series, period=period, robust=bool(robust)).fit()
-
-
-def stl(data, period, dates=None, robust=False, headers=False):
-    """Decompose a series with STL (LOESS). Result spills as a table.
-
-    data: value column, or a date+value range/table.
-    period: observations per season (12 monthly, 7 weekly). Required.
-    dates: optional date column when it is not in data.
-    robust: True down-weights outliers in the LOESS smoothers.
-    headers: first row is headers when data or dates is a ref string.
-
-    Columns: date (if dates were found), observed, trend, seasonal, resid.
-    Additive identity: observed = trend + seasonal + resid.
-    For the four-panel chart, use stl_plot.
-    """
-    fit = stl_fit(data, period, dates=dates, robust=robust, headers=headers)
-    out = pd.DataFrame(
-        {
-            "observed": fit.observed.to_numpy(),
-            "trend": fit.trend.to_numpy(),
-            "seasonal": fit.seasonal.to_numpy(),
-            "resid": fit.resid.to_numpy(),
-        }
-    )
-    idx = fit.observed.index
-    if not isinstance(idx, pd.RangeIndex):
-        out.insert(0, "date", idx)
-    return out.reset_index(drop=True)
-
-"stl(data, period, dates=None, robust=False, headers=False)"
-
-
-def stl_plot(data, period, dates=None, robust=False, weights=False, headers=False):
-    """Four-panel STL chart: observed, trend, seasonal, resid.
-
-    Same inputs as stl. Returns a matplotlib Figure (DecomposeResult.plot).
-    Keep the PY cell as a Python object, not Excel value.
-
-    weights: True adds the robust-LOESS weight panel (use with robust=True).
-    """
-    fit = stl_fit(data, period, dates=dates, robust=robust, headers=headers)
-    return fit.plot(weights=bool(weights))
-
-"stl_plot(data, period, dates=None, robust=False, weights=False, headers=False)"
-
-
-def resid_analysis(data, lags=None, plot=False, headers=False):
-    """Diagnose a residual series.
-
-    data: residual column, stl() result (uses column resid), DataFrame, Series, or xl() result.
-    lags: Ljung-Box / ACF lag count. Default min(10, n-2).
-    plot: False spills a metric/value table; True returns a matplotlib Figure.
-    headers: first row is headers when data is a ref string.
-
-    Table includes n, mean, std, min, max, sum, slope/intercept/R² vs order
-    (same idea as VBA ResidualsAnalysis), Ljung-Box, and Jarque-Bera.
-    Chart: residuals vs order, histogram, QQ, ACF.
-    Need at least 3 numeric values.
-    """
-    import matplotlib.pyplot as plt
-    from scipy import stats
-    from statsmodels.graphics.gofplots import qqplot
-    from statsmodels.graphics.tsaplots import plot_acf
-    from statsmodels.stats.diagnostic import acorr_ljungbox
-
-    if isinstance(data, str):
-        data = xl(data, headers=headers)
-    if isinstance(data, pd.DataFrame):
-        cols = {str(c).strip().lower(): c for c in data.columns}
-        resid_col = next((cols[n] for n in ("resid", "residual", "residuals") if n in cols), None)
-        if resid_col is not None:
-            series = data[resid_col]
-        else:
-            numeric = data.select_dtypes(include="number")
-            series = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
-    elif isinstance(data, pd.Series):
-        series = data
-    else:
-        series = pd.Series(data)
-
-    y = pd.to_numeric(pd.Series(series).squeeze(), errors="coerce").dropna().to_numpy(dtype=float)
-    n = int(y.size)
-    if n < 3:
-        raise ValueError("Need at least 3 residual values.")
-
-    order = np.arange(1, n + 1, dtype=float)
-    slope, intercept = np.polyfit(order, y, 1)
-    fitted = intercept + slope * order
-    ss_res = float(np.sum((y - fitted) ** 2))
-    ss_tot = float(np.sum((y - y.mean()) ** 2))
-    rsq = float("nan") if ss_tot == 0 else 1.0 - ss_res / ss_tot
-
-    max_lag = max(1, n - 2)
-    lag = min(max_lag, 10 if lags is None else int(pd.Series(lags).iloc[0]))
-    lag = max(1, lag)
-
-    try:
-        lb = acorr_ljungbox(y, lags=lag, return_df=True)
-        lb_stat = float(lb["lb_stat"].iloc[-1])
-        lb_p = float(lb["lb_pvalue"].iloc[-1])
-    except (ValueError, np.linalg.LinAlgError):
-        lb_stat = float("nan")
-        lb_p = float("nan")
-
-    try:
-        jb_stat, jb_p = stats.jarque_bera(y)
-        jb_stat, jb_p = float(jb_stat), float(jb_p)
-    except ValueError:
-        jb_stat = float("nan")
-        jb_p = float("nan")
-
-    if plot:
-        fig, axes = plt.subplots(2, 2, figsize=(8, 8))
-        axes[0, 0].scatter(order, y, marker="x", s=16, color="black")
-        axes[0, 0].plot(order, fitted, color="C0", lw=1)
-        axes[0, 0].axhline(0, color="gray", lw=0.8)
-        axes[0, 0].set_title("Residuals vs order")
-        axes[0, 0].set_xlabel("Order")
-        axes[0, 0].set_ylabel("Residuals")
-        axes[0, 1].hist(y, bins="auto", color="C0", edgecolor="white")
-        axes[0, 1].set_title("Histogram")
-        qqplot(y, line="s", ax=axes[1, 0])
-        axes[1, 0].set_title("Normal QQ")
-        plot_acf(y, ax=axes[1, 1], lags=lag)
-        axes[1, 1].set_title("ACF")
-        fig.suptitle("Residual analysis")
-        fig.tight_layout()
-        return fig
-
-    return pd.DataFrame(
-        {
-            "metric": [
-                "n",
-                "mean",
-                "std",
-                "min",
-                "max",
-                "sum",
-                "slope_vs_order",
-                "intercept_vs_order",
-                "rsq_vs_order",
-                "ljung_box_lags",
-                "ljung_box_stat",
-                "ljung_box_pvalue",
-                "jarque_bera_stat",
-                "jarque_bera_pvalue",
-            ],
-            "value": [
-                n,
-                float(y.mean()),
-                float(np.std(y, ddof=1)),
-                float(y.min()),
-                float(y.max()),
-                float(y.sum()),
-                float(slope),
-                float(intercept),
-                rsq,
-                lag,
-                lb_stat,
-                lb_p,
-                jb_stat,
-                jb_p,
-            ],
-        }
-    )
-
-"resid_analysis(data, lags=None, plot=False, headers=False)"
-
-
 def _norm_values(data, headers=False):
-    """First numeric column as a float array. Drops blanks. Need at least 3 values."""
+    """First numeric column as float. Drops blanks. Need at least 3 values."""
     if isinstance(data, str):
         data = xl(data, headers=headers)
     if isinstance(data, pd.DataFrame):
@@ -360,161 +128,99 @@ def _norm_values(data, headers=False):
     return y
 
 
+def _norm_df(rows, notes):
+    return pd.DataFrame({"metric": list(rows), "value": list(rows.values()), "interpretation": notes})
+
+
 def shapiro(data, metric=None, headers=False):
-    """Shapiro-Wilk W and p-value.
-
-    data: column range, ref string, Series, list, or xl() result.
-    metric: omit to spill a metric/value table. "pvalue" or "stat" returns that float.
-    headers: first row is headers when data is a ref string.
-
-    Switch the PY cell to Excel value. Need at least 3 numeric values.
-    If p > 0.05, a normal distribution in the data can be assumed.
-    """
+    """Shapiro-Wilk W and p. metric 'pvalue' or 'stat' for a float; omit for the table."""
     from scipy import stats
 
     y = _norm_values(data, headers)
     try:
-        sh_stat, sh_p = stats.shapiro(y)
-        sh_stat, sh_p = float(sh_stat), float(sh_p)
+        sh_stat, sh_p = (float(x) for x in stats.shapiro(y))
     except ValueError:
         sh_stat, sh_p = float("nan"), float("nan")
-
     rows = {"shapiro_stat": sh_stat, "shapiro_pvalue": sh_p}
     if metric is not None:
         key = str(pd.Series(metric).iloc[0]).strip().lower()
-        aliases = {
-            "stat": "shapiro_stat",
-            "w": "shapiro_stat",
-            "shapiro_stat": "shapiro_stat",
-            "pvalue": "shapiro_pvalue",
-            "p": "shapiro_pvalue",
-            "p_value": "shapiro_pvalue",
-            "shapiro_pvalue": "shapiro_pvalue",
-        }
+        aliases = {"stat": "shapiro_stat", "w": "shapiro_stat", "pvalue": "shapiro_pvalue", "p": "shapiro_pvalue", "p_value": "shapiro_pvalue"}
+        aliases.update({k: k for k in rows})
         if key not in aliases:
             raise ValueError("metric must be 'stat', 'pvalue', or omitted for the table.")
         return float(rows[aliases[key]])
-
-    return pd.DataFrame({"metric": list(rows.keys()), "value": list(rows.values())})
-
-"shapiro(data, metric=None, headers=False)"
+    if not np.isfinite(sh_p):
+        p_note = "Test did not run."
+    elif sh_p > 0.05:
+        p_note = "p > 0.05: a normal distribution in the data can be assumed."
+    else:
+        p_note = "p <= 0.05: data are not consistent with a normal distribution."
+    return _norm_df(rows, ["Shapiro-Wilk W. Values near 1 support normality.", p_note])
 
 
 def anderson(data, metric=None, headers=False):
-    """Anderson-Darling A^2 and critical values for a normal distribution.
-
-    data: column range, ref string, Series, list, or xl() result.
-    metric: omit to spill a metric/value table. "stat" or "critical_5" returns that float.
-    headers: first row is headers when data is a ref string.
-
-    Switch the PY cell to Excel value. Need at least 3 numeric values.
-    A^2 above the 5% critical value suggests the data are not normal.
-    """
+    """Anderson-Darling A^2. metric 'stat' or 'critical_5' for a float; omit for the table."""
     from scipy import stats
 
     y = _norm_values(data, headers)
     rows = {"anderson_stat": float("nan")}
-    aliases = {
-        "stat": "anderson_stat",
-        "a2": "anderson_stat",
-        "anderson_stat": "anderson_stat",
-    }
+    aliases = {"stat": "anderson_stat", "a2": "anderson_stat", "anderson_stat": "anderson_stat"}
     try:
         ad = stats.anderson(y, dist="norm")
         rows["anderson_stat"] = float(ad.statistic)
-        for sig, val in zip(
-            np.asarray(ad.significance_level, dtype=float),
-            np.asarray(ad.critical_values, dtype=float),
-        ):
-            if abs(sig - 2.5) < 1e-9:
-                name = "anderson_critical_2_5"
-                short = "critical_2_5"
-            elif abs(sig - int(sig)) < 1e-9:
-                name = f"anderson_critical_{int(sig)}"
-                short = f"critical_{int(sig)}"
-            else:
-                tag = str(sig).replace(".", "_")
-                name = f"anderson_critical_{tag}"
-                short = f"critical_{tag}"
+        for sig, val in zip(np.asarray(ad.significance_level, dtype=float), np.asarray(ad.critical_values, dtype=float)):
+            tag = "2_5" if abs(sig - 2.5) < 1e-9 else str(int(sig)) if abs(sig - int(sig)) < 1e-9 else str(sig).replace(".", "_")
+            name, short = f"anderson_critical_{tag}", f"critical_{tag}"
             rows[name] = float(val)
-            aliases[short] = name
-            aliases[name] = name
+            aliases[short] = aliases[name] = name
             aliases[str(int(sig)) if abs(sig - int(sig)) < 1e-9 else str(sig)] = name
     except ValueError:
         pass
-
     if metric is not None:
         key = str(pd.Series(metric).iloc[0]).strip().lower()
         if key not in aliases:
-            raise ValueError(
-                "metric must be 'stat', 'critical_5' (or another critical_*), or omitted for the table."
-            )
+            raise ValueError("metric must be 'stat', 'critical_5', or omitted for the table.")
         return float(rows[aliases[key]])
-
-    return pd.DataFrame({"metric": list(rows.keys()), "value": list(rows.values())})
-
-"anderson(data, metric=None, headers=False)"
+    ad_stat, crit_5 = rows["anderson_stat"], rows.get("anderson_critical_5", float("nan"))
+    if not np.isfinite(ad_stat) or not np.isfinite(crit_5):
+        ad_note = "If A^2 is less than the 5% critical value, the data is normal. If not, it is not normal."
+    elif ad_stat > crit_5:
+        ad_note = "A^2 is not less than the 5% critical value, so the data is not normal."
+    else:
+        ad_note = "A^2 is less than the 5% critical value, so the data is normal."
+    crit_note = "If A^2 is less than this value, the data is normal. If not, it is not normal."
+    notes = [ad_note if n == "anderson_stat" else crit_note if n.startswith("anderson_critical_") else "" for n in rows]
+    return _norm_df(rows, notes)
 
 
 def normality_check(data, plot=True, headers=False):
-    """Q-Q plot against the normal distribution, with Shapiro-Wilk and Anderson-Darling.
-
-    data: column range, ref string, Series, list, or xl() result.
-    plot: True (default) returns a matplotlib Figure; False spills a metric/value table.
-    headers: first row is headers when data is a ref string.
-
-    Chart: leave the PY cell as a Python object. The figure is annotated with both
-    tests, and the same values are attributes for other PY cells, for example
-    B2.shapiro_pvalue, B2.anderson_stat, B2.results (if the chart is in B2).
-
-    For a single number in another cell, call shapiro(data, 'pvalue') or
-    anderson(data, 'stat') and switch that cell to Excel value.
-    Need at least 3 numeric values.
-    """
-    import matplotlib.pyplot as plt
+    """Q-Q plot with Shapiro-Wilk and Anderson-Darling. plot=False spills a table."""
     from scipy import stats
 
     y = _norm_values(data, headers)
-    n = int(y.size)
-    sh_stat = shapiro(y, "stat")
-    sh_p = shapiro(y, "pvalue")
-    ad_stat = anderson(y, "stat")
-    crit_5 = anderson(y, "critical_5")
-
-    table = pd.DataFrame(
-        {
-            "metric": [
-                "n",
-                "shapiro_stat",
-                "shapiro_pvalue",
-                "anderson_stat",
-                "anderson_critical_5",
-            ],
-            "value": [
-                n,
-                sh_stat,
-                sh_p,
-                ad_stat,
-                crit_5,
-            ],
-        }
+    sh, ad = shapiro(y), anderson(y)
+    table = pd.concat(
+        [
+            pd.DataFrame({"metric": ["n"], "value": [int(y.size)], "interpretation": ["Count after dropping blanks."]}),
+            sh,
+            ad.loc[ad["metric"].isin(["anderson_stat", "anderson_critical_5"])],
+        ],
+        ignore_index=True,
     )
-
     if not plot:
         return table
-
+    idx = table.set_index("metric")["value"]
+    sh_stat, sh_p = float(idx["shapiro_stat"]), float(idx["shapiro_pvalue"])
+    ad_stat, crit_5 = float(idx["anderson_stat"]), float(idx["anderson_critical_5"])
     fig, ax = plt.subplots(figsize=(6, 5))
     stats.probplot(y, dist="norm", plot=ax)
     ax.set_title("Q-Q plot")
-    note = (
-        f"Shapiro-Wilk  W = {sh_stat:.3f}  p = {sh_p:.3f}\n"
-        f"(If p > 0.05, normal distribution in the data can be assumed)\n"
-        f"Anderson-Darling  A^2 = {ad_stat:.3f}  (5% crit. {crit_5:.3f})"
-    )
     ax.text(
         0.02,
         0.98,
-        note,
+        f"Shapiro-Wilk  W = {sh_stat:.3f}  p = {sh_p:.3f}\n"
+        f"(If p > 0.05, normal distribution in the data can be assumed)\n"
+        f"Anderson-Darling  A^2 = {ad_stat:.3f}  (5% crit. {crit_5:.3f})",
         transform=ax.transAxes,
         va="top",
         ha="left",
@@ -532,157 +238,1267 @@ def normality_check(data, plot=True, headers=False):
 qq_norm = normality_check
 
 """normality_check(data, plot=True, headers=False)
-qq_norm(data, plot=True, headers=False)
-shapiro(data)
-anderson(data)"""
+ qq_norm(data, plot=True, headers=False)
+ shapiro(data, metric=None, headers=False)
+ anderson(data, metric=None, headers=False)"""
 
 
-def arima_order(data, p_max=3, d_max=2, q_max=3, headers=False):
-    """Choose ARIMA(p, d, q) by lowest AIC over p=0..p_max, d=0..d_max, q=0..q_max.
+def cluster_prep(data, headers=True):
+    """Standard-scale numbers and one-hot encode categories for clustering.
 
-    data: value column, ref string, Series, or DataFrame (first numeric column).
-    Defaults match a p<4, d<3, q<4 search. Failed fits are skipped.
-    Result spills as one row with columns p, d, q.
+    Auto-detects column types so any mixed table works. Drops empty rows and
+    columns, then rows with remaining blanks. Datetimes become numeric days,
+    bools become 0/1, and object columns that are mostly numbers are treated
+    as numeric. Constant or all-unique text columns (IDs) are skipped.
+
+    data: ref string, DataFrame, Series, or xl() result.
+    headers: used only when data is a ref string.
     """
-    import warnings
-    from statsmodels.tsa.arima.model import ARIMA
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+    def as_days(s):
+        parsed = pd.to_datetime(s, utc=True, errors="coerce")
+        return (parsed.astype("int64") / 8.64e13).where(parsed.notna())
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        df = data
+    elif isinstance(data, pd.Series):
+        df = data.to_frame()
+    else:
+        df = pd.DataFrame(data)
+    df = df.dropna(how="all").dropna(axis=1, how="all").replace("", np.nan).copy()
+    if df.empty:
+        raise ValueError("No data after dropping empty rows and columns.")
+
+    num_cols, cat_cols = [], []
+    for c in list(df.columns):
+        s = df[c]
+        if pd.api.types.is_bool_dtype(s):
+            df[c] = s.astype("float64")
+            num_cols.append(c)
+            continue
+        if pd.api.types.is_timedelta64_dtype(s):
+            df[c] = s.dt.total_seconds()
+            num_cols.append(c)
+            continue
+        if pd.api.types.is_datetime64_any_dtype(s):
+            df[c] = as_days(s)
+            num_cols.append(c)
+            continue
+        if pd.api.types.is_numeric_dtype(s):
+            num_cols.append(c)
+            continue
+        conv = pd.to_numeric(s, errors="coerce")
+        if s.notna().any() and float(conv.notna().mean()) >= 0.8:
+            df[c] = conv
+            num_cols.append(c)
+            continue
+        parsed = pd.to_datetime(s, utc=True, errors="coerce")
+        if s.notna().any() and float(parsed.notna().mean()) >= 0.8:
+            df[c] = as_days(s)
+            num_cols.append(c)
+            continue
+        n_ok = int(s.notna().sum())
+        n_unq = int(s.nunique(dropna=True))
+        if n_unq <= 1 or n_unq >= n_ok:
+            continue
+        cat_cols.append(c)
+
+    use = num_cols + cat_cols
+    if not use:
+        raise ValueError("No numeric or categorical columns to encode.")
+    df = df.loc[:, use].dropna()
+    if df.empty:
+        raise ValueError("No rows left after dropping blanks.")
+    if cat_cols:
+        df[cat_cols] = df[cat_cols].astype(str)
+
+    try:
+        ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+    except TypeError:
+        ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    steps = []
+    if num_cols:
+        steps.append(("num", StandardScaler(), num_cols))
+    if cat_cols:
+        steps.append(("cat", ohe, cat_cols))
+    pre = ColumnTransformer(steps)
+    arr = pre.fit_transform(df)
+    if hasattr(arr, "toarray"):
+        arr = arr.toarray()
+    names = list(num_cols)
+    if cat_cols:
+        enc = pre.named_transformers_["cat"]
+        try:
+            names = names + list(enc.get_feature_names_out(cat_cols))
+        except AttributeError:
+            names = names + list(enc.get_feature_names(cat_cols))
+    return pd.DataFrame(np.asarray(arr), columns=names)
+
+"cluster_prep(data, headers=True)"
+
+
+def outlier_flag(data, method="iqr", threshold=1.5, headers=False, period=12):
+    """Flag outlier rows. Spills value, is_outlier, score, lower_bound, upper_bound.
+
+    data: value column, ref string, DataFrame, Series, or list.
+    method: iqr (default), mad, zscore, stl, or iforest.
+    threshold: IQR/MAD fence (default 1.5); |z| cutoff for zscore/stl (use 3);
+        iforest contamination in (0, 0.5), else 'auto'.
+    period: STL seasonal length. Default 12. Need 2 full seasons.
+    headers: first row is headers when data is a ref string.
+
+    stl: |residual z| after robust STL; bounds are trend+seasonal +/- t*sd.
+    iforest: sklearn IsolationForest; score is -score_samples (higher = more
+        anomalous); bounds are blank. random_state=42.
+    Constant spread flags nothing. Blanks stay blank.
+    """
     if isinstance(data, str):
         data = xl(data, headers=headers)
     if isinstance(data, pd.DataFrame):
         numeric = data.select_dtypes(include="number")
         values = numeric.iloc[:, 0] if numeric.shape[1] else data.iloc[:, 0]
-    else:
+    elif isinstance(data, pd.Series):
         values = data
-    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").dropna()
-    p_max = int(pd.Series(p_max).iloc[0])
-    d_max = int(pd.Series(d_max).iloc[0])
-    q_max = int(pd.Series(q_max).iloc[0])
+    else:
+        values = pd.Series(data)
 
-    best_aic = np.inf
-    best_order = None
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore")
-        for d in range(d_max + 1):
-            for p in range(p_max + 1):
-                for q in range(q_max + 1):
-                    try:
-                        fit = ARIMA(y, order=(p, d, q)).fit()
-                        if np.isfinite(fit.aic) and fit.aic < best_aic:
-                            best_aic = fit.aic
-                            best_order = (p, d, q)
-                    except Exception:
-                        pass
+    y = pd.to_numeric(pd.Series(values).squeeze(), errors="coerce").astype("float64")
+    y = y.reset_index(drop=True)
+    t = abs(float(pd.Series(threshold).iloc[0]))
+    m = str(pd.Series(method).iloc[0]).strip().lower().replace("_", "-")
+    period = int(pd.Series(period).iloc[0])
+    score = pd.Series(np.nan, index=y.index, dtype="float64")
+    lo = pd.Series(np.nan, index=y.index, dtype="float64")
+    hi = lo.copy()
+    outliers = pd.Series(False, index=y.index)
 
-    if best_order is None:
-        return pd.DataFrame(columns=["p", "d", "q"])
-    return pd.DataFrame([best_order], columns=["p", "d", "q"])
+    if m == "iqr":
+        q1, q3 = float(y.quantile(0.25)), float(y.quantile(0.75))
+        iqr = q3 - q1
+        lo[:], hi[:] = q1 - t * iqr, q3 + t * iqr
+        score = y.copy()
+        if iqr != 0:
+            outliers = ((y < lo) | (y > hi)).fillna(False)
+    elif m == "mad":
+        med = float(y.median(skipna=True))
+        abs_dev = (y - med).abs()
+        mad_s = float(abs_dev.median(skipna=True)) * 1.4826
+        if mad_s != 0 and np.isfinite(mad_s):
+            score = abs_dev / mad_s
+            outliers = (score > t).fillna(False)
+            lo[:], hi[:] = med - t * mad_s, med + t * mad_s
+    elif m == "zscore":
+        mu = float(y.mean(skipna=True))
+        sigma = float(y.std(ddof=0, skipna=True))
+        if sigma != 0 and np.isfinite(sigma):
+            score = ((y - mu) / sigma).abs()
+            outliers = (score > t).fillna(False)
+            lo[:], hi[:] = mu - t * sigma, mu + t * sigma
+    elif m in ("stl", "stl-resid"):
+        from statsmodels.tsa.seasonal import STL
+        if period < 2:
+            raise ValueError("period must be at least 2 for STL.")
+        ok = y.notna()
+        if int(ok.sum()) < period * 2:
+            raise ValueError("Need at least 2 full seasons for STL.")
+        fit = STL(y[ok].to_numpy(dtype="float64"), period=period, robust=True).fit()
+        r = pd.Series(fit.resid, index=y.index[ok])
+        mu, sd = float(r.mean()), float(r.std(ddof=0))
+        exp = y[ok] - r
+        lo.loc[ok], hi.loc[ok] = exp, exp
+        if sd != 0 and np.isfinite(sd):
+            z = (r - mu) / sd
+            score.loc[ok] = z.abs()
+            outliers.loc[ok] = z.abs() > t
+            lo.loc[ok], hi.loc[ok] = exp - t * sd, exp + t * sd
+        else:
+            score.loc[ok] = 0.0
+    elif m in ("iforest", "isolation-forest", "iso"):
+        from sklearn.ensemble import IsolationForest
+        ok = y.notna()
+        X = y[ok].to_numpy(dtype="float64").reshape(-1, 1)
+        if X.shape[0] < 2:
+            raise ValueError("Need at least 2 observations for Isolation Forest.")
+        contam = t if 0 < t < 0.5 else "auto"
+        clf = IsolationForest(contamination=contam, random_state=42)
+        clf.fit(X)
+        score.loc[ok] = -clf.score_samples(X)
+        outliers.loc[ok] = clf.predict(X) == -1
+    else:
+        raise ValueError(
+            "method '%s' not supported. Use 'iqr', 'mad', 'zscore', 'stl', or 'iforest'." % m)
 
-"arima_order(data, p_max=3, d_max=2, q_max=3, headers=False)"
+    out = pd.DataFrame({
+        "value": y,
+        "is_outlier": outliers.astype("float64"),
+        "score": score,
+        "lower_bound": lo,
+        "upper_bound": hi,
+    })
+    blank = y.isna().to_numpy()
+    if blank.any():
+        out.loc[blank, ["is_outlier", "score", "lower_bound", "upper_bound"]] = np.nan
+    return out
+
+"outlier_flag(data, method='iqr', threshold=1.5, headers=False, period=12)"
 
 
-def zscore_replace(data, z=3, dates=None, headers=False):
-    """Replace points with |z-score| > z by interpolating neighboring values.
+def detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, headers=True):
+    """Flag mixed numeric/categorical rows as anomalies.
 
-    z-scores use the series mean and population standard deviation (ddof=0).
-    Interior outliers are filled with linear interpolation (time-based when
-    dates are available). Leading or trailing outliers use the nearest
-    remaining value. Original blanks stay blank.
+    Mahalanobis on numeric columns (needs 2+); Isolation Forest on scaled
+    numbers plus one-hot categories. Also flags univariate |z|>3, rare
+    categories, and within-group numeric extremes.
 
-    data: value column, date+value range/table, Series, or list.
-    z: absolute z-score cutoff (default 3).
-    dates: optional date column when it is not in data.
-    headers: first row is headers when data or dates is a ref string.
+    data: ref string, DataFrame, Series, or xl() result.
+    contamination: expected anomaly share (default 0.05).
+    max_categories: skip text columns with more unique values (default 15).
+    headers: first row is headers when data is a ref string.
 
-    Result is a Series named value, same length as the input values.
+    Result: md_distance, md_p_value, if_score, flag_md, flag_if,
+    flag_extreme, flag_rare, anomaly_class.
     """
+    from scipy.stats import chi2
+    from sklearn.ensemble import IsolationForest
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        df = data.copy()
+    elif isinstance(data, pd.Series):
+        df = data.to_frame()
+    else:
+        df = pd.DataFrame(data)
+    df = df.reset_index(drop=True)
+    orig = df.copy()
+    contam = float(pd.Series(contamination).iloc[0])
+    max_cat = int(pd.Series(max_categories).iloc[0])
+    if not 0 < contam <= 0.5:
+        raise ValueError("contamination must be in (0, 0.5].")
+
+    for c in list(df.columns):
+        if pd.api.types.is_numeric_dtype(df[c]):
+            continue
+        conv = pd.to_numeric(df[c], errors="coerce")
+        if df[c].notna().any() and float(conv.notna().mean()) >= 0.8:
+            df[c] = conv
+
+    num_cols = df.select_dtypes(include="number").columns.tolist()
+    cat_cols = []
+    n_rows = len(df)
+    for c in df.select_dtypes(include=["object", "category", "string"]).columns:
+        n_unq = int(df[c].nunique(dropna=True))
+        n_ok = int(df[c].notna().sum())
+        if 1 < n_unq <= max_cat and n_unq < max(n_ok, 2):
+            cat_cols.append(c)
+    if not num_cols and not cat_cols:
+        raise ValueError("No numeric or categorical columns to process.")
+
+    work = df.copy()
+    keep_num = []
+    for c in num_cols:
+        s = pd.to_numeric(work[c], errors="coerce")
+        med = s.median()
+        s = s.fillna(med)
+        if s.notna().any():
+            work[c] = s
+            keep_num.append(c)
+    num_cols = keep_num
+    for c in cat_cols:
+        work[c] = work[c].fillna("Missing").astype(str)
+    if not num_cols and not cat_cols:
+        raise ValueError("No numeric or categorical columns to process.")
+    if n_rows < 2:
+        raise ValueError("Need at least 2 rows for Isolation Forest.")
+
+    md_dist = np.zeros(n_rows, dtype="float64")
+    p_val = np.ones(n_rows, dtype="float64")
+    flag_md = np.zeros(n_rows, dtype=bool)
+    if len(num_cols) >= 2:
+        x = work[num_cols].to_numpy(dtype="float64")
+        mean = x.mean(axis=0)
+        inv = np.linalg.pinv(np.cov(x, rowvar=False))
+        diff = x - mean
+        md2 = np.einsum("ij,ij->i", diff @ inv, diff)
+        md_dist = np.sqrt(np.clip(md2, 0, None))
+        k = len(num_cols)
+        p_val = 1 - chi2.cdf(md2, df=k)
+        flag_md = md2 > chi2.ppf(1 - contam, df=k)
+
+    flag_ext = np.zeros(n_rows, dtype=bool)
+    if num_cols:
+        x = work[num_cols].to_numpy(dtype="float64")
+        sd = x.std(axis=0, ddof=0)
+        sd = np.where(sd == 0, np.nan, sd)
+        zmax = np.nanmax(np.abs((x - x.mean(axis=0)) / sd), axis=1)
+        flag_ext = np.where(np.isnan(zmax), False, zmax > 3)
+
+    flag_rare = np.zeros(n_rows, dtype=bool)
+    for c in cat_cols:
+        freq = work[c].map(work[c].value_counts(normalize=True))
+        flag_rare |= (freq <= contam).to_numpy()
+
+    flag_combo = np.zeros(n_rows, dtype=bool)
+    if cat_cols and num_cols:
+        for c in cat_cols:
+            n_g = work.groupby(c)[num_cols[0]].transform("size")
+            for nc in num_cols:
+                g = work.groupby(c)[nc]
+                z = (work[nc] - g.transform("mean")) / g.transform(
+                    lambda s: s.std(ddof=0)).replace(0, np.nan)
+                flag_combo |= (
+                    (n_g >= 4) & (n_g < n_rows) & z.abs().gt(3)
+                ).fillna(False).to_numpy()
+    flag_combo &= ~np.asarray(flag_ext, dtype=bool)
+
+    steps = []
+    if num_cols:
+        steps.append(("num", StandardScaler(), num_cols))
+    if cat_cols:
+        try:
+            ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+        except TypeError:
+            ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        steps.append(("cat", ohe, cat_cols))
+    mat = ColumnTransformer(steps, remainder="drop").fit_transform(work)
+    if hasattr(mat, "toarray"):
+        mat = mat.toarray()
+    iso = IsolationForest(contamination=contam, random_state=42)
+    iso.fit(mat)
+    if_score = iso.decision_function(mat)
+    flag_if = iso.predict(mat) == -1
+
+    num_sig = flag_ext | flag_md
+    cat_sig = flag_rare | flag_combo
+    out = orig.copy()
+    out["md_distance"] = md_dist
+    out["md_p_value"] = p_val
+    out["if_score"] = if_score
+    out["flag_md"] = flag_md.astype("float64")
+    out["flag_if"] = flag_if.astype("float64")
+    out["flag_extreme"] = np.asarray(flag_ext, dtype="float64")
+    out["flag_rare"] = np.asarray(flag_rare, dtype="float64")
+    out["anomaly_class"] = np.select(
+        [num_sig & cat_sig, flag_ext, flag_md, flag_rare,
+         flag_combo | flag_if],
+        ["Consensus Anomaly", "Extreme Value (Numeric)",
+         "Multivariate Outlier (Numeric)", "Rare Category (Categorical)",
+         "Inconsistent Structural Combo"],
+        default="Normal",
+    )
+    return out
+
+"detect_mixed_data_anomalies(data, contamination=0.05, max_categories=15, headers=True)"
+
+
+def rank_feature_importance(data, target, top=10, headers=True):
+    """Rank table columns as drivers of a target.
+
+    Numeric vs binary: |point-biserial r|. Categorical: Cramer's V (chi-square).
+    Binary targets also get Information Value (numeric features are quantile
+    binned). Other targets use |Pearson r| or eta. Ranked by score (higher
+    = stronger). Not a full ML model.
+
+    data: ref string, DataFrame, Series, or xl() result.
+    target: column name, range ref, or Series/column of y.
+    top: rows to return (default 10). 0 returns every scored feature.
+    headers: first row is headers when data or target is a ref string.
+    """
+    from scipy.stats import pointbiserialr, pearsonr, chi2_contingency, f_oneway
+
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        df = data.copy()
+    elif isinstance(data, pd.Series):
+        df = data.to_frame()
+    else:
+        df = pd.DataFrame(data)
+    df = df.reset_index(drop=True)
+    if df.empty:
+        raise ValueError("No data.")
+    top = int(pd.Series(top).iloc[0])
+
+    def find_col(name):
+        key = str(name).strip()
+        lookup = {str(c).strip().lower(): c for c in df.columns}
+        if key.lower() in lookup:
+            return lookup[key.lower()]
+        return None
+
+    tcol = None
+    if isinstance(target, pd.DataFrame):
+        y0 = target.iloc[:, 0]
+        df["_target"] = pd.Series(y0).reset_index(drop=True)
+        tcol = "_target"
+    elif isinstance(target, pd.Series) and int(target.size) > 1:
+        df["_target"] = target.reset_index(drop=True)
+        tcol = "_target"
+    else:
+        tgt = str(pd.Series(target).iloc[0]).strip()
+        hit = find_col(tgt)
+        if hit is not None:
+            tcol = hit
+        else:
+            raw = xl(tgt, headers=headers)
+            if isinstance(raw, pd.DataFrame):
+                raw = raw.iloc[:, 0]
+            df["_target"] = pd.Series(raw).reset_index(drop=True)
+            tcol = "_target"
+    n0 = min(len(df), int(pd.Series(df[tcol]).size))
+    df = df.iloc[:n0].copy()
+    df[tcol] = df[tcol].replace("", np.nan)
+    df = df.dropna(subset=[tcol]).reset_index(drop=True)
+    if len(df) < 3:
+        raise ValueError("Need at least 3 rows with a target.")
+
+    y_raw = df[tcol]
+    y_num = pd.to_numeric(y_raw, errors="coerce")
+    n_lev = int(y_raw.nunique(dropna=True))
+    y_is_num = float(y_num.notna().mean()) >= 0.8
+    binary = n_lev == 2
+    if binary:
+        codes = pd.Categorical(y_raw).codes.astype("float64")
+        y_bin = pd.Series(codes, index=df.index)
+        y_cont = y_bin
+        y_cat = y_raw.astype(str)
+    elif y_is_num and n_lev > 12:
+        y_cont = y_num
+        y_cat = None
+        y_bin = None
+    else:
+        y_cont = None
+        y_cat = y_raw.astype(str)
+        y_bin = None
+
+    def iv_of(x, yb):
+        tab = pd.crosstab(x, yb)
+        if tab.shape[1] != 2 or tab.shape[0] < 2:
+            return np.nan
+        a, b = tab.columns[0], tab.columns[1]
+        n_a, n_b = float(tab[a].sum()), float(tab[b].sum())
+        if n_a == 0 or n_b == 0:
+            return np.nan
+        k = float(len(tab))
+        p0 = (tab[a] + 0.5) / (n_a + 0.5 * k)
+        p1 = (tab[b] + 0.5) / (n_b + 0.5 * k)
+        return float(((p1 - p0) * np.log(p1 / p0)).sum())
+
+    def cramer(a, b):
+        tab = pd.crosstab(a, b)
+        if tab.shape[0] < 2 or tab.shape[1] < 2:
+            return np.nan, np.nan
+        chi, p, _, _ = chi2_contingency(tab, correction=False)
+        k = min(tab.shape[0] - 1, tab.shape[1] - 1)
+        n = float(tab.to_numpy().sum())
+        v = 0.0 if k <= 0 or n == 0 else float(np.sqrt(chi / (n * k)))
+        return v, float(p)
+
+    def eta_of(groups):
+        groups = [g for g in groups if len(g) >= 2]
+        if len(groups) < 2:
+            return np.nan, np.nan
+        _, p = f_oneway(*groups)
+        arr = np.concatenate(groups)
+        grand = float(arr.mean())
+        sst = float(np.sum((arr - grand) ** 2))
+        ssb = sum(len(g) * (float(g.mean()) - grand) ** 2 for g in groups)
+        e = 0.0 if sst == 0 else float(np.sqrt(ssb / sst))
+        return e, float(p)
+
+    rows = []
+    for c in df.columns:
+        if c == tcol:
+            continue
+        s = df[c].replace("", np.nan)
+        if pd.api.types.is_datetime64_any_dtype(s):
+            continue
+        is_num = pd.api.types.is_numeric_dtype(s)
+        if not is_num:
+            conv = pd.to_numeric(s, errors="coerce")
+            if s.notna().any() and float(conv.notna().mean()) >= 0.8:
+                s, is_num = conv, True
+        ok = s.notna()
+        if int(ok.sum()) < 3:
+            continue
+        n_unq = int(s[ok].nunique())
+        if n_unq < 2:
+            continue
+        if (not is_num) and n_unq >= int(ok.sum()):
+            continue
+        ftype = "numeric" if is_num else "categorical"
+        score = pval = iv = np.nan
+        method = ""
+        if is_num:
+            x = pd.to_numeric(s, errors="coerce")
+            m = x.notna()
+            if binary:
+                xb, yb = x[m], y_bin[m]
+                if int(yb.nunique()) < 2:
+                    continue
+                r, pval = pointbiserialr(yb.to_numpy(), xb.to_numpy())
+                score, method = abs(float(r)), "point-biserial"
+                try:
+                    bins = pd.qcut(xb, q=min(10, int(xb.nunique())),
+                                   duplicates="drop")
+                    iv = iv_of(bins, yb)
+                except (ValueError, TypeError):
+                    iv = np.nan
+            elif y_cont is not None:
+                yc = y_cont[m]
+                keep = yc.notna()
+                if int(keep.sum()) < 3:
+                    continue
+                r, pval = pearsonr(x[m][keep].to_numpy(),
+                                   yc[keep].to_numpy())
+                score, method = abs(float(r)), "pearson"
+            else:
+                groups = [x[m & (y_cat == lev)].dropna().to_numpy()
+                          for lev in y_cat[m].unique()]
+                score, pval = eta_of(groups)
+                method = "eta"
+        else:
+            x = s.astype(str)
+            if binary:
+                score, pval = cramer(x, y_cat)
+                method = "chi-square"
+                iv = iv_of(x, y_bin)
+            elif y_cat is not None:
+                score, pval = cramer(x, y_cat)
+                method = "chi-square"
+            else:
+                yc = y_cont
+                m = s.notna() & yc.notna()
+                groups = [yc[m & (x == lev)].dropna().to_numpy()
+                          for lev in x[m].unique()]
+                score, pval = eta_of(groups)
+                method = "eta"
+        if not np.isfinite(score):
+            continue
+        if score < 0.1:
+            strength = "weak"
+        elif score < 0.3:
+            strength = "modest"
+        elif score < 0.5:
+            strength = "moderate"
+        else:
+            strength = "strong"
+        rows.append((c, ftype, method, float(score),
+                     float(pval) if np.isfinite(pval) else np.nan,
+                     float(iv) if np.isfinite(iv) else np.nan, strength))
+    if not rows:
+        raise ValueError("No scorable features.")
+    out = pd.DataFrame(rows, columns=["feature", "type", "method", "score",
+                                      "p_value", "iv", "strength"])
+    out = out.sort_values(["score", "feature"], ascending=[False, True])
+    if top > 0:
+        out = out.head(top)
+    out.insert(0, "rank", np.arange(1, len(out) + 1, dtype="float64"))
+    return out.reset_index(drop=True)
+
+"rank_feature_importance(data, target, top=10, headers=True)"
+
+
+def check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True):
+    """Highlight redundant numeric columns via Pearson r and VIF.
+
+    One row per numeric feature: strongest partner (|r|), count of pairs
+    above threshold, and variance inflation factor. flag is 1 if |r| >
+    threshold or VIF > vif_threshold. Not a regression model.
+
+    data: ref string, DataFrame, Series, or xl() result.
+    threshold: |r| cutoff (default 0.8). Pair must be strictly greater.
+    vif_threshold: VIF cutoff (default 5).
+    headers: first row is headers when data is a ref string.
+    """
+    if isinstance(data, str):
+        data = xl(data, headers=headers)
+    if isinstance(data, pd.DataFrame):
+        df = data.copy()
+    elif isinstance(data, pd.Series):
+        df = data.to_frame()
+    else:
+        df = pd.DataFrame(data)
+    df = df.dropna(how="all").dropna(axis=1, how="all")
+    if df.empty:
+        raise ValueError("No data.")
+    thr = float(pd.Series(threshold).iloc[0])
+    vif_thr = float(pd.Series(vif_threshold).iloc[0])
+    if not 0 < thr <= 1:
+        raise ValueError("threshold must be in (0, 1].")
+    if vif_thr <= 0:
+        raise ValueError("vif_threshold must be > 0.")
+
+    keep = []
+    for c in list(df.columns):
+        s = df[c].replace("", np.nan)
+        if pd.api.types.is_datetime64_any_dtype(s):
+            continue
+        if pd.api.types.is_bool_dtype(s):
+            df[c] = s.astype("float64")
+            keep.append(c)
+            continue
+        if pd.api.types.is_numeric_dtype(s):
+            df[c] = pd.to_numeric(s, errors="coerce")
+            keep.append(c)
+            continue
+        conv = pd.to_numeric(s, errors="coerce")
+        if s.notna().any() and float(conv.notna().mean()) >= 0.8:
+            df[c] = conv
+            keep.append(c)
+    num = df[keep].copy() if keep else df.iloc[:, 0:0]
+    drop = [c for c in num.columns if float(num[c].std(ddof=0) or 0) == 0]
+    num = num.drop(columns=drop)
+    if num.shape[1] < 2:
+        raise ValueError("Need at least 2 numeric columns.")
+    complete = num.dropna()
+    if len(complete) < 3:
+        raise ValueError("Need at least 3 complete numeric rows.")
+
+    cmat = num.corr()
+    x = complete.to_numpy(dtype="float64")
+    n, p = x.shape
+    vifs = np.empty(p)
+    for j in range(p):
+        y = x[:, j]
+        z = np.column_stack([np.ones(n), np.delete(x, j, axis=1)])
+        beta, *_ = np.linalg.lstsq(z, y, rcond=None)
+        yhat = z @ beta
+        ss_res = float(np.sum((y - yhat) ** 2))
+        ss_tot = float(np.sum((y - y.mean()) ** 2))
+        if ss_tot == 0:
+            vifs[j] = np.nan
+        elif ss_res <= 1e-12 * ss_tot:
+            vifs[j] = np.inf
+        else:
+            vifs[j] = 1.0 / (1.0 - ss_res / ss_tot)
+
+    names = list(complete.columns)
+    rows = []
+    for i, col in enumerate(names):
+        others = cmat[col].drop(labels=[col])
+        k = others.abs().idxmax()
+        r = float(others.loc[k])
+        n_high = float((others.abs() > thr).sum())
+        vif = float(vifs[i])
+        hi_r = bool(np.isfinite(r) and abs(r) > thr)
+        hi_v = bool(np.isfinite(vif) and vif > vif_thr) or (
+            not np.isfinite(vif) and not np.isnan(vif))
+        rows.append((col, vif, r, str(k), n_high,
+                     1.0 if hi_r else 0.0,
+                     1.0 if hi_v else 0.0,
+                     1.0 if (hi_r or hi_v) else 0.0))
+    out = pd.DataFrame(rows, columns=["feature", "vif", "max_r", "with",
+                                      "n_high", "flag_corr", "flag_vif",
+                                      "flag"])
+    return out.sort_values(["flag", "vif"], ascending=[False, False]).reset_index(
+        drop=True)
+
+"check_collinearity(data, threshold=0.8, vif_threshold=5, headers=True)"
+
+
+def confusion_matrix(data, actual=None, predicted=None, positive=1,
+                     pos_name="Positive", neg_name="Negative",
+                     plot=False, headers=True):
+    """Confusion-matrix counts with business labels.
+
+    data: table/range, or actual labels if predicted is a Series/range.
+    actual, predicted: column names, ranges, or Series. Default: first two
+        columns of data.
+    positive: value treated as the positive class (default 1).
+    pos_name, neg_name: words in the meaning column (e.g. 'Churn').
+    plot: False (default) spills a table. True returns a 2x2 heatmap.
+        Keep that PY cell as a Python object.
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and predicted columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    p = pd.Series(col(frame, predicted, 1)).reset_index(drop=True)
+    n0 = min(len(a), len(p))
+    a, p = a.iloc[:n0], p.iloc[:n0]
+    a = a.replace("", np.nan)
+    p = p.replace("", np.nan)
+    keep = a.notna() & p.notna()
+    a, p = a[keep], p[keep]
+    if len(a) < 1:
+        raise ValueError("Need at least 1 row with actual and predicted.")
+    pos = pd.Series(positive).iloc[0]
+    pos_name = str(pd.Series(pos_name).iloc[0])
+    neg_name = str(pd.Series(neg_name).iloc[0])
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    yt, yp = is_pos(a, pos), is_pos(p, pos)
+    tp = float((yt & yp).sum())
+    fp = float((~yt & yp).sum())
+    fn = float((yt & ~yp).sum())
+    tn = float((~yt & ~yp).sum())
+    if plot:
+        mat = np.array([[tp, fn], [fp, tn]])
+        labs = [pos_name, neg_name]
+        fig, ax = plt.subplots()
+        sns.heatmap(
+            mat, annot=True, fmt=".0f", cmap="Blues", cbar=False,
+            xticklabels=labs, yticklabels=labs, ax=ax, square=True,
+        )
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+        ax.set_title("Confusion matrix")
+        fig.tight_layout()
+        return fig
+    return pd.DataFrame(
+        [
+            ("true_positive", tp,
+             "Actual %s and Predicted %s" % (pos_name, pos_name)),
+            ("false_positive", fp,
+             "Actual %s and Predicted %s" % (neg_name, pos_name)),
+            ("false_negative", fn,
+             "Actual %s and Predicted %s" % (pos_name, neg_name)),
+            ("true_negative", tn,
+             "Actual %s and Predicted %s" % (neg_name, neg_name)),
+        ],
+        columns=["metric", "count", "meaning"],
+    )
+
+"confusion_matrix(data, actual=None, predicted=None, positive=1, pos_name='Positive', neg_name='Negative', plot=False, headers=True)"
+
+
+def classification_metrics(data, actual=None, predicted=None, positive=1,
+                           beta=1, headers=True):
+    """Accuracy, rates, F1/F-beta, MCC, and related binary metrics.
+
+    data: table/range, or actual labels if predicted is a Series/range.
+    actual, predicted: column names, ranges, or Series. Default: first two
+        columns of data (hard labels, not probabilities).
+    positive: value treated as the positive class (default 1).
+    beta: weight on recall in F-beta (default 1, same as F1).
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and predicted columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    def div(num, den):
+        return float(num / den) if den else np.nan
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    p = pd.Series(col(frame, predicted, 1)).reset_index(drop=True)
+    n0 = min(len(a), len(p))
+    a, p = a.iloc[:n0], p.iloc[:n0]
+    a = a.replace("", np.nan)
+    p = p.replace("", np.nan)
+    keep = a.notna() & p.notna()
+    a, p = a[keep], p[keep]
+    n = int(len(a))
+    if n < 1:
+        raise ValueError("Need at least 1 row with actual and predicted.")
+    pos = pd.Series(positive).iloc[0]
+    b = float(pd.Series(beta).iloc[0])
+    if b <= 0:
+        raise ValueError("beta must be > 0.")
+    yt, yp = is_pos(a, pos), is_pos(p, pos)
+    tp = float((yt & yp).sum())
+    fp = float((~yt & yp).sum())
+    fn = float((yt & ~yp).sum())
+    tn = float((~yt & ~yp).sum())
+    tpr = tp / (tp + fn) if (tp + fn) else 0.0
+    fpr = fp / (fp + tn) if (fp + tn) else 0.0
+    tnr = tn / (tn + fp) if (tn + fp) else 0.0
+    fnr = fn / (tp + fn) if (tp + fn) else 0.0
+    prec = tp / (tp + fp) if (tp + fp) else 0.0
+    npv = tn / (tn + fn) if (tn + fn) else 0.0
+    acc = (tp + tn) / n
+    f1 = (2 * prec * tpr / (prec + tpr)) if (prec + tpr) else 0.0
+    bb = b * b
+    fbeta = ((1 + bb) * prec * tpr / (bb * prec + tpr)
+             if (bb * prec + tpr) else 0.0)
+    lr_p = div(tpr, fpr)
+    lr_n = div(fnr, tnr)
+    mcc_d = float(np.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)))
+    return pd.DataFrame(
+        [
+            ("n", float(n)),
+            ("accuracy", acc),
+            ("misclassification_rate", (fp + fn) / n),
+            ("true_positive_rate", tpr),
+            ("false_positive_rate", fpr),
+            ("true_negative_rate", tnr),
+            ("false_negative_rate", fnr),
+            ("precision", prec),
+            ("prevalence", (tp + fn) / n),
+            ("lr_positive", lr_p),
+            ("lr_negative", lr_n),
+            ("diagnostic_odds_ratio", div(lr_p, lr_n)),
+            ("f1", f1),
+            ("beta", b),
+            ("f_beta", fbeta),
+            ("mcc", div(tp * tn - fp * fn, mcc_d)),
+            ("informedness", tpr + tnr - 1.0),
+            ("markedness", prec + npv - 1.0),
+            ("threat_score", div(tp, tp + fp + fn)),
+        ],
+        columns=["metric", "value"],
+    )
+
+"classification_metrics(data, actual=None, predicted=None, positive=1, beta=1, headers=True)"
+
+
+def find_optimal_threshold(data, actual=None, proba=None, metric="f1",
+                           low=0.1, high=0.9, step=0.1, positive=1,
+                           headers=True):
+    """Choose a probability cutoff by F1 or precision/recall balance.
+
+    Sweeps thresholds from low to high (default 0.1 to 0.9). metric='f1'
+    maximises F1. metric='balanced' minimises |precision - recall|
+    (F1 breaks ties). Default 0.5 is often weak on imbalanced data.
+
+    data: table/range, or actual labels if proba is a Series/range.
+    actual, proba: column names, ranges, or Series. Default: first two
+        columns of data (labels, then scores).
+    positive: value treated as the positive class (default 1).
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and probability columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    pr = pd.to_numeric(col(frame, proba, 1), errors="coerce")
+    pr = pd.Series(pr).reset_index(drop=True)
+    n0 = min(len(a), len(pr))
+    a, pr = a.iloc[:n0], pr.iloc[:n0]
+    a = a.replace("", np.nan)
+    keep = a.notna() & pr.notna()
+    a, pr = a[keep], pr[keep]
+    n = int(len(a))
+    if n < 1:
+        raise ValueError("Need at least 1 row with actual and probability.")
+    pos = pd.Series(positive).iloc[0]
+    metric = str(pd.Series(metric).iloc[0]).strip().lower()
+    if metric not in ("f1", "balanced"):
+        raise ValueError("metric must be 'f1' or 'balanced'.")
+    low = float(pd.Series(low).iloc[0])
+    high = float(pd.Series(high).iloc[0])
+    step = float(pd.Series(step).iloc[0])
+    if step <= 0 or high < low:
+        raise ValueError("Need low <= high and step > 0.")
+    nstep = int(round((high - low) / step))
+    ts = low + np.arange(nstep + 1, dtype="float64") * step
+    yt = is_pos(a, pos).to_numpy()
+    scores = pr.to_numpy(dtype="float64")
+    rows = []
+    best_i, best_key = 0, None
+    for t in ts:
+        yp = scores >= t
+        tp = float((yt & yp).sum())
+        fp = float((~yt & yp).sum())
+        fn = float((yt & ~yp).sum())
+        tn = float((~yt & ~yp).sum())
+        acc = (tp + tn) / n
+        prec = tp / (tp + fp) if (tp + fp) else 0.0
+        rec = tp / (tp + fn) if (tp + fn) else 0.0
+        f1 = (2 * prec * rec / (prec + rec)) if (prec + rec) else 0.0
+        key = (f1, -abs(prec - rec)) if metric == "f1" else (
+            -abs(prec - rec), f1)
+        rows.append((float(t), acc, prec, rec, f1, 0.0))
+        if best_key is None or key > best_key:
+            best_key = key
+            best_i = len(rows) - 1
+    out = pd.DataFrame(rows, columns=["threshold", "accuracy", "precision",
+                                      "recall", "f1", "is_best"])
+    out.loc[best_i, "is_best"] = 1.0
+    return out
+
+"find_optimal_threshold(data, actual=None, proba=None, metric='f1', low=0.1, high=0.9, step=0.1, positive=1, headers=True)"
+
+
+def lift_table(data, actual=None, proba=None, bins=10, positive=1,
+               plot=False, headers=True):
+    """Rank by score and spill cumulative gain and lift by bin.
+
+    bin 1 is the highest scores (top decile when bins=10). cum_gain is
+    the share of all positives in that top slice (e.g. top 20% yield
+    65% of conversions). plot=True is a two-panel gain/lift chart.
+
+    data: table/range, or actual labels if proba is a Series/range.
+    actual, proba: column names, ranges, or Series. Default: first two
+        columns of data (labels, then scores).
+    bins: number of equal-count groups (default 10).
+    positive: value treated as the positive class (default 1).
+    headers: first row is headers when a ref string is used.
+    """
+    def frame_of(value):
+        if isinstance(value, str):
+            value = xl(value, headers=headers)
+        if isinstance(value, pd.DataFrame):
+            return value.reset_index(drop=True)
+        if isinstance(value, pd.Series):
+            return value.to_frame()
+        return pd.DataFrame(value)
+
+    def col(frame, spec, idx):
+        if spec is None:
+            if frame.shape[1] <= idx:
+                raise ValueError("Need actual and probability columns.")
+            return frame.iloc[:, idx]
+        if isinstance(spec, pd.DataFrame):
+            return spec.iloc[:, 0]
+        if isinstance(spec, pd.Series) and int(spec.size) > 1:
+            return spec.reset_index(drop=True)
+        key = str(pd.Series(spec).iloc[0]).strip()
+        lookup = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() in lookup:
+            return frame[lookup[key.lower()]]
+        raw = xl(key, headers=headers)
+        if isinstance(raw, pd.DataFrame):
+            raw = raw.iloc[:, 0]
+        return pd.Series(raw)
+
+    def is_pos(s, pos):
+        s = pd.Series(s).reset_index(drop=True)
+        pn = pd.to_numeric(pd.Series([pos]), errors="coerce").iloc[0]
+        if pd.notna(pn):
+            return pd.to_numeric(s, errors="coerce") == float(pn)
+        return s.astype(str).str.strip() == str(pos).strip()
+
+    frame = frame_of(data)
+    a = pd.Series(col(frame, actual, 0)).reset_index(drop=True)
+    pr = pd.to_numeric(col(frame, proba, 1), errors="coerce")
+    pr = pd.Series(pr).reset_index(drop=True)
+    n0 = min(len(a), len(pr))
+    a, pr = a.iloc[:n0], pr.iloc[:n0]
+    a = a.replace("", np.nan)
+    keep = a.notna() & pr.notna()
+    a, pr = a[keep], pr[keep]
+    n = int(len(a))
+    nbins = int(pd.Series(bins).iloc[0])
+    if nbins < 2:
+        raise ValueError("bins must be >= 2.")
+    if n < nbins:
+        raise ValueError("Need at least as many rows as bins.")
+    pos = pd.Series(positive).iloc[0]
+    if not isinstance(plot, bool):
+        plot = bool(pd.Series(plot).iloc[0])
+    scores = pr.to_numpy(dtype="float64")
+    yt = is_pos(a, pos).to_numpy()
+    order = np.argsort(-scores, kind="mergesort")
+    ys, ss = yt[order], scores[order]
+    total_pos = float(ys.sum())
+    if total_pos < 1:
+        raise ValueError("Need at least 1 positive case.")
+    base = total_pos / n
+    bin_id = np.floor(np.arange(n) * nbins / n).astype(int) + 1
+    rows = []
+    cum_n = cum_pos = 0.0
+    for b in range(1, nbins + 1):
+        m = bin_id == b
+        k = float(m.sum())
+        p = float(ys[m].sum())
+        rr = p / k if k else np.nan
+        cum_n += k
+        cum_pos += p
+        pct = cum_n / n
+        gain = cum_pos / total_pos
+        rows.append((
+            float(b), k, p, rr, rr / base if k else np.nan,
+            cum_n, cum_pos, pct, gain, gain / pct if pct else np.nan,
+            float(ss[m].min()) if k else np.nan,
+            float(ss[m].max()) if k else np.nan,
+        ))
+    out = pd.DataFrame(
+        rows,
+        columns=["bin", "n", "positives", "response_rate", "lift",
+                 "cum_n", "cum_positives", "cum_pct", "cum_gain",
+                 "cum_lift", "min_proba", "max_proba"],
+    )
+    if plot:
+        fig, axes = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+        pct = [0.0] + list(out["cum_pct"])
+        gain = [0.0] + list(out["cum_gain"])
+        axes[0].plot(pct, gain, marker="o")
+        axes[0].plot([0, 1], [0, 1], linestyle="--")
+        axes[0].set_ylabel("Cumulative gain")
+        axes[0].set_title("Cumulative gain and lift")
+        axes[1].plot(out["cum_pct"], out["cum_lift"], marker="o")
+        axes[1].axhline(1.0, linestyle="--")
+        axes[1].set_xlabel("Cumulative population")
+        axes[1].set_ylabel("Cumulative lift")
+        fig.tight_layout()
+        return fig
+    return out
+
+"lift_table(data, actual=None, proba=None, bins=10, positive=1, plot=False, headers=True)"
+
+
+def match_transactions(df1, df2, date_col="Date", description_col="Description",
+                       value_col="Value", value_tol=0.01, desc_tol=0.8,
+                       summary=False, headers=True):
+    """Match two tables on description and value (exact then approximate).
+
+    date_col, description_col, value_col default to Date, Description, Value
+    (case-insensitive). Extra columns ignored. Difference = df1_value-df2_value
+    on every row. Blank values become 0. Missing dates are None. summary=True
+    groups matched vs unmatched.
+    """
+    from difflib import SequenceMatcher
 
     def to_frame(value):
         if isinstance(value, str):
             value = xl(value, headers=headers)
         if isinstance(value, pd.DataFrame):
-            return value
-        if isinstance(value, pd.Series):
-            return value.to_frame()
-        return pd.DataFrame(value)
+            df = value
+        elif isinstance(value, pd.Series):
+            df = value.to_frame()
+        else:
+            df = pd.DataFrame(value)
+        return df.dropna(how="all")
 
-    def first_numeric(frame):
-        numeric = frame.select_dtypes(include="number")
-        if numeric.shape[1]:
-            return numeric.iloc[:, 0]
-        return pd.to_numeric(frame.iloc[:, 0], errors="coerce")
+    def col(frame, name):
+        key = str(pd.Series(name).iloc[0]).strip()
+        cols = {str(c).strip().lower(): c for c in frame.columns}
+        if key.lower() not in cols:
+            raise ValueError("Column '%s' not found." % key)
+        return cols[key.lower()]
 
-    def as_datetime(series):
-        series = pd.Series(series).reset_index(drop=True)
-        if pd.api.types.is_datetime64_any_dtype(series):
-            return pd.to_datetime(series)
-        if pd.api.types.is_numeric_dtype(series):
-            num = pd.to_numeric(series, errors="coerce")
-            if num.notna().mean() > 0.8 and num.dropna().median() > 200:
-                return pd.to_datetime(num, unit="D", origin="1899-12-30")
+    def as_dates(series):
+        s = pd.Series(series).reset_index(drop=True)
+        if pd.api.types.is_datetime64_any_dtype(s):
+            p = pd.to_datetime(s)
+        else:
+            n = pd.to_numeric(s, errors="coerce")
+            use = n.notna().mean() > 0.5 and n.dropna().size and n.dropna().median() > 200
+            p = pd.to_datetime(n, unit="D", origin="1899-12-30") if use else pd.to_datetime(
+                s, errors="coerce")
+        return [None if pd.isna(x) else x.to_pydatetime() for x in p]
+
+    def prep(frame):
+        desc, nd = [], []
+        for x in frame[col(frame, description_col)].tolist():
+            if x is None or pd.isna(x):
+                desc.append(None)
+                nd.append("")
+            else:
+                t = str(x)
+                desc.append(t)
+                nd.append(" ".join(t.casefold().split()))
+        val = pd.to_numeric(frame[col(frame, value_col)], errors="coerce").fillna(0.0)
+        return as_dates(frame[col(frame, date_col)]), desc, nd, val.astype(float).tolist()
+
+    def none_date(v):
+        try:
+            return None if v is None or pd.isna(v) else v
+        except (TypeError, ValueError):
             return None
-        parsed = pd.to_datetime(series, errors="coerce")
-        if parsed.notna().mean() > 0.8:
-            return parsed
-        return None
 
-    df = to_frame(data)
-    date_out = None
-    if dates is not None:
-        date_out = to_frame(dates).iloc[:, 0]
-        y = first_numeric(df)
-        parsed = as_datetime(date_out)
-        if parsed is not None:
-            date_out = parsed
-    else:
-        date_col = None
-        for col in df.columns:
-            parsed = as_datetime(df[col])
-            if parsed is not None and (
-                pd.api.types.is_datetime64_any_dtype(df[col])
-                or not pd.api.types.is_numeric_dtype(df[col])
-                or df.select_dtypes(include="number").shape[1] > 1
-            ):
-                date_col = col
-                date_out = parsed
+    value_tol = float(pd.Series(value_tol).iloc[0])
+    desc_tol = float(pd.Series(desc_tol).iloc[0])
+    if value_tol < 0:
+        raise ValueError("value_tol must be >= 0.")
+    if not 0 <= desc_tol <= 1:
+        raise ValueError("desc_tol must be in [0, 1].")
+    if not isinstance(summary, bool):
+        summary = bool(pd.Series(summary).iloc[0])
+
+    a, b = prep(to_frame(df1)), prep(to_frame(df2))
+    n1, n2 = len(a[3]), len(b[3])
+    used1, used2, pairs = set(), set(), []
+    idx = {}
+    for j in range(n2):
+        idx.setdefault((b[2][j], round(b[3][j], 8)), []).append(j)
+    for i in range(n1):
+        for j in idx.get((a[2][i], round(a[3][i], 8)), []):
+            if j not in used2:
+                used1.add(i)
+                used2.add(j)
+                pairs.append((i, j, 0, 1.0))
                 break
-        y = first_numeric(df.drop(columns=[date_col])) if date_col is not None else first_numeric(df)
+    labs = (
+        "Exact match",
+        "Approximate match (description)",
+        "Approximate match (value)",
+        "Approximate match (value and description)",
+        "Exists only in df1",
+        "Exists only in df2",
+    )
+    cands = []
+    for i in range(n1):
+        if i in used1:
+            continue
+        for j in range(n2):
+            if j in used2:
+                continue
+            vd = abs(a[3][i] - b[3][j])
+            ve, va = vd <= 1e-9, vd <= value_tol + 1e-12
+            if not ve and not va:
+                continue
+            de = a[2][i] == b[2][j]
+            if de:
+                r, tier = 1.0, 0 if ve else 2
+            else:
+                r = SequenceMatcher(None, a[2][i], b[2][j]).ratio()
+                if r < desc_tol:
+                    continue
+                tier = 1 if ve else 3
+            cands.append((tier, -r, vd, i, j))
+    cands.sort()
+    for tier, neg_r, _vd, i, j in cands:
+        if i in used1 or j in used2:
+            continue
+        used1.add(i)
+        used2.add(j)
+        pairs.append((i, j, tier, -neg_r))
 
-    y = pd.to_numeric(pd.Series(y).reset_index(drop=True), errors="coerce").astype("float64")
-    z = abs(float(pd.Series(z).iloc[0]))
-    if date_out is not None:
-        date_out = pd.Series(date_out).reset_index(drop=True)
-        n = min(len(y), len(date_out))
-        y = y.iloc[:n].reset_index(drop=True)
-        date_out = date_out.iloc[:n]
-        date_idx = pd.Index(date_out)
-        use_time = (
-            isinstance(date_idx, pd.DatetimeIndex)
-            and date_idx.notna().all()
-            and date_idx.is_monotonic_increasing
-            and date_idx.is_unique
-        )
-    else:
-        use_time = False
+    rows = []
+    for i, j, tier, r in pairs:
+        v1, v2 = a[3][i], b[3][j]
+        dlt = v1 - v2
+        lab = labs[tier] if not tier else (
+            "%s; desc %g (tol %g)" % (
+                labs[tier], round(r, 4), round(desc_tol, 4)))
+        rows.append((a[0][i], a[1][i], v1, b[0][j], b[1][j], v2, dlt, lab,
+                     "Matched"))
+    for i in range(n1):
+        if i not in used1:
+            v1 = a[3][i]
+            rows.append((a[0][i], a[1][i], v1, None, None, 0.0, v1, labs[4],
+                         "Unmatched"))
+    for j in range(n2):
+        if j not in used2:
+            v2 = b[3][j]
+            rows.append((None, None, 0.0, b[0][j], b[1][j], v2, -v2, labs[5],
+                         "Unmatched"))
+    order = {k: i for i, k in enumerate(labs)}
+    cols = ["df1_date", "df1_description", "df1_value", "df2_date",
+            "df2_description", "df2_value", "Difference", "match_details",
+            "match_group"]
+    out = pd.DataFrame(rows, columns=cols)
+    if not len(out):
+        if summary:
+            return pd.DataFrame(columns=[
+                "match_group", "match_details", "count", "df1_value",
+                "df2_value", "Difference"])
+        return out
+    out["_o"] = out["match_details"].str.split(";").str[0].map(order)
+    out = out.sort_values("_o", kind="mergesort").drop(columns=["_o"]).reset_index(drop=True)
+    out["df1_date"] = pd.Series([none_date(v) for v in out["df1_date"]], dtype=object)
+    out["df2_date"] = pd.Series([none_date(v) for v in out["df2_date"]], dtype=object)
+    if not summary:
+        return out
+    out = out.copy()
+    out["match_details"] = out["match_details"].str.split(";").str[0]
+    keys = ["match_group", "match_details"]
+    agg = dict(count=("match_details", "count"), df1_value=("df1_value", "sum"),
+               df2_value=("df2_value", "sum"), Difference=("Difference", "sum"))
+    g = out.groupby(keys, as_index=False).agg(**agg)
+    tot = out.groupby(["match_group"], as_index=False).agg(**agg)
+    tot["match_details"] = "Total"
+    sm = pd.concat([g, tot], ignore_index=True)
+    sm["_g"] = sm["match_group"].map({"Matched": 0, "Unmatched": 1})
+    sm["_d"] = sm["match_details"].map(order).fillna(99)
+    return sm.sort_values(["_g", "_d"], kind="mergesort").drop(
+        columns=["_g", "_d"]).reset_index(drop=True)[
+            ["match_group", "match_details", "count", "df1_value", "df2_value",
+             "Difference"]]
 
-    sigma = float(y.std(ddof=0, skipna=True))
-    if not np.isfinite(sigma) or sigma == 0:
-        outliers = pd.Series(False, index=y.index)
-    else:
-        outliers = ((y - y.mean(skipna=True)) / sigma).abs() > z
-        outliers = outliers.fillna(False)
-
-    masked = y.where(~outliers)
-    if use_time:
-        filled = pd.Series(masked.to_numpy(), index=date_idx)
-        filled = filled.interpolate(method="time", limit_direction="both")
-        filled = pd.Series(filled.bfill().ffill().to_numpy(), index=y.index)
-    else:
-        filled = masked.interpolate(method="linear", limit_direction="both")
-        filled = filled.bfill().ffill()
-
-    cleaned = y.where(~outliers, filled)
-    return pd.Series(cleaned.to_numpy(), name="value")
-
-"zscore_replace(data, z=3, dates=None, headers=False)"
-
+"match_transactions(df1, df2, date_col='Date', description_col='Description', value_col='Value', value_tol=0.01, desc_tol=0.8, summary=False, headers=True)"

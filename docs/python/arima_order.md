@@ -6,7 +6,7 @@ Formula: `source/python-in-excel/functions/arima_order.py`
 
 ## Install
 
-Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste the whole `init/PaulPythonLibrary.py`.
+Formulas → **Initialization** → paste the `def` after the default imports → Save. Or paste `init/TimeSeries.py` (time series functions only) or the whole `init/PaulPythonLibrary.py`.
 
 In a PY cell (output **Excel value**):
 

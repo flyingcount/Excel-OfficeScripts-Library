@@ -1,0 +1,29 @@
+---
+description: When adding a Python in Excel time series function, copy it into init/TimeSeries.py only (not PaulPythonLibrary).
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Python in Excel time series functions
+
+Time series functions operate on an ordered series (`expsmooth`, `stl`, `stl_plot`, `resid_analysis`, `arima_order`, `zscore_replace`, forecasting, seasonal decomposition, and similar). `describe`, `corr`, `normality_check`, `cluster_prep`, `detect_mixed_data_anomalies`, `rank_feature_importance`, `check_collinearity`, `confusion_matrix`, `classification_metrics`, `find_optimal_threshold`, `lift_table`, `match_transactions`, sampling functions, and SPC functions (`xmr`, `xbar_r`, `xbar_s`, `ewma`, `cusum`, `capability_report`, `process_shift_detection`, `nelson_rules`, `c_chart`, `u_chart`, `p_chart`, `np_chart`) are not time series.
+
+## Init files
+
+Copy the `def` and quoted call into **only**:
+
+1. @source/python-in-excel/init/TimeSeries.py (time-series-only Initialization)
+
+Do **not** also add time series functions to @source/python-in-excel/init/PaulPythonLibrary.py. Paul is the **general** init for functions that do not belong in a specialized collection. Do not add time series functions to @source/python-in-excel/init/DefaultInitialization.py.
+
+Keep function bodies in `functions/name.py` and `TimeSeries.py` identical. `TimeSeries.py` is a complete Initialization: Excel default imports, then time series `def`s only (including shared helpers such as `stl_fit`).
+
+Add a `contents()` row in `TimeSeries.py` in the same change. See @.cursor/rules/python-in-excel-init-contents.mdc.
+
+```python
+# ❌ BAD — time series function also copied into PaulPythonLibrary.py
+# ❌ BAD — def added, contents() not updated
+# ✅ GOOD — same def in functions/name.py and TimeSeries.py only; contents() row with call signature
+```
+
+Then follow @.cursor/rules/python-in-excel.mdc (function file, PythonMap, README, CHANGELOG, tests, docs).

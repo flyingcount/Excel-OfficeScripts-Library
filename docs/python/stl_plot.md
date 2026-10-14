@@ -8,7 +8,7 @@ Same inputs as [stl](stl.md). Use `stl` when you want a spill table; use `stl_pl
 
 ## Install
 
-Formulas → **Initialization** → paste `stl_fit` and `stl_plot` (or the whole `init/PaulPythonLibrary.py`) after the default imports → Save.
+Formulas → **Initialization** → paste `stl_fit` and `stl_plot` after the default imports → Save. Or paste `init/TimeSeries.py` (time series functions only) or the whole `init/PaulPythonLibrary.py`.
 
 In a PY cell, leave the output as a **Python object** (do not switch to Excel value):
 

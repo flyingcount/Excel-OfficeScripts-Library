@@ -1,0 +1,68 @@
+---
+description: Hard rule — every library init file must have contents(); update contents() whenever a public function is added to that init file. PaulPythonLibrary is general-only.
+globs: source/python-in-excel/**/*,tests/python-in-excel/**/*,docs/python/**/*,docs/AddingPython.md,docs/PythonMap.md
+alwaysApply: false
+---
+
+# Init files MUST have `contents()`
+
+## Hard requirements
+
+1. **Every library Initialization paste** under `source/python-in-excel/init/` **must** define a public `contents()` function.
+2. **Whenever you add a public `def` to an init file**, you **must** add a matching row to **that same file’s** `contents()` in the **same change**. Shipping a new `def` without a `contents()` row is incomplete.
+3. **A new library init file** (anything other than `DefaultInitialization.py`) **must** include `contents()` from the first commit — do not land the file and “add the catalog later.”
+
+```python
+# ❌ BAD — init file with public defs but no contents()
+# ❌ BAD — new def copied into an init file, contents() unchanged
+# ❌ BAD — contents() row missing the call signature
+# ✅ GOOD — init file has contents(); every public def has a row
+# ✅ GOOD — same change adds the def and ("name", "Brief note", "name(data, arg=default)")
+```
+
+## Which files (no duplication)
+
+Init pastes are **partitioned**. A public function lives in **exactly one** library init file.
+
+| Init file | Holds | `contents()` required? |
+|-----------|--------|------------------------|
+| @source/python-in-excel/init/PaulPythonLibrary.py | **General** functions that are **not** in another collection init | **Yes** |
+| @source/python-in-excel/init/Sampling.py | Sampling functions only | **Yes** |
+| @source/python-in-excel/init/TimeSeries.py | Time series functions only | **Yes** |
+| @source/python-in-excel/init/SPC.py | SPC / control-chart functions only | **Yes** |
+| Any **new** collection init under `init/` | That collection only | **Yes** |
+| @source/python-in-excel/init/DefaultInitialization.py | Excel defaults only | **No** — do **not** add `contents()` or library functions |
+
+```python
+# ❌ BAD — same def in PaulPythonLibrary.py and TimeSeries.py / Sampling.py
+# ❌ BAD — new collection init created, but matching defs left in PaulPythonLibrary.py
+# ✅ GOOD — general → PaulPythonLibrary only; sampler → Sampling only; series → TimeSeries only; SPC → SPC only
+```
+
+When you create a **new collection** init file, **review** `PaulPythonLibrary.py` and **move** any functions that belong in that collection out of Paul (defs + `contents()` rows) into the new init.
+
+`contents()` is init-only. Do **not** add `functions/contents.py`. Each init file lists only what that paste installs.
+
+## Shape of `contents()`
+
+Spills a table with columns `function`, `description`, `call`:
+
+- `function` — public name
+- `description` — one short phrase (a readable name is enough when it already describes the function, e.g. `"Stratified sample"`)
+- `call` — same text as the quoted signature after the `def`, without the surrounding quotes (e.g. `describe(data, headers=True)`). Keep single quotes inside defaults (`method='pearson'`).
+
+Also:
+
+- List `contents` itself (`call` is `contents()`).
+- List every public function: no leading underscore, and either a quoted call line or an alias (`qq_norm`).
+- Do **not** list private helpers (`_norm_values`) or internal helpers with no quoted call (`stl_fit`).
+
+## Where to put a new function
+
+- Sampler → @source/python-in-excel/init/Sampling.py only (see @.cursor/rules/python-in-excel-sampling.mdc)
+- Time series → @source/python-in-excel/init/TimeSeries.py only (see @.cursor/rules/python-in-excel-timeseries.mdc)
+- SPC → @source/python-in-excel/init/SPC.py only (see @.cursor/rules/python-in-excel-spc.mdc)
+- Otherwise general → @source/python-in-excel/init/PaulPythonLibrary.py only
+- Always update **that file’s** `contents()` in the same change
+
+Then follow @.cursor/rules/python-in-excel.mdc for the function file, PythonMap, README, CHANGELOG, tests, and docs.
